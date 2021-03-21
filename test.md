@@ -1,4 +1,2 @@
-Henry Robbins
-Andy Kim
-andy
-\test
+Henry Robbins (hwr26)
+Andy Kim (yk765)
