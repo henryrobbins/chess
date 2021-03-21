@@ -1,0 +1,54 @@
+(** The abstract type of values representing a chess piece. *)
+type p
+
+(** The abstract type of values representing a chess board state. *)
+type b
+
+(** The abstract type of values representing the state of a chess game.
+    I.e. Current board state, active pieces, and captured pieces. *)
+type t
+
+(* TODO: Define algebraic notation. *)
+(** The type of a chess board square identifier in algebraic notation. *)
+type square = string
+
+(** The type of a direction. *)
+type direction = N | NE | E | SE | S | SW | W | NW | L
+
+(** [piece_of_square t s] is the piece on square [s] in state [t] if it exists.
+    Otherwise, is None.
+    Requires: [s] is in standard algebraic notation. *)
+val piece_of_square : t -> square -> p option
+
+(** [square_of_piece t p] is the square in state [t] where piece [p] is located
+    if [p] has not been captured in [t]. Otherwise, is None. *)
+val square_of_piece : t -> p -> square option
+
+(** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
+val id_of_piece : p -> string
+
+(** [start_sq_of_piece p] is the square on which piece [p] started. *)
+val start_sq_of_piece : p -> square
+
+(** [color_of_piece p] is the color of piece [p]. *)
+val color_of_piece : p -> string
+
+(** [iterator_from_sq s d] is the list of the squares that can be reached by
+    moving in direction [d] from square [s].
+    Requires: [s] is in standard algebraic notation. *)
+val iterator_from_sq : square -> direction -> square list
+
+(** [active_pieces t] is the list of pieces on the board in state [t]. *)
+val active_pieces : t -> p list
+
+(** [captured_pieces t] is the list of captured pieces in state [t]. *)
+val captured_pieces : t -> p list
+
+(* TODO: Use Yojson.Basic.t here. Need to figure out how to do this.. *)
+(** [init_from_json json] is the state of the game read in from the
+    JSON file [json].
+    Requires: [json] is a valid JSON file representing a board state. *)
+val init_from_json : string -> t
+
+(** [print t] prints the state [t] in string format. *)
+val print : t -> unit
