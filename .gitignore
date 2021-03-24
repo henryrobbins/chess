@@ -1,2 +1,6 @@
+# vscode settings
 .vscode
+
+# ocaml
 _build
+*.byte
