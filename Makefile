@@ -1,4 +1,4 @@
-MODULES=board
+MODULES=board map
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

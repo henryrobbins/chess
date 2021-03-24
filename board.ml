@@ -1,4 +1,5 @@
 open Yojson.Basic.Util
+open Map
 
 type square = string
 
@@ -13,7 +14,7 @@ type p = {
 let ranks = ["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]
 let files = ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"]
 
-type b = (string * p option) list
+type b = (string , p option) Map.t
 
 type t = {
   board : b;
