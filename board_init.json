@@ -1,0 +1,120 @@
+{
+  "active_pieces": [
+    {
+      "id": "K",
+      "color": "White",
+      "positions": [
+        "e1"
+      ],
+      "number": "1"
+    },
+    {
+      "id": "K",
+      "color": "Black",
+      "positions": [
+        "e8"
+      ],
+      "number": "1"
+    },
+    {
+      "id": "Q",
+      "color": "White",
+      "positions": [
+        "d1"
+      ],
+      "number": "1"
+    },
+    {
+      "id": "Q",
+      "color": "Black",
+      "positions": [
+        "d8"
+      ],
+      "number": "1"
+    },
+    {
+      "id": "B",
+      "color": "White",
+      "positions": [
+        "c1",
+        "f1"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "B",
+      "color": "Black",
+      "positions": [
+        "c8",
+        "f8"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "N",
+      "color": "White",
+      "positions": [
+        "b1",
+        "g1"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "N",
+      "color": "Black",
+      "positions": [
+        "b8",
+        "g8"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "R",
+      "color": "White",
+      "positions": [
+        "a1",
+        "h1"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "R",
+      "color": "Black",
+      "positions": [
+        "a8, h8"
+      ],
+      "number": "2"
+    },
+    {
+      "id": "P",
+      "color": "White",
+      "positions": [
+        "a2",
+        "b2",
+        "c2",
+        "d2",
+        "e2",
+        "f2",
+        "g2",
+        "h2"
+      ],
+      "number": "8"
+    },
+    {
+      "id": "P",
+      "color": "black",
+      "positions": [
+        "a7",
+        "b7",
+        "c7",
+        "d7",
+        "e7",
+        "f7",
+        "g7",
+        "h7"
+      ],
+      "number": "8"
+    }
+  ],
+  "captured_pieces": []
+}
