@@ -27,6 +27,8 @@ let square_of_piece t p = failwith("Not implemented.")
 
 let id_of_piece p = failwith("Not implemented.")
 
+let move_piece t p s = failwith("Not implemented")
+
 let start_sq_of_piece p = failwith("Not implemented.")
 
 let color_of_piece p = failwith("Not implemented.")
