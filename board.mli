@@ -25,13 +25,19 @@ val piece_of_square : t -> square -> p option
 val square_of_piece : t -> p -> square option
 
 (** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
-val id_of_piece : p -> string
+val id_of_piece : p option -> string
+
+(** [move_piece t p s] is the game state after the piece contained in p moves
+    to square s in state [t]. If a piece of the opposite color is already at
+    square s in state [t], it is captured.
+    Requires: p is a non-None piece option, s is a valid destination square.*)
+val move_piece : t -> p option -> square -> t
 
 (** [start_sq_of_piece p] is the square on which piece [p] started. *)
-val start_sq_of_piece : p -> square
+val start_sq_of_piece : p option -> square
 
 (** [color_of_piece p] is the color of piece [p]. *)
-val color_of_piece : p -> string
+val color_of_piece : p option -> string
 
 (** [iterator_from_sq s d] is the list of the squares that can be reached by
     moving in direction [d] from square [s].
@@ -48,7 +54,7 @@ val captured_pieces : t -> p list
 (** [init_from_json json] is the state of the game read in from the
     JSON file [json].
     Requires: [json] is a valid JSON file representing a board state. *)
-val init_from_json : string -> t
+val init_from_json : Yojson.Basic.t -> t
 
-(** [print t] prints the state [t] in string format. *)
+(** [print t] prints the game state [t] in string format. *)
 val print : t -> unit

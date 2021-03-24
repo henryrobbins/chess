@@ -1,15 +1,19 @@
+open Yojson.Basic.Util
+
 type square = string
 
 type direction = N | NE | E | SE | S | SW | W | NW | L
 
 type p = {
   id : string;
-  start_pos : square;
-  color : string
+  color : string;
+  current_pos : square option
 }
 
-(** Idea: record with field for each of the 64 squares of type p option. *)
-type b
+let ranks = ["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]
+let files = ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"]
+
+type b = (string * p option) list
 
 type t = {
   board : b;
@@ -33,6 +37,6 @@ let active_pieces t = failwith("Not implemented.")
 
 let captured_pieces t = failwith("Not implemented.")
 
-let init_from_json string = failwith("Not implemented.")
+let init_from_json t = failwith("Not implemented.")
 
 let print t = failwith("Not implemented.")
