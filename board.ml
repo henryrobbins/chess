@@ -1,16 +1,14 @@
 open Yojson.Basic.Util
 open Map
 
-type square = {
-  pos : string}
+type square = string
 
 type direction = N | NE | E | SE | S | SW | W | NW | L
 
 type p = {
   id : string;
   color : string;
-  positions : square list;
-  number : string;
+  current_pos : square option
 }
 
 let ranks = ["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]
@@ -19,7 +17,7 @@ let files = ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"]
 type b = (string , p option) Map.t
 
 type t = {
-  (**board : b;*)
+  board : b;
   active_pieces : p list;
   captured_pieces : p list;
 }
@@ -42,28 +40,43 @@ let active_pieces t = failwith("Not implemented.")
 
 let captured_pieces t = failwith("Not implemented.")
 
-let init_from_json board =
+(** [extract_active_piece j] extracts a list of active pieces from JSON.
+    Requires: JSON is in valid format. *)
+let extract_active_piece j =
+  let id = j |> member "id" |> to_string in
+  let color = j |> member "color" |> to_string in
+  let positions = j |> member "positions"
+                    |> to_list
+                    |> List.map (fun x -> to_string x) in
+  let n = j |> member "number" |> to_int in
+  let pieces = [] in
+  pieces
+  (* TODO: Define the active pieces. *)
 
-let extract_positions (position1 : Yojson.Basic.t) : square =
-  {
-  pos = position1 |> member "pos" |> to_string;
-  }
-in
-let extract_piece (piece1 : Yojson.Basic.t) : p =
-  {
-    id = piece1 |> member "id" |> to_string;
-    color = piece1 |> member "color" |> to_string;
-    positions = piece1 |> member "positions" |> to_list |> List.map extract_positions;
-    number = piece1 |> member "number" |> to_string;
-  }
-in
-let extract_board (board1 : Yojson.Basic.t)  =
-  {
-    active_pieces = board1 |> member "active_pieces" |> to_list |> List.map extract_piece;
-    captured_pieces = board1 |> member "captured_pieces" |> to_list |> List.map extract_piece;
-  }
-in
-extract_board
+(** [extract_captured_piece j] extracts aa list of captured pieces from JSON.
+    Requires: JSON is in valid format. *)
+let extract_captured_piece j : p list=
+  let id = j |> member "id" |> to_string in
+  let color = j |> member "color" |> to_string in
+  let n = j |> member "number" |> to_int in
+  let pieces = [] in
+  pieces
+  (* TODO: Define the captured pieces. *)
 
+let init_from_json j =
+  let active_pieces = j |> member "active_pieces"
+                        |> to_list
+                        |> List.map extract_active_piece in
+  let captured_pieces = j |> member "captured_pieces"
+                          |> to_list
+                          |> List.map extract_captured_piece in
+  (* TODO: Define the board. *)
+  let board = empty in
+  {
+    board = board;
+    (* Will need to make slight changes to this implementation. *)
+    active_pieces = active_pieces;
+    captured_pieces = captured_pieces
+  }
 
 let print t = failwith("Not implemented.")
