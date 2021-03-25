@@ -56,12 +56,8 @@ let extract_active_piece j =
   let positions = j |> member "positions"
                     |> to_list
                     |> List.map (fun x -> to_string x) in
-  let active_piece pos = {id = id; color = color; current_pos = Some pos} in
-  let rec piece_list pieces positions =
-    match positions with
-    | [] -> pieces
-    | h :: t -> piece_list ((active_piece h) :: pieces) t in
-  piece_list [] positions
+  let init_piece pos = {id = id; color = color; current_pos = Some pos} in
+  List.map init_piece positions
 
 (** [extract_captured_piece j] extracts a list of captured pieces from JSON.
     Requires: JSON is in valid format. *)
@@ -125,15 +121,9 @@ let print_piece p =
 let print t : unit =
   print_string "    a    b    c    d    e    f    g    h\n";
   print_string "  -----------------------------------------\n";
-  let rec init rows =
-    match rows with
-      | [] -> print_string "";
-      | rh :: rt -> begin
-        let row_str = List.map (fun x -> x ^ rh) files
-                      |> List.map (piece_of_square t)
-                      |> List.map print_piece
-                      |> List.fold_left (fun x y -> x ^ " | " ^ y) "" in
-        print_string (rh ^ row_str ^ " |\n"); init rt;
-      end
-  in init ranks;
+  let row_str i = List.map (fun x -> x ^ i) files
+                  |> List.map (piece_of_square t)
+                  |> List.map print_piece
+                  |> List.fold_left (fun x y -> x ^ " | " ^ y) ""
+  in List.iter (fun r -> print_string (r ^ row_str r ^ " |\n")) ranks;
   print_string "  -----------------------------------------\n";
