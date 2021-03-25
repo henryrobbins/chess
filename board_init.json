@@ -81,7 +81,8 @@
       "id": "R",
       "color": "Black",
       "positions": [
-        "a8, h8"
+        "a8",
+        "h8"
       ],
       "number": "2"
     },
@@ -102,7 +103,7 @@
     },
     {
       "id": "P",
-      "color": "black",
+      "color": "Black",
       "positions": [
         "a7",
         "b7",

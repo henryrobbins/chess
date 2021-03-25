@@ -8,7 +8,7 @@ type ('k, 'v) t = ('k * 'v) list
 
 let insert k v m = (k, v) :: m
 
-let find = List.assoc_opt
+let find = List.assoc
 
 let remove k lst = List.filter (fun (k',_) -> k <> k') lst
 

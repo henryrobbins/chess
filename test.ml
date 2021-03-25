@@ -2,6 +2,7 @@ open OUnit2
 open Board
 open Map
 
+let board = init_from_json (Yojson.Basic.from_file "board_init.json")
 
 (* HELPER FUNCTIONS *)
 

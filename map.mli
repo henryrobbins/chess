@@ -7,9 +7,9 @@ type ('k, 'v) t
     that binding is replaced by the binding to [v] in the new map. *)
 val insert : 'k -> 'v -> ('k, 'v) t -> ('k, 'v) t
 
-(** [find k m] is [Some v] if [k] is bound to [v] in [m],
-    and [None] if not. *)
-val find : 'k -> ('k, 'v) t -> 'v option
+(** [find k m] is [v] where [k] is bound to [v] in [m].
+    Requires: [k] is a valid key in [m]. *)
+val find : 'k -> ('k, 'v) t -> 'v
 
 (** [remove k m] is the same map as [m], but without any binding of [k].
     If [k] was not bound in [m], then the map is unchanged. *)
