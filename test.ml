@@ -40,6 +40,20 @@ let pp_list pp_elt lst =
 let pp_pair pp1 pp2 (a, b) =
   "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
+(** [move_piece_test name b s s'] constructs OUnit tests named [name] that
+    assert [move_piece b (piece_of_square s) s'] is correct. *)
+let move_piece_test name b s s' : test list =
+  let p = piece_of_square b s in
+  let b' = move_piece b p s' in
+  [ (name ^ " | previous board sqaure" >:: fun _ ->
+    assert_equal None (piece_of_square b' s));
+    (name ^ " | new board sqaure (piece id) " >:: fun _ ->
+      assert_equal (id_of_piece (p)) (id_of_piece (piece_of_square b' s')));
+    (name ^ " | new board sqaure (piece color) " >:: fun _ ->
+      assert_equal (color_of_piece (p)) (color_of_piece (piece_of_square b' s')));
+    (name ^ " | new board sqaure (piece pos) " >:: fun _ ->
+      assert_equal (square_of_piece (piece_of_square b' s')) (Some s'));]
+
 (** [iterator_from_sq_test name board s d expected] constructs an OUnit test
     named [name] that asserts the equality of [expected]
     with [iterator_from_sq s d]. *)
@@ -47,11 +61,16 @@ let iterator_from_sq_test name s d expected : test =
   name >:: fun _ ->
   assert_equal expected (iterator_from_sq s d) ~printer:(pp_list Fun.id)
 
-  let board_tests =
-    [ (* TODO: move_pieces tests *)
+let board_tests =
+  [ (* move_pieces tests *)
+    (* TODO: add test cases for captured pieces. *)
+    move_piece_test "d2 -> d4" board "d2" "d4";
+    move_piece_test "e7 -> e5" board "e7" "e5";
+    move_piece_test "g1 -> h3" board "g1" "h3";
 
-      (* iterator_from_sq tests *)
-      iterator_from_sq_test "d5 -> N" "d5" N ["d6"; "d7"; "d8"];
+    (* iterator_from_sq tests *)
+    (* TODO: add test cases for L direction. *)
+    [ iterator_from_sq_test "d5 -> N" "d5" N ["d6"; "d7"; "d8"];
       iterator_from_sq_test "d5 -> NE" "d5" NE ["e6"; "f7"; "g8"];
       iterator_from_sq_test "d5 -> E" "d5" E ["e5"; "f5"; "g5"; "h5"];
       iterator_from_sq_test "d5 -> SE" "d5" SE ["e4"; "f3"; "g2"; "h1"];
@@ -66,10 +85,10 @@ let iterator_from_sq_test name s d expected : test =
       iterator_from_sq_test "d1 -> S" "d1" S [];
       iterator_from_sq_test "a1 -> SW" "a1" SW [];
       iterator_from_sq_test "a4 -> W" "a4" W [];
-      iterator_from_sq_test "a8 -> N" "a8" NW []; ]
+      iterator_from_sq_test "a8 -> N" "a8" NW []; ]]
 
 let suite =
   "test suite for chess"
-  >::: List.flatten [ board_tests ]
+  >::: List.flatten [ (List.flatten board_tests) ]
 
 let _ = run_test_tt_main suite

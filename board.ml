@@ -15,7 +15,7 @@ type direction =
 
 type p = {
   id : string;
-  color : string;
+  color : string;  (* TODO: Decide how these colors should be stored. *)
   current_pos : square option;
 }
 
@@ -37,7 +37,10 @@ let captured_pieces t = t.captured_pieces
 
 let piece_of_square t square = List.assoc square t.board
 
-let square_of_piece p = p.current_pos
+let square_of_piece p =
+  match p with
+  | None -> failwith "Piece must be non-None."
+  | Some p -> p.current_pos
 
 let id_of_piece p =
   match p with
@@ -68,7 +71,7 @@ let move_piece t piece s' =
         | Some cp -> { cp with current_pos = None } :: captured_pieces t
       in
       let board =
-        match square_of_piece p with
+        match square_of_piece (Some p) with
         | None -> failwith "Piece should be active."
         | Some s ->
             t.board |> List.remove_assoc s
