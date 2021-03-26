@@ -1,6 +1,5 @@
 open OUnit2
 open Board
-open Map
 
 let board = init_from_json (Yojson.Basic.from_file "board_init.json")
 
@@ -41,12 +40,8 @@ let pp_list pp_elt lst =
 let pp_pair pp1 pp2 (a, b) =
   "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
-(* TODO: Write test cases for map (hwr26) *)
-let map_tests = []
-
-
 (* TODO: Write test cases for board *)
-let board_tests = []
+  let board_tests = []
 
 let suite =
   "test suite for chess"

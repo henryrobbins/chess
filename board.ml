@@ -1,5 +1,4 @@
 open Yojson.Basic.Util
-open Map
 
 type square = string
 
@@ -14,7 +13,7 @@ type p = {
 let ranks = ["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]
 let files = ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"]
 
-type b = (string , p option) Map.t
+type b = (square * p option) list
 
 type t = {
   board : b;
@@ -22,7 +21,7 @@ type t = {
   captured_pieces : p list;
 }
 
-let piece_of_square t square = find square t.board
+let piece_of_square t square = List.assoc square t.board
 
 let square_of_piece t p = failwith("Not implemented.")
 
@@ -49,8 +48,6 @@ let captured_pieces t = t.captured_pieces
 (** [extract_active_piece j] extracts a list of active pieces from JSON.
     Requires: JSON is in valid format. *)
 let extract_active_piece j =
-  (*  NOTE: We don't actually need the number field for active pieces.
-      Should we remove that field or keep it for consistency? *)
   let id = j |> member "id" |> to_string in
   let color = j |> member "color" |> to_string in
   let positions = j |> member "positions"
@@ -80,9 +77,9 @@ let blank_board : b =
       | rh :: rt -> begin
         match cols with
           | [] -> init rt files b
-          | ch :: ct -> init (rh :: rt) ct (insert (ch ^ rh) None b)
+          | ch :: ct -> init (rh :: rt) ct (((ch ^ rh),None) :: b)
       end in
-  init ranks files empty
+  init ranks files []
 
 let init_from_json j =
   let active_pieces = j |> member "active_pieces"
@@ -99,7 +96,7 @@ let init_from_json j =
       | h :: t -> let pos = h.current_pos in
         match pos with
           | None -> failwith("Active pieces should have a position.")
-          | Some pos -> add_pieces (insert pos (Some h) b) t in
+          | Some pos -> add_pieces ((pos, (Some h)) :: b) t in
   let board = add_pieces blank_board active_pieces in
   {
     board = board;
@@ -113,8 +110,8 @@ let print_piece p =
   match p with
     | None -> "  "
     | Some p ->
-      let c_map = insert "White" "W" (insert "Black" "B" empty) in
-      let c = find p.color c_map in
+      let c_map = [("White","W"); ("Black", "B")] in
+      let c = List.assoc p.color c_map in
       c ^ p.id
 
 (* TODO: Print our graveyard pieces somewhere. *)
