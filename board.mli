@@ -22,7 +22,7 @@ val piece_of_square : t -> square -> p option
 
 (** [square_of_piece p] is the square where piece [p] is located if [p]
     has not been captured. Otherwise, is None. *)
-val square_of_piece : p -> square option
+val square_of_piece : p option -> square option
 
 (** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
 val id_of_piece : p option -> string
