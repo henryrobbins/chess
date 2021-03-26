@@ -35,41 +35,45 @@ let pp_list pp_elt lst =
   in
   "[" ^ pp_elts lst ^ "]"
 
-(** [pp_pair pp1 pp2 (a, b)] pretty-prints [(a, b)] using
-    [pp1] for [a] and [pp2] for [b]. *)
-let pp_pair pp1 pp2 (a, b) =
-  "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
+(** [pp_pair pp1 pp2 (a, b)] pretty-prints [(a, b)] using [pp1] for [a]
+    and [pp2] for [b]. *)
+let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
-(** [iterator_from_sq_test name board s d expected] constructs an OUnit test
-    named [name] that asserts the equality of [expected]
-    with [iterator_from_sq s d]. *)
+(** [iterator_from_sq_test name board s d expected] constructs an OUnit
+    test named [name] that asserts the equality of [expected] with
+    [iterator_from_sq s d]. *)
 let iterator_from_sq_test name s d expected : test =
   name >:: fun _ ->
   assert_equal expected (iterator_from_sq s d) ~printer:(pp_list Fun.id)
 
-  let board_tests =
-    [ (* TODO: move_pieces tests *)
+let board_tests =
+  [
+    (* TODO: move_pieces tests *)
 
-      (* iterator_from_sq tests *)
-      iterator_from_sq_test "d5 -> N" "d5" N ["d6"; "d7"; "d8"];
-      iterator_from_sq_test "d5 -> NE" "d5" NE ["e6"; "f7"; "g8"];
-      iterator_from_sq_test "d5 -> E" "d5" E ["e5"; "f5"; "g5"; "h5"];
-      iterator_from_sq_test "d5 -> SE" "d5" SE ["e4"; "f3"; "g2"; "h1"];
-      iterator_from_sq_test "d5 -> S" "d5" S ["d4"; "d3"; "d2"; "d1"];
-      iterator_from_sq_test "d5 -> SW" "d5" SW ["c4"; "b3"; "a2"];
-      iterator_from_sq_test "d5 -> W" "d5" W ["c5"; "b5"; "a5"];
-      iterator_from_sq_test "d5 -> NW" "d5" NW ["c6"; "b7"; "a8"];
-      iterator_from_sq_test "d8 -> W" "d8" N [];
-      iterator_from_sq_test "h8 -> NE" "h8" NE [];
-      iterator_from_sq_test "h4 -> E" "h4" E [];
-      iterator_from_sq_test "h1 -> SE" "h1" SE [];
-      iterator_from_sq_test "d1 -> S" "d1" S [];
-      iterator_from_sq_test "a1 -> SW" "a1" SW [];
-      iterator_from_sq_test "a4 -> W" "a4" W [];
-      iterator_from_sq_test "a8 -> N" "a8" NW []; ]
+    (* iterator_from_sq tests *)
+    iterator_from_sq_test "d5 -> N" "d5" N [ "d6"; "d7"; "d8" ];
+    iterator_from_sq_test "d5 -> NE" "d5" NE [ "e6"; "f7"; "g8" ];
+    iterator_from_sq_test "d5 -> E" "d5" E [ "e5"; "f5"; "g5"; "h5" ];
+    iterator_from_sq_test "d5 -> SE" "d5" SE [ "e4"; "f3"; "g2"; "h1" ];
+    iterator_from_sq_test "d5 -> S" "d5" S [ "d4"; "d3"; "d2"; "d1" ];
+    iterator_from_sq_test "d5 -> SW" "d5" SW [ "c4"; "b3"; "a2" ];
+    iterator_from_sq_test "d5 -> W" "d5" W [ "c5"; "b5"; "a5" ];
+    iterator_from_sq_test "d5 -> NW" "d5" NW [ "c6"; "b7"; "a8" ];
+    iterator_from_sq_test "d8 -> W" "d8" N [];
+    iterator_from_sq_test "h8 -> NE" "h8" NE [];
+    iterator_from_sq_test "h4 -> E" "h4" E [];
+    iterator_from_sq_test "h1 -> SE" "h1" SE [];
+    iterator_from_sq_test "d1 -> S" "d1" S [];
+    iterator_from_sq_test "a1 -> SW" "a1" SW [];
+    iterator_from_sq_test "a4 -> W" "a4" W [];
+    iterator_from_sq_test "a8 -> N" "a8" NW [];
+    iterator_from_sq_test "d4 -> L" "d4" L
+      [ "e6"; "f5"; "f3"; "e2"; "c2"; "b3"; "b5"; "c6" ];
+    iterator_from_sq_test "a1 -> L" "a1" L [ "b3"; "c2" ];
+    iterator_from_sq_test "b5 -> L" "b5" L
+      [ "c7"; "d6"; "d4"; "c3"; "a3"; "a7" ];
+  ]
 
-let suite =
-  "test suite for chess"
-  >::: List.flatten [ board_tests ]
+let suite = "test suite for chess" >::: List.flatten [ board_tests ]
 
 let _ = run_test_tt_main suite
