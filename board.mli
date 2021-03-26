@@ -20,9 +20,9 @@ type direction = N | NE | E | SE | S | SW | W | NW | L
     Requires: [s] is in standard algebraic notation. *)
 val piece_of_square : t -> square -> p option
 
-(** [square_of_piece t p] is the square in state [t] where piece [p] is located
-    if [p] has not been captured in [t]. Otherwise, is None. *)
-val square_of_piece : t -> p -> square option
+(** [square_of_piece p] is the square where piece [p] is located if [p]
+    has not been captured. Otherwise, is None. *)
+val square_of_piece : p -> square option
 
 (** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
 val id_of_piece : p option -> string
@@ -30,11 +30,8 @@ val id_of_piece : p option -> string
 (** [move_piece t p s] is the game state after the piece contained in p moves
     to square s in state [t]. If a piece of the opposite color is already at
     square s in state [t], it is captured.
-    Requires: p is a non-None piece option, s is a valid destination square.*)
+    Requires: p is a non-None piece option, s is a valid destination square. *)
 val move_piece : t -> p option -> square -> t
-
-(** [start_sq_of_piece p] is the square on which piece [p] started. *)
-val start_sq_of_piece : p option -> square
 
 (** [color_of_piece p] is the color of piece [p]. *)
 val color_of_piece : p option -> string

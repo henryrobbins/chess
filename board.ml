@@ -31,18 +31,52 @@ type t = {
   captured_pieces : p list;
 }
 
+let active_pieces t = t.active_pieces
+
+let captured_pieces t = t.captured_pieces
+
 let piece_of_square t square = List.assoc square t.board
 
-let square_of_piece t p = failwith "Not implemented."
+let square_of_piece p = p.current_pos
 
 let id_of_piece p =
   match p with
   | None -> failwith "Piece must be non-None."
   | Some p -> p.id
 
-let move_piece t p s = failwith "Not implemented"
-
-let start_sq_of_piece p = failwith "Not implemented."
+let move_piece t piece s' =
+  match piece with
+  | None -> failwith "Requires [p] is a non-None piece option."
+  | Some p ->
+      let p' = { p with current_pos = Some s' } in
+      let active =
+        match piece_of_square t s' with
+        | None ->
+            active_pieces t
+            |> List.filter (fun x -> x <> p)
+            |> List.cons p'
+        | Some cp ->
+            active_pieces t
+            |> List.filter (fun x -> x <> p)
+            |> List.filter (fun x -> x <> cp)
+            |> List.cons p'
+            |> List.cons { cp with current_pos = None }
+      in
+      let captured =
+        match piece_of_square t s' with
+        | None -> captured_pieces t
+        | Some cp -> { cp with current_pos = None } :: captured_pieces t
+      in
+      let board =
+        match square_of_piece p with
+        | None -> failwith "Piece should be active."
+        | Some s ->
+            t.board |> List.remove_assoc s
+            |> List.cons (s, None)
+            |> List.remove_assoc s'
+            |> List.cons (s', Some p')
+      in
+      { board; active_pieces = active; captured_pieces = captured }
 
 let color_of_piece p =
   match p with
@@ -109,10 +143,6 @@ let iterator_from_sq square direction =
     | W -> iterator ( > ) ( = ) true false
     | NW -> iterator ( < ) ( > ) true false
     | L -> failwith "Not implemented.")
-
-let active_pieces t = t.active_pieces
-
-let captured_pieces t = t.captured_pieces
 
 (** [extract_active_piece j] extracts a list of active pieces from JSON.
     Requires: JSON is in valid format. *)
@@ -189,7 +219,6 @@ let print_piece p =
 
 (* TODO: Print our graveyard pieces somewhere. *)
 let print t : unit =
-  print_string "    a    b    c    d    e    f    g    h\n";
   print_string "  -----------------------------------------\n";
   let row_str i =
     List.map (fun x -> x ^ i) files
@@ -197,5 +226,8 @@ let print t : unit =
     |> List.map print_piece
     |> List.fold_left (fun x y -> x ^ " | " ^ y) ""
   in
-  List.iter (fun r -> print_string (r ^ row_str r ^ " |\n")) ranks;
-  print_string "  -----------------------------------------\n"
+  List.iter
+    (fun r -> print_string (r ^ row_str r ^ " |\n"))
+    (List.rev ranks);
+  print_string "  -----------------------------------------\n";
+  print_string "    a    b    c    d    e    f    g    h\n"
