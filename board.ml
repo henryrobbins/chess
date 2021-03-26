@@ -83,8 +83,6 @@ let color_of_piece p =
   | None -> failwith "Piece must be non-None."
   | Some p -> p.color
 
-let extract_char_as_string str index = Char.escaped str.[index]
-
 let rec merge_singleton_and_list s lst acc reverse =
   if reverse then
     match lst with
@@ -247,7 +245,7 @@ let print_piece p =
       c ^ p.id
 
 (* TODO: Print our graveyard pieces somewhere. *)
-let print t : unit =
+let print_board t =
   print_string "  -----------------------------------------\n";
   let row_str i =
     List.map (fun x -> x ^ i) files
@@ -260,3 +258,30 @@ let print t : unit =
     (List.rev ranks);
   print_string "  -----------------------------------------\n";
   print_string "    a    b    c    d    e    f    g    h\n"
+
+let rec partition_pieces_by_color lst acc1 acc2 =
+  match lst with
+  | [] -> (acc1, acc2)
+  | p :: t ->
+      if p.color = "White" then (print_piece (Some p) :: acc1, acc2)
+      else (acc1, print_piece (Some p) :: acc2)
+
+let string_of_string_list lst =
+  let rev_lst = List.rev lst in
+  let rec build_str str lst' =
+    match lst' with [] -> str | h :: t -> build_str (str ^ h ^ ", ") t
+  in
+  build_str "" rev_lst
+
+let print_captured t =
+  let print_lists = partition_pieces_by_color t.captured_pieces [] [] in
+  match print_lists with
+  | lst, lst' ->
+      print_string ("\n" ^ "Black has Captured: ");
+      print_string (string_of_string_list lst ^ "\n");
+      print_string "White has Captured: ";
+      print_string (string_of_string_list lst' ^ "\n")
+
+let print t : unit =
+  print_board t;
+  print_captured t
