@@ -126,7 +126,12 @@ let candidate_lsts op1 op2 rk fl rev_rk rev_fl =
   let valid_fls = List.filter (op2 fl) ord_files in
   (valid_fls, valid_rks)
 
-let iterator_from_sq square direction =
+let list_second list =
+  match list with h :: h' :: _ -> Some h' | [ h ] -> None | [] -> None
+
+let list_head list = match list with h :: _ -> Some h | [] -> None
+
+let cardinal_it_from_sq square direction =
   List.(
     let fl = Char.escaped square.[0] in
     let rk = Char.escaped square.[1] in
@@ -143,9 +148,33 @@ let iterator_from_sq square direction =
     | SE -> iterator ( > ) ( < ) true false
     | S -> iterator ( > ) ( = ) true false
     | SW -> iterator ( > ) ( > ) true true
-    | W -> iterator ( > ) ( = ) true false
-    | NW -> iterator ( < ) ( > ) true false
-    | L -> failwith "Not implemented.")
+    | W -> iterator ( = ) ( > ) false true
+    | NW -> iterator ( < ) ( > ) false true
+    | _ -> [])
+
+(* Returns possible knight moves in clock-wise order starting from due N*)
+let l_it_from_sq sq =
+  let rec gen_l_moves square list acc =
+    match list with
+    | [] -> List.rev acc
+    | (d1, d2) :: t -> (
+        let square1 = list_second (cardinal_it_from_sq square d1) in
+        match square1 with
+        | None -> gen_l_moves square t acc
+        | Some s -> (
+            let square2 = list_head (cardinal_it_from_sq s d2) in
+            match square2 with
+            | None -> gen_l_moves square t acc
+            | Some s' -> gen_l_moves square t (s' :: acc) ) )
+  in
+  gen_l_moves sq
+    [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
+    []
+
+let iterator_from_sq square direction =
+  match direction with
+  | L -> l_it_from_sq square
+  | _ -> cardinal_it_from_sq square direction
 
 (** [extract_active_piece j] extracts a list of active pieces from JSON.
     Requires: JSON is in valid format. *)
