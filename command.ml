@@ -34,13 +34,24 @@ let is_piece_consistent id sq board =
 
 let is_to s = if s = "to" then () else raise Malformed
 
+(** [piece_type_of_string s] is the piece type of the string id [s].
+    Requires: [s] is in {P, R, B, N, Q, K} *)
+let piece_type_of_string = function
+| "P" -> Pawn
+| "R" -> Rook
+| "B" -> Bishop
+| "N" -> Knight
+| "Q" -> Queen
+| "K" -> King
+| _ -> failwith "Invalid piece ID."
+
 let is_valid_move_phrase lst board =
   match lst with
   | [ id; sq; w; sq' ] ->
       is_valid_square sq;
       is_valid_square sq';
       is_piece id;
-      is_piece_consistent id sq board;
+      is_piece_consistent (piece_type_of_string id) sq board;
       is_to w
   | _ -> raise Malformed
 

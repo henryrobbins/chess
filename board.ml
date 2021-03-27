@@ -2,6 +2,10 @@ open Yojson.Basic.Util
 
 type square = string
 
+type color = White | Black
+
+type piece_type = Pawn | Rook | Bishop | Knight | Queen | King
+
 type direction =
   | N
   | NE
@@ -14,9 +18,8 @@ type direction =
   | L
 
 type p = {
-  id : string;
-  color : string;
-  (* TODO: Decide how these colors should be stored. *)
+  id : piece_type;
+  color : color;
   current_pos : square option;
 }
 
@@ -175,11 +178,30 @@ let iterator_from_sq square direction =
   | L -> l_it_from_sq square
   | _ -> cardinal_it_from_sq square direction
 
+
+(** [piece_type_of_string s] is the piece type of the string id [s].
+    Requires: [s] is in {P, R, B, N, Q, K} *)
+let piece_type_of_string = function
+  | "P" -> Pawn
+  | "R" -> Rook
+  | "B" -> Bishop
+  | "N" -> Knight
+  | "Q" -> Queen
+  | "K" -> King
+  | _ -> failwith "Invalid piece ID."
+
+(** [color_of_string s] is the color of the string [s].
+    Requires: [s] is in {White, Black} *)
+  let color_of_string = function
+  | "White" -> White
+  | "Black" -> Black
+  | _ -> failwith "Invalid piece color."
+
 (** [extract_active_piece j] extracts a list of active pieces from JSON.
     Requires: JSON is in valid format. *)
 let extract_active_piece j =
-  let id = j |> member "id" |> to_string in
-  let color = j |> member "color" |> to_string in
+  let id = j |> member "id" |> to_string |> piece_type_of_string in
+  let color = j |> member "color" |> to_string |> color_of_string in
   let positions =
     j |> member "positions" |> to_list
     |> List.map (fun x -> to_string x)
@@ -190,8 +212,8 @@ let extract_active_piece j =
 (** [extract_captured_piece j] extracts a list of captured pieces from
     JSON. Requires: JSON is in valid format. *)
 let extract_captured_piece j : p list =
-  let id = j |> member "id" |> to_string in
-  let color = j |> member "color" |> to_string in
+  let id = j |> member "id" |> to_string |> piece_type_of_string in
+  let color = j |> member "color" |> to_string |> color_of_string in
   let n = j |> member "number" |> to_int in
   let captured_piece = { id; color; current_pos = None } in
   let rec piece_list pieces n =
@@ -247,9 +269,12 @@ let print_piece p =
   match p with
   | None -> "  "
   | Some p ->
-      let c_map = [ ("White", "W"); ("Black", "B") ] in
+      let c_map = [ (White, "W"); (Black, "B") ] in
+      let id_map = [ (Pawn, "P"); (Rook, "R"); (Bishop, "B");
+                     (Knight, "N"); (Queen, "Q"); (King, "K"); ] in
       let c = List.assoc p.color c_map in
-      c ^ p.id
+      let id = List.assoc p.id id_map in
+      c ^ id
 
 (* TODO: Print our graveyard pieces somewhere. *)
 let print_board t =
@@ -270,7 +295,7 @@ let rec partition_pieces_by_color lst acc1 acc2 =
   match lst with
   | [] -> (acc1, acc2)
   | p :: t ->
-      if p.color = "White" then
+      if p.color = White then
         partition_pieces_by_color t (print_piece (Some p) :: acc1) acc2
       else
         partition_pieces_by_color t acc1 (print_piece (Some p) :: acc2)

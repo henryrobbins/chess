@@ -13,6 +13,12 @@ type t
 (** The type of a chess board square identifier in algebraic notation. *)
 type square = string
 
+(** The color of the player. *)
+type color = White | Black
+
+(** The type of the chess piece. *)
+type piece_type = Pawn | Rook | Bishop | Knight | Queen | King
+
 (** The type of a direction. *)
 type direction =
   | N
@@ -35,7 +41,7 @@ val piece_of_square : t -> square -> p option
 val square_of_piece : p option -> square option
 
 (** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
-val id_of_piece : p option -> string
+val id_of_piece : p option -> piece_type
 
 (** [move_piece t p s] is the game state after the piece contained in p
     moves to square s in state [t]. If a piece of the opposite color is
@@ -44,7 +50,7 @@ val id_of_piece : p option -> string
 val move_piece : t -> p option -> square -> t
 
 (** [color_of_piece p] is the color of piece [p]. *)
-val color_of_piece : p option -> string
+val color_of_piece : p option -> color
 
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s]. Requires: [s] is
