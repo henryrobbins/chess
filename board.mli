@@ -31,6 +31,12 @@ type direction =
   | NW
   | L
 
+(** The ranks of the chess board. *)
+val ranks : string list
+
+(** The files of the chess board. *)
+val files : string list
+
 (** [piece_of_square t s] is the piece on square [s] in state [t] if it
     exists. Otherwise, is None. Requires: [s] is in standard algebraic
     notation. *)

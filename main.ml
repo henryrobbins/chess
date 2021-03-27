@@ -1,5 +1,6 @@
 open Board
 open Command
+open Validation
 
 let rec interact board =
   print_game_state board;
@@ -15,8 +16,12 @@ let rec interact board =
             match move_phrase with
             | [ id; sq; "to"; sq' ] ->
                 let p = piece_of_square board sq in
-                let board' = move_piece board p sq' in
-                interact board'
+                if is_valid_move (sq,sq') board then
+                  let board' = move_piece board p sq' in
+                  interact board'
+                else
+                  print_string "The move was invalid. Try again.";
+                  interact board
             | _ -> () )
       with _ ->
         print_string

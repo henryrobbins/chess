@@ -3,3 +3,4 @@
 #directory "_build";;
 #load "board.cmo";;
 #load "command.cmo";;
+#load "validation.cmo";;

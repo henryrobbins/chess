@@ -1,4 +1,4 @@
-MODULES=board command
+MODULES=board command validation
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
