@@ -37,13 +37,13 @@ let is_to s = if s = "to" then () else raise Malformed
 (** [piece_type_of_string s] is the piece type of the string id [s].
     Requires: [s] is in {P, R, B, N, Q, K} *)
 let piece_type_of_string = function
-| "P" -> Pawn
-| "R" -> Rook
-| "B" -> Bishop
-| "N" -> Knight
-| "Q" -> Queen
-| "K" -> King
-| _ -> failwith "Invalid piece ID."
+  | "P" -> Pawn
+  | "R" -> Rook
+  | "B" -> Bishop
+  | "N" -> Knight
+  | "Q" -> Queen
+  | "K" -> King
+  | _ -> failwith "Invalid piece ID."
 
 let is_valid_move_phrase lst board =
   match lst with

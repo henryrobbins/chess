@@ -16,12 +16,11 @@ let rec interact board =
             match move_phrase with
             | [ id; sq; "to"; sq' ] ->
                 let p = piece_of_square board sq in
-                if is_valid_move (sq,sq') board then
+                if is_valid_move (sq, sq') board then
                   let board' = move_piece board p sq' in
                   interact board'
-                else
-                  print_string "The move was invalid. Try again.";
-                  interact board
+                else print_string "The move was invalid. Try again. \n";
+                interact board
             | _ -> () )
       with _ ->
         print_string
