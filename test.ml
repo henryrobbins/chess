@@ -1,5 +1,6 @@
 open OUnit2
 open Board
+open Command
 
 let board = init_game ()
 
@@ -102,7 +103,65 @@ let board_tests =
     ];
   ]
 
+(** [parse_test name str board expected] constructs an OUnit test
+    named [name] that asserts the equality of [expected]
+    with [parse str board]. *)
+let parse_test name str board expected : test =
+  name >:: fun _ ->
+  assert_equal expected (parse str board)
+
+(** [parse_invalid_squares_test name str board] constructs an OUnit test
+    named [name] that asserts [parse str board] raises [InvalidSquares]. *)
+  let parse_invalid_squares_test name str board: test =
+    name >:: fun _ ->
+    let f = fun () -> (parse str board) in
+    assert_raises (InvalidSquares) f
+
+(** [parse_inconsistent_test name str board] constructs an OUnit test
+    named [name] that asserts [parse str board] raises [InconsistentPlacement]. *)
+let parse_inconsistent_test name str board : test =
+  name >:: fun _ ->
+  let f = fun () -> (parse str board) in
+  assert_raises (InconsistentPlacement) f
+
+(** [parse_malformed_test name str board] constructs an OUnit test
+    named [name] that asserts [parse str board] raises [Malformed]. *)
+let parse_malformed_test name str board: test =
+  name >:: fun _ ->
+  let f = fun () -> (parse str board) in
+  assert_raises (Malformed) f
+
+let command_tests =
+  [ parse_test "move P d2 to d3 -> Move [P; d2; to; d3]"
+      "move P d2 to d3"  board (Move ["P"; "d2"; "to"; "d3"]);
+    parse_test "  move P   d2 to   d3 -> Move [P; d2; to; d3]"
+      "  move P   d2 to   d3"  board (Move ["P"; "d2"; "to"; "d3"]);
+    parse_test "move N b1 to a3 -> Move [N; b1; to; a3]"
+      "move N b1 to a3"  board (Move ["N"; "b1"; "to"; "a3"]);
+    parse_test "move P d7 to d5 -> Move [P; d7; to; d5]"
+      "move P d7 to d5"  board (Move ["P"; "d7"; "to"; "d5"]);
+    parse_malformed_test "empty raises Malformed" "" board;
+    parse_malformed_test "go P d2 to d3 raises Malformed" "go P d2 to d3" board;
+    parse_malformed_test "move P d2 d3 raises Malformed" "move P d2 d3" board;
+    parse_malformed_test "move W d2 to d3 raises Malformed"
+      "move W d2 to d3" board;
+    parse_malformed_test "move P d2 to d3 a raises Malformed"
+      "move P d2 to d3 a" board;
+    parse_invalid_squares_test "move P d2 to d9 raises InvalidSquares"
+      "move P d2 to d9" board;
+    parse_invalid_squares_test "move P d9 to d2 raises InvalidSquares"
+      "move P d9 to d2" board;
+    parse_invalid_squares_test "move P l2 to d4 raises InvalidSquares"
+      "move P l2 to d4" board;
+    parse_invalid_squares_test "move P d4 to l2 raises InvalidSquares"
+      "move P d4 to l2" board;
+    parse_inconsistent_test "move K d2 to d3 raises InconsistentPlacement"
+      "move K d2 to d3" board;
+    parse_inconsistent_test "move P a1 to a8 raises InconsistentPlacement"
+      "move P a1 to a8" board; ]
+
 let suite =
-  "test suite for chess" >::: List.flatten [ List.flatten board_tests ]
+  "test suite for chess" >:::
+  List.flatten [(List.flatten board_tests); command_tests]
 
 let _ = run_test_tt_main suite
