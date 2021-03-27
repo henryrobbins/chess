@@ -15,7 +15,8 @@ type direction =
 
 type p = {
   id : string;
-  color : string;  (* TODO: Decide how these colors should be stored. *)
+  color : string;
+  (* TODO: Decide how these colors should be stored. *)
   current_pos : square option;
 }
 
@@ -237,6 +238,9 @@ let init_from_json j =
   let board = add_pieces blank_board active_pieces in
   { board; active_pieces; captured_pieces }
 
+let init_game () =
+  "board_init.json" |> Yojson.Basic.from_file |> init_from_json
+
 (* [print_piece p] is a string with the color and id of piece [p]. If
    the piece is [None], it is a blank space. *)
 let print_piece p =
@@ -266,8 +270,10 @@ let rec partition_pieces_by_color lst acc1 acc2 =
   match lst with
   | [] -> (acc1, acc2)
   | p :: t ->
-      if p.color = "White" then (print_piece (Some p) :: acc1, acc2)
-      else (acc1, print_piece (Some p) :: acc2)
+      if p.color = "White" then
+        partition_pieces_by_color t (print_piece (Some p) :: acc1) acc2
+      else
+        partition_pieces_by_color t acc1 (print_piece (Some p) :: acc2)
 
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
@@ -285,6 +291,6 @@ let print_captured t =
       print_string "White has Captured: ";
       print_string (string_of_string_list lst' ^ "\n")
 
-let print t : unit =
+let print_game_state t : unit =
   print_board t;
   print_captured t

@@ -1,7 +1,7 @@
 open OUnit2
 open Board
 
-let board = init_from_json (Yojson.Basic.from_file "board_init.json")
+let board = init_game ()
 
 (* HELPER FUNCTIONS *)
 
