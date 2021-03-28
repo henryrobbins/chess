@@ -1,21 +1,61 @@
 open Board
 open Command
 
+exception Exception 
+
 type move = square * square
 
 type check_state =
   | Check of direction list
   | NotCheck
 
-let is_check c b : check_state = NotCheck
-
 (** [get_piece c n state] is the piece of color [c] with piece id [n]
-    with game state [state] *)
+    in game state [state] *)
 let get_piece (c : color) (n : piece_type) (state : t) : p option =
   let all_pieces = active_pieces state in
   match all_pieces with
   | [] -> None
   | h :: t -> if color_of_piece (Some h) = c && id_of_piece (Some h) = n then Some h else None 
+
+(** [extract_option opt] extracts the non-None value from option [opt] *)
+let extract_option (opt : 'a option) : 'a = 
+  match opt with 
+  | None -> raise Exception
+  | Some sq -> sq
+
+(** [check_from_direction c b direction] is a direction option indicating whether or not the player
+    of color [c] is in check from direction [direction] during game state [b]. *)
+let check_from_direction (c : color) (b : t) (direction : direction) : direction option = 
+  let king = get_piece c King b in
+  let king_current_square = extract_option (square_of_piece king) in
+  match active_pieces b with 
+  | [] -> None
+  | h :: t -> begin
+    let h_current_square = square_of_piece (Some h) in
+    let poss_moves = iterator_from_sq (extract_option h_current_square) direction in 
+    let contained = List.mem king_current_square poss_moves in
+    if contained then Some direction else None
+  end
+  (** [all_directions_attacked_from c b] is a list of all the directions from which the player
+      of color [c] is checked during game state [b]. *)
+  let all_directions_attacked_from (c : color) (b : t) : direction list = 
+    let directions = [N; NE; E; SE; S; SW; W; NW; L] in 
+    let rec attacked_from (l : direction list) (final_list : direction list) = 
+      match l with 
+      | [] -> []
+      | h :: t -> begin
+        let direc = check_from_direction c b h in 
+        match direc with 
+        | None -> []
+        | Some d -> d :: attacked_from t final_list
+      end 
+    in attacked_from directions []
+    
+let is_check (c : color) (b : t) : check_state = 
+  let directions = all_directions_attacked_from c b in
+  match directions with 
+  | [] -> NotCheck
+  | h :: t -> Check directions
 
 (** [intercept_squares c b dir_lst] is the list of squares to which player
     [c] can move a piece to intercept the check on player [c]'s king
