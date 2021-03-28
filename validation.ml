@@ -56,11 +56,11 @@ let valid_pawn_moves p b : move list =
     | Black -> iterator_from_sq sq S
   in
 
-  let rec pawnblocking aBoard aPiece possibleSquares =
-    match possibleSquares with
+  let rec pawnblocking a_board a_piece possible_squares =
+    match possible_squares with
     | h :: t ->
-        if piece_of_square aBoard h != None then []
-        else h :: pawnblocking aBoard aPiece t
+        if piece_of_square a_board h != None then []
+        else h :: pawnblocking a_board a_piece t
     | [] -> []
   in
 
@@ -128,16 +128,16 @@ let valid_pawn_moves p b : move list =
     [aBoard]. Requires: possibleSquares is the result of
     iterator_from_sq *)
 
-let rec blocking aBoard aPiece possibleSquares =
-  match possibleSquares with
+let rec blocking a_board a_piece possible_squares =
+  match possible_squares with
   | h :: t ->
-      if piece_of_square aBoard h != None then
+      if piece_of_square a_board h != None then
         if
-          color_of_piece (piece_of_square aBoard h)
-          = color_of_piece (Some aPiece)
+          color_of_piece (piece_of_square a_board h)
+          = color_of_piece (Some a_piece)
         then []
         else [ h ]
-      else h :: blocking aBoard aPiece t
+      else h :: blocking a_board a_piece t
   | [] -> []
 
 (** [valid_rook_moves p b] is the list of all valid moves (assuming no
@@ -187,8 +187,8 @@ let valid_knight_moves p b : move list =
     | Some x -> x
     | None -> failwith "The piece should be active."
   in
-  let rec knight_blocking possibleSquares =
-    match possibleSquares with
+  let rec knight_blocking possible_squares =
+    match possible_squares with
     | h :: t ->
         if
           piece_of_square b h != None
