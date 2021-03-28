@@ -39,7 +39,21 @@ let all_moves p : move list =
 (** [valid_pawn_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [P] *)
-let valid_pawn_moves p b : move list = all_moves p
+let valid_pawn_moves p b : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active." in
+  let potential_moves =
+    match color_of_piece (Some p) with
+    | White -> iterator_from_sq sq N
+    | Black -> iterator_from_sq sq S in
+  let move_list =
+    match potential_moves with
+    | h1 :: h2 :: t ->  h1 :: h2 :: []
+    | h1 :: [] -> h1 :: []
+    | [] -> [] in
+  List.map (fun x -> (sq, x)) move_list
 
 (** [valid_rook_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
