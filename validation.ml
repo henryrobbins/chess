@@ -9,11 +9,12 @@ type check_state =
 
 let is_check c b : check_state = NotCheck
 
-(** [intercept_squares c b dir_lst] is the list of squares which player
+(** [intercept_squares c b dir_lst] is the list of squares to which player
     [c] can move a piece to intercept the check on player [c]'s king
     given the king is in check from directions [dir_lst] in board state
     [b]. *)
 let intercept_squares c b dir_lst : square list =
+  
   failwith "Not Implemented."
 
 (* TODO: FOR TESTING ONLY *)
