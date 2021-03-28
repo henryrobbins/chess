@@ -84,25 +84,13 @@ let all_moves p : move list =
   let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
   List.map (fun x -> (sq, x)) sq_list
 
-(** [blocking aBoard aPiece possibleSquares] is the list of all possible
-    moves in a specific direction for piece [aPiece] with board state
-    [aBoard]. Requires: possibleSquares is the result of
-    iterator_from_sq*)
-let rec blocking aBoard aPiece possibleSquares =
-  match possibleSquares with
-  | h :: t ->
-      if piece_of_square aBoard h != None then
-        if
-          color_of_piece (piece_of_square aBoard h)
-          = color_of_piece (Some aPiece)
-        then []
-        else [ h ]
-      else h :: blocking aBoard aPiece t
-  | [] -> []
-
 (** [valid_pawn_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [P] *)
+
+let rec appender movelist =
+  match movelist with h :: t -> List.append h (appender t) | [] -> []
+
 let valid_pawn_moves p b : move list =
   let sq =
     match square_of_piece (Some p) with
@@ -181,41 +169,133 @@ let valid_pawn_moves p b : move list =
   in
   List.map
     (fun x -> (sq, x))
-    (List.append (List.append move_up attack_west) attack_east)
+    (appender [ move_up; attack_west; attack_east ])
 
-(** then if square_of_piece (Some p) == "a2"
+(** [blocking aBoard aPiece possibleSquares] is the list of all possible
+    moves in a specific direction for piece [aPiece] with board state
+    [aBoard]. Requires: possibleSquares is the result of
+    iterator_from_sq *)
 
-    else
-
-    match square_of_piece (Some p) with | f ^ "2" -> |
-
-    match potential_moves with | h1 :: h2 :: t -> h1 :: h2 :: [] | h1 ::
-    [] -> h1 :: [] | [] -> [] in List.map (fun x -> (sq, x)) move_list *)
+let rec blocking aBoard aPiece possibleSquares =
+  match possibleSquares with
+  | h :: t ->
+      if piece_of_square aBoard h != None then
+        if
+          color_of_piece (piece_of_square aBoard h)
+          = color_of_piece (Some aPiece)
+        then []
+        else [ h ]
+      else h :: blocking aBoard aPiece t
+  | [] -> []
 
 (** [valid_rook_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [R] *)
-let valid_rook_moves p b : move list = all_moves p
+let valid_rook_moves p b : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active."
+  in
+  List.map
+    (fun x -> (sq, x))
+    (appender
+       [
+         blocking b p (iterator_from_sq sq N);
+         blocking b p (iterator_from_sq sq E);
+         blocking b p (iterator_from_sq sq S);
+         blocking b p (iterator_from_sq sq W);
+       ])
 
 (** [valid_bishop_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [B] *)
-let valid_bishop_moves p b : move list = all_moves p
+let valid_bishop_moves p b : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active."
+  in
+  List.map
+    (fun x -> (sq, x))
+    (appender
+       [
+         blocking b p (iterator_from_sq sq NE);
+         blocking b p (iterator_from_sq sq NW);
+         blocking b p (iterator_from_sq sq SE);
+         blocking b p (iterator_from_sq sq SW);
+       ])
 
 (** [valid_knight_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [N] *)
-let valid_knight_moves p b : move list = all_moves p
+let valid_knight_moves p b : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active."
+  in
+  let rec knight_blocking possibleSquares =
+    match possibleSquares with
+    | h :: t ->
+        if
+          piece_of_square b h != None
+          && color_of_piece (piece_of_square b h)
+             = color_of_piece (Some p)
+        then knight_blocking t
+        else h :: knight_blocking t
+    | [] -> []
+  in
+  List.map (fun x -> (sq, x)) (knight_blocking (iterator_from_sq sq L))
 
 (** [valid_queen_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [Q] *)
-let valid_queen_moves p b : move list = all_moves p
+let valid_queen_moves p b : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active."
+  in
+  List.map
+    (fun x -> (sq, x))
+    (appender
+       [
+         blocking b p (iterator_from_sq sq N);
+         blocking b p (iterator_from_sq sq E);
+         blocking b p (iterator_from_sq sq S);
+         blocking b p (iterator_from_sq sq W);
+         blocking b p (iterator_from_sq sq NE);
+         blocking b p (iterator_from_sq sq NW);
+         blocking b p (iterator_from_sq sq SE);
+         blocking b p (iterator_from_sq sq SW);
+       ])
 
 (** [valid_king_moves p b cst] is the list of all valid moves for piece
     [p] with board state [b] given check state [cst]. Requires: piece
     [p] is of id [K] *)
-let valid_king_moves p b cst : move list = all_moves p
+let valid_king_moves p b cst : move list =
+  let sq =
+    match square_of_piece (Some p) with
+    | Some x -> x
+    | None -> failwith "The piece should be active."
+  in
+  let king_limiter movelist =
+    match movelist with h :: t -> [ h ] | [] -> []
+  in
+  List.map
+    (fun x -> (sq, x))
+    (appender
+       [
+         king_limiter (blocking b p (iterator_from_sq sq N));
+         king_limiter (blocking b p (iterator_from_sq sq E));
+         king_limiter (blocking b p (iterator_from_sq sq S));
+         king_limiter (blocking b p (iterator_from_sq sq W));
+         king_limiter (blocking b p (iterator_from_sq sq NE));
+         king_limiter (blocking b p (iterator_from_sq sq NW));
+         king_limiter (blocking b p (iterator_from_sq sq SE));
+         king_limiter (blocking b p (iterator_from_sq sq SW));
+       ])
 
 (** [filter_moves move_lst sq_lst] is the list of moves in [move_lst]
     where the second square of the move is in [sq_list]. *)

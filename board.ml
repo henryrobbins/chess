@@ -2,9 +2,17 @@ open Yojson.Basic.Util
 
 type square = string
 
-type color = White | Black
+type color =
+  | White
+  | Black
 
-type piece_type = Pawn | Rook | Bishop | Knight | Queen | King
+type piece_type =
+  | Pawn
+  | Rook
+  | Bishop
+  | Knight
+  | Queen
+  | King
 
 type direction =
   | N
@@ -106,7 +114,7 @@ let rec zip_lists lst1 lst2 acc =
   | h :: t -> (
       match lst2 with
       | [] -> List.rev acc
-      | h' :: t' -> zip_lists t t' ((h ^ h') :: acc) )
+      | h' :: t' -> zip_lists t t' ((h ^ h') :: acc))
 
 let merge_rks_and_fls tup =
   match tup with
@@ -167,7 +175,7 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc) ) )
+            | Some s' -> gen_l_moves square t (s' :: acc)))
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
@@ -177,7 +185,6 @@ let iterator_from_sq square direction =
   match direction with
   | L -> l_it_from_sq square
   | _ -> cardinal_it_from_sq square direction
-
 
 (** [piece_type_of_string s] is the piece type of the string id [s].
     Requires: [s] is in {P, R, B, N, Q, K} *)
@@ -190,9 +197,9 @@ let piece_type_of_string = function
   | "K" -> King
   | _ -> failwith "Invalid piece ID."
 
-(** [color_of_string s] is the color of the string [s].
-    Requires: [s] is in {White, Black} *)
-  let color_of_string = function
+(** [color_of_string s] is the color of the string [s]. Requires: [s] is
+    in {White, Black} *)
+let color_of_string = function
   | "White" -> White
   | "Black" -> Black
   | _ -> failwith "Invalid piece color."
@@ -231,7 +238,7 @@ let blank_board : b =
     | rh :: rt -> (
         match cols with
         | [] -> init rt files b
-        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh, None) :: b) )
+        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh, None) :: b))
   in
   init ranks files []
 
@@ -255,7 +262,7 @@ let init_from_json j =
         let pos = h.current_pos in
         match pos with
         | None -> failwith "Active pieces should have a position."
-        | Some pos -> add_pieces ((pos, Some h) :: b) t )
+        | Some pos -> add_pieces ((pos, Some h) :: b) t)
   in
   let board = add_pieces blank_board active_pieces in
   { board; active_pieces; captured_pieces }
@@ -270,8 +277,16 @@ let print_piece p =
   | None -> "  "
   | Some p ->
       let c_map = [ (White, "W"); (Black, "B") ] in
-      let id_map = [ (Pawn, "P"); (Rook, "R"); (Bishop, "B");
-                     (Knight, "N"); (Queen, "Q"); (King, "K"); ] in
+      let id_map =
+        [
+          (Pawn, "P");
+          (Rook, "R");
+          (Bishop, "B");
+          (Knight, "N");
+          (Queen, "Q");
+          (King, "K");
+        ]
+      in
       let c = List.assoc p.color c_map in
       let id = List.assoc p.id id_map in
       c ^ id
