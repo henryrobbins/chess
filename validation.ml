@@ -9,12 +9,19 @@ type check_state =
 
 let is_check c b : check_state = NotCheck
 
+(** [get_piece c n state] is the piece of color [c] with piece id [n]
+    with game state [state] *)
+let get_piece (c : color) (n : piece_type) (state : t) : p option =
+  let all_pieces = active_pieces state in
+  match all_pieces with
+  | [] -> None
+  | h :: t -> if color_of_piece (Some h) = c && id_of_piece (Some h) = n then Some h else None 
+
 (** [intercept_squares c b dir_lst] is the list of squares to which player
     [c] can move a piece to intercept the check on player [c]'s king
     given the king is in check from directions [dir_lst] in board state
     [b]. *)
 let intercept_squares c b dir_lst : square list =
-  
   failwith "Not Implemented."
 
 (* TODO: FOR TESTING ONLY *)

@@ -15,8 +15,8 @@ type check_state =
   | Check of direction list
   | NotCheck
 
-(** [is_check color board] is the check state of player [color] for the
-    given board state [board]. The player is either in check [Check] or
+(** [is_check c b] is the check state of player [c] for the
+    given board state [b]. The player is either in check [Check] or
     [NotCheck] *)
 val is_check : Board.color -> Board.t -> check_state
 
