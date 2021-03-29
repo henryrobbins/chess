@@ -29,6 +29,7 @@ type p = {
   id : piece_type;
   color : color;
   current_pos : square option;
+  has_moved : bool;
 }
 
 let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ]
@@ -59,11 +60,16 @@ let id_of_piece p =
   | None -> failwith "Piece must be non-None."
   | Some p -> p.id
 
+let has_moved p =
+  match p with
+  | None -> failwith "Piece must be non-None."
+  | Some p -> p.has_moved
+
 let move_piece t piece s' =
   match piece with
   | None -> failwith "Requires [p] is a non-None piece option."
   | Some p ->
-      let p' = { p with current_pos = Some s' } in
+      let p' = { p with current_pos = Some s'; has_moved = true} in
       let active =
         match piece_of_square t s' with
         | None ->
@@ -211,24 +217,25 @@ let extract_active_piece j =
   let color = j |> member "color" |> to_string |> color_of_string in
   let positions =
     j |> member "positions" |> to_list
-    |> List.map (fun x -> to_string x)
-  in
-  let init_piece pos = { id; color; current_pos = Some pos } in
-  List.map init_piece positions
+    |> List.map (fun x -> to_string x) in
+  let has_moved =
+    j |> member "has_moved" |> to_list |> List.map to_bool in
+  let fields_lst = List.combine positions has_moved in
+  let init_piece = function | f1, f2 -> { id;
+                                          color;
+                                          current_pos = Some f1;
+                                          has_moved = f2 } in
+  List.map init_piece fields_lst
 
 (** [extract_captured_piece j] extracts a list of captured pieces from
     JSON. Requires: JSON is in valid format. *)
 let extract_captured_piece j : p list =
   let id = j |> member "id" |> to_string |> piece_type_of_string in
   let color = j |> member "color" |> to_string |> color_of_string in
-  let n = j |> member "number" |> to_int in
-  let captured_piece = { id; color; current_pos = None } in
-  let rec piece_list pieces n =
-    match n with
-    | 0 -> pieces
-    | n -> piece_list (captured_piece :: pieces) (n - 1)
-  in
-  piece_list [] n
+  let has_moved =
+    j |> member "has_moved" |> to_list |> List.map to_bool in
+  let init_piece has_moved = { id; color; current_pos = None; has_moved} in
+  List.map init_piece has_moved
 
 (** [blank_board] is a blank chess board with no pieces on it. *)
 let blank_board : b =

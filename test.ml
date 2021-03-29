@@ -54,6 +54,9 @@ let move_piece_test name b s s' : test list =
     ( name ^ " | new board sqaure (piece color) " >:: fun _ ->
       assert_equal (color_of_piece p)
         (color_of_piece (piece_of_square b' s')));
+    ( name ^ " | new board sqaure (piece has_moved) " >:: fun _ ->
+      assert_equal (has_moved p)
+        (has_moved (piece_of_square b' s')));
     ( name ^ " | new board sqaure (piece pos) " >:: fun _ ->
       assert_equal
         (square_of_piece (piece_of_square b' s'))
