@@ -5,6 +5,9 @@
       "color": "White",
       "positions": [
         "e1"
+      ],
+      "has_moved": [
+        false
       ]
     },
     {
@@ -12,6 +15,9 @@
       "color": "Black",
       "positions": [
         "e8"
+      ],
+      "has_moved": [
+        false
       ]
     },
     {
@@ -19,6 +25,9 @@
       "color": "White",
       "positions": [
         "d1"
+      ],
+      "has_moved": [
+        false
       ]
     },
     {
@@ -26,6 +35,9 @@
       "color": "Black",
       "positions": [
         "d8"
+      ],
+      "has_moved": [
+        false
       ]
     },
     {
@@ -34,6 +46,10 @@
       "positions": [
         "c1",
         "f1"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -42,6 +58,10 @@
       "positions": [
         "c8",
         "f8"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -50,6 +70,10 @@
       "positions": [
         "b1",
         "g1"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -58,6 +82,10 @@
       "positions": [
         "b8",
         "g8"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -66,6 +94,10 @@
       "positions": [
         "a1",
         "h1"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -74,6 +106,10 @@
       "positions": [
         "a8",
         "h8"
+      ],
+      "has_moved": [
+        false,
+        false
       ]
     },
     {
@@ -88,6 +124,16 @@
         "f2",
         "g2",
         "h2"
+      ],
+      "has_moved": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
       ]
     },
     {
@@ -102,6 +148,16 @@
         "f7",
         "g7",
         "h7"
+      ],
+      "has_moved": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
       ]
     }
   ],

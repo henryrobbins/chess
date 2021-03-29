@@ -58,6 +58,9 @@ val move_piece : t -> p option -> square -> t
 (** [color_of_piece p] is the color of piece [p]. *)
 val color_of_piece : p option -> color
 
+(** [has_moved p] indicates if piece [p] has been moved. *)
+val has_moved : p option -> bool
+
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s]. Requires: [s] is
     in standard algebraic notation. *)
