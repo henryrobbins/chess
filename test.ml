@@ -40,28 +40,26 @@ let pp_list pp_elt lst =
     and [pp2] for [b]. *)
 let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
+let extract_piece piece_option =
+  match piece_option with None -> failwith "no piece" | Some p -> p
+
 (** [move_piece_test name b s s'] constructs OUnit tests named [name]
     that assert [move_piece b (piece_of_square s) s'] is correct. *)
 let move_piece_test name b s s' : test list =
-  let p = piece_of_square b s in
+  let p = piece_of_square b s |> extract_piece in
   let b' = move_piece b p s' in
+  let p' = piece_of_square b' s' |> extract_piece in
   [
     ( name ^ " | previous board sqaure" >:: fun _ ->
       assert_equal None (piece_of_square b' s) );
     ( name ^ " | new board sqaure (piece id) " >:: fun _ ->
-      assert_equal (id_of_piece p) (id_of_piece (piece_of_square b' s'))
-    );
+      assert_equal (id_of_piece p) (id_of_piece p') );
     ( name ^ " | new board sqaure (piece color) " >:: fun _ ->
-      assert_equal (color_of_piece p)
-        (color_of_piece (piece_of_square b' s')));
+      assert_equal (color_of_piece p) (color_of_piece p') );
     ( name ^ " | new board sqaure (piece has_moved) " >:: fun _ ->
-      assert_equal (has_moved p)
-        (has_moved (piece_of_square b' s')));
+      assert_equal true (has_moved p') ~printer:Bool.to_string );
     ( name ^ " | new board sqaure (piece pos) " >:: fun _ ->
-      assert_equal
-        (square_of_piece (piece_of_square b' s'))
-        (Some s')
-        ~printer:(fun x -> match x with None -> "None" | Some x -> x) );
+      assert_equal (square_of_piece p') s' ~printer:(fun x -> x) );
   ]
 
 (** [iterator_from_sq_test name board s d expected] constructs an OUnit
@@ -105,46 +103,53 @@ let board_tests =
     ];
   ]
 
-(** [parse_test name str board expected] constructs an OUnit test
-    named [name] that asserts the equality of [expected]
-    with [parse str board]. *)
+(** [parse_test name str board expected] constructs an OUnit test named
+    [name] that asserts the equality of [expected] with
+    [parse str board]. *)
 let parse_test name str board expected : test =
-  name >:: fun _ ->
-  assert_equal expected (parse str board)
+  name >:: fun _ -> assert_equal expected (parse str board)
 
 (** [parse_invalid_squares_test name str board] constructs an OUnit test
     named [name] that asserts [parse str board] raises [InvalidSquares]. *)
-  let parse_invalid_squares_test name str board: test =
-    name >:: fun _ ->
-    let f = fun () -> (parse str board) in
-    assert_raises (InvalidSquares) f
+let parse_invalid_squares_test name str board : test =
+  name >:: fun _ ->
+  let f () = parse str board in
+  assert_raises InvalidSquares f
 
 (** [parse_inconsistent_test name str board] constructs an OUnit test
-    named [name] that asserts [parse str board] raises [InconsistentPlacement]. *)
+    named [name] that asserts [parse str board] raises
+    [InconsistentPlacement]. *)
 let parse_inconsistent_test name str board : test =
   name >:: fun _ ->
-  let f = fun () -> (parse str board) in
-  assert_raises (InconsistentPlacement) f
+  let f () = parse str board in
+  assert_raises InconsistentPlacement f
 
-(** [parse_malformed_test name str board] constructs an OUnit test
-    named [name] that asserts [parse str board] raises [Malformed]. *)
-let parse_malformed_test name str board: test =
+(** [parse_malformed_test name str board] constructs an OUnit test named
+    [name] that asserts [parse str board] raises [Malformed]. *)
+let parse_malformed_test name str board : test =
   name >:: fun _ ->
-  let f = fun () -> (parse str board) in
-  assert_raises (Malformed) f
+  let f () = parse str board in
+  assert_raises Malformed f
 
 let command_tests =
-  [ parse_test "move P d2 to d3 -> Move [P; d2; to; d3]"
-      "move P d2 to d3"  board (Move ["P"; "d2"; "to"; "d3"]);
+  [
+    parse_test "move P d2 to d3 -> Move [P; d2; to; d3]"
+      "move P d2 to d3" board
+      (Move [ "P"; "d2"; "to"; "d3" ]);
     parse_test "  move P   d2 to   d3 -> Move [P; d2; to; d3]"
-      "  move P   d2 to   d3"  board (Move ["P"; "d2"; "to"; "d3"]);
+      "  move P   d2 to   d3" board
+      (Move [ "P"; "d2"; "to"; "d3" ]);
     parse_test "move N b1 to a3 -> Move [N; b1; to; a3]"
-      "move N b1 to a3"  board (Move ["N"; "b1"; "to"; "a3"]);
+      "move N b1 to a3" board
+      (Move [ "N"; "b1"; "to"; "a3" ]);
     parse_test "move P d7 to d5 -> Move [P; d7; to; d5]"
-      "move P d7 to d5"  board (Move ["P"; "d7"; "to"; "d5"]);
+      "move P d7 to d5" board
+      (Move [ "P"; "d7"; "to"; "d5" ]);
     parse_malformed_test "empty raises Malformed" "" board;
-    parse_malformed_test "go P d2 to d3 raises Malformed" "go P d2 to d3" board;
-    parse_malformed_test "move P d2 d3 raises Malformed" "move P d2 d3" board;
+    parse_malformed_test "go P d2 to d3 raises Malformed"
+      "go P d2 to d3" board;
+    parse_malformed_test "move P d2 d3 raises Malformed" "move P d2 d3"
+      board;
     parse_malformed_test "move W d2 to d3 raises Malformed"
       "move W d2 to d3" board;
     parse_malformed_test "move P d2 to d3 a raises Malformed"
@@ -157,13 +162,16 @@ let command_tests =
       "move P l2 to d4" board;
     parse_invalid_squares_test "move P d4 to l2 raises InvalidSquares"
       "move P d4 to l2" board;
-    parse_inconsistent_test "move K d2 to d3 raises InconsistentPlacement"
-      "move K d2 to d3" board;
-    parse_inconsistent_test "move P a1 to a8 raises InconsistentPlacement"
-      "move P a1 to a8" board; ]
+    parse_inconsistent_test
+      "move K d2 to d3 raises InconsistentPlacement" "move K d2 to d3"
+      board;
+    parse_inconsistent_test
+      "move P a1 to a8 raises InconsistentPlacement" "move P a1 to a8"
+      board;
+  ]
 
 let suite =
-  "test suite for chess" >:::
-  List.flatten [(List.flatten board_tests); command_tests]
+  "test suite for chess"
+  >::: List.flatten [ List.flatten board_tests; command_tests ]
 
 let _ = run_test_tt_main suite

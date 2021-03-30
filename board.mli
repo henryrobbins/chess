@@ -14,10 +14,18 @@ type t
 type square = string
 
 (** The color of the player. *)
-type color = White | Black
+type color =
+  | White
+  | Black
 
 (** The type of the chess piece. *)
-type piece_type = Pawn | Rook | Bishop | Knight | Queen | King
+type piece_type =
+  | Pawn
+  | Rook
+  | Bishop
+  | Knight
+  | Queen
+  | King
 
 (** The type of a direction. *)
 type direction =
@@ -42,24 +50,28 @@ val files : string list
     notation. *)
 val piece_of_square : t -> square -> p option
 
-(** [square_of_piece p] is the square where piece [p] is located if [p]
-    has not been captured. Otherwise, is None. *)
-val square_of_piece : p option -> square option
+(** [square_of_piece p] is the square where piece [p] is located.
+    Requires: [p] has not been captured. *)
+val square_of_piece : p -> square
+
+(** [square_of_king c b] is the square where the king of color [c] is
+    located in board state [b] *)
+val square_of_king : color -> t -> square
 
 (** [id_of_piece p] is the one-letter string identifier of piece [p]. *)
-val id_of_piece : p option -> piece_type
+val id_of_piece : p -> piece_type
+
+(** [color_of_piece p] is the color of piece [p]. *)
+val color_of_piece : p -> color
+
+(** [has_moved p] indicates whether piece [p] has been moved. *)
+val has_moved : p -> bool
 
 (** [move_piece t p s] is the game state after the piece contained in p
     moves to square s in state [t]. If a piece of the opposite color is
-    already at square s in state [t], it is captured. Requires: p is a
-    non-None piece option, s is a valid destination square. *)
-val move_piece : t -> p option -> square -> t
-
-(** [color_of_piece p] is the color of piece [p]. *)
-val color_of_piece : p option -> color
-
-(** [has_moved p] indicates if piece [p] has been moved. *)
-val has_moved : p option -> bool
+    already at square s in state [t], it is captured. Requires: s is a
+    valid destination square. *)
+val move_piece : t -> p -> square -> t
 
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s]. Requires: [s] is
