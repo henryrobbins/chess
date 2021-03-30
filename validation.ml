@@ -32,6 +32,10 @@ let check_from_direction (c : color) (b : t) (direction : direction) : direction
   | [] -> None
   | h :: t -> begin
     let h_current_square = square_of_piece (Some h) in
+    (* TODO: change iterator_from_sq to implement valid_moves;
+    NOTE: make sure to also check for L-shaped positions; not just lines
+    and diagonals. USE iterator_from_sq (peep tests) 
+    NOTE2: account for color of piece when the iterator runs into it *)
     let poss_moves = iterator_from_sq (extract_option h_current_square) direction in 
     let contained = List.mem king_current_square poss_moves in
     if contained then Some direction else None
