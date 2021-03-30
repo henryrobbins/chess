@@ -2,7 +2,7 @@ open Board
 open Command
 
 exception Exception
-exception InvalidPieceType
+exception InvalidState
 
 type move = square * square
 
@@ -248,13 +248,15 @@ let all_directions_attacked_from (c : color) (b : t) : direction list =
     | Some d -> d :: attacked_from t final_list 
   end in attacked_from directions []
 
-(** [get_piece c n state] is the piece of color [c] with piece id [n]
+(** [get_king c state] is the king piece of color [c] with piece id [n]
 in game state [state] *)
-let get_piece (c : color) (n : piece_type) (state : t) : p =
+let get_king (c : color) (state : t) : p =
   let all_pieces = active_pieces state in
-  match all_pieces with
-  | [] -> raise InvalidPieceType
-  | h :: t -> if color_of_piece h = c && id_of_piece h = n then h else raise InvalidPieceType
+  let rec find_king piece_list = 
+    match piece_list with
+  | [] -> raise InvalidState
+  | h :: t -> if (color_of_piece h = c && id_of_piece h = King) then h else find_king t
+  in find_king all_pieces
 
 (** [piece_check ing_square valid_moves] is a boolean value representing whether or not [king_square] 
     is contained in a list containing another piece's [valid_moves]*)
@@ -265,28 +267,38 @@ let rec piece_check (king_square : square) (valid_moves : (string * string) list
     match h with 
     | (_, y) -> if y = king_square then true else piece_check king_square t  
   end
+(* TODO: LOOK HERE *)
+let valid_piece_moves_temp p b : move list =
+  let piece_type = id_of_piece p in
+    match piece_type with
+    | Pawn -> valid_pawn_moves p b
+    | Rook -> valid_rook_moves p b
+    | Bishop -> valid_bishop_moves p b
+    | Knight -> valid_knight_moves p b
+    | Queen -> valid_queen_moves p b
+    | _ -> []
 
 (** [check_from_direction c b direction] is a direction option indicating whether or not the player
 of color [c] is in check from direction [direction] during game state [b]. *)
 let check_from_direction (c : color) (b : t) (direction : direction) : direction option = 
-  let king = get_piece c King b in
+  let king = get_king c b in
   let king_square = square_of_piece king in
   let potential_pieces = iterator_from_sq king_square direction in
   (* Find all the pieces in a given direction*)
   let rec find_all_pieces square_list = 
-  match square_list with 
-  | [] -> None
-  | h :: t -> begin
-    let h_piece = piece_of_square b h in
-    match h_piece with 
-    | None -> find_all_pieces t 
-    | Some piece -> begin
-      let valid_moves = valid_piece_moves piece b NotCheck in
-      let checked = piece_check king_square valid_moves in
-      if checked = true then Some direction else find_all_pieces t
-    end 
-    end  
-  in find_all_pieces potential_pieces
+    match square_list with 
+    | [] -> None
+    | h :: t -> begin
+      let h_piece = piece_of_square b h in
+      match h_piece with 
+      | None -> find_all_pieces t 
+      | Some piece -> begin
+        let v_moves = valid_piece_moves_temp piece b in
+        let checked = piece_check king_square v_moves in
+        if checked = true then Some direction else find_all_pieces t
+      end 
+      end  
+    in find_all_pieces potential_pieces
 
 (** [all_directions_attacked_from c b] is a list of all the directions from which the player
     of color [c] is checked during game state [b]. *)
@@ -298,8 +310,8 @@ let all_directions_attacked_from (c : color) (b : t) : direction list =
     | h :: t -> begin
       let direc = check_from_direction c b h in 
       match direc with 
-      | None -> []
-      | Some d -> d :: attacked_from t final_list
+      | None -> final_list
+      | Some d -> attacked_from t (d :: final_list)
     end 
   in attacked_from directions []
 
