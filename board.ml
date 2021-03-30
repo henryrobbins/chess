@@ -51,58 +51,52 @@ let captured_pieces t = t.captured_pieces
 let piece_of_square t square = List.assoc square t.board
 
 let square_of_piece p =
-  match p with
-  | None -> failwith "Piece must be non-None."
-  | Some p -> p.current_pos
+  match p.current_pos with
+  | None -> failwith "[p] should not be captured"
+  | Some sq -> sq
 
-let id_of_piece p =
-  match p with
-  | None -> failwith "Piece must be non-None."
-  | Some p -> p.id
+let id_of_piece p = p.id
 
-let has_moved p =
-  match p with
-  | None -> failwith "Piece must be non-None."
-  | Some p -> p.has_moved
+let has_moved p = p.has_moved
 
-let move_piece t piece s' =
-  match piece with
-  | None -> failwith "Requires [p] is a non-None piece option."
-  | Some p ->
-      let p' = { p with current_pos = Some s'; has_moved = true} in
-      let active =
-        match piece_of_square t s' with
-        | None ->
-            active_pieces t
-            |> List.filter (fun x -> x <> p)
-            |> List.cons p'
-        | Some cp ->
-            active_pieces t
-            |> List.filter (fun x -> x <> p)
-            |> List.filter (fun x -> x <> cp)
-            |> List.cons p'
-            |> List.cons { cp with current_pos = None }
-      in
-      let captured =
-        match piece_of_square t s' with
-        | None -> captured_pieces t
-        | Some cp -> { cp with current_pos = None } :: captured_pieces t
-      in
-      let board =
-        match square_of_piece (Some p) with
-        | None -> failwith "Piece should be active."
-        | Some s ->
-            t.board |> List.remove_assoc s
-            |> List.cons (s, None)
-            |> List.remove_assoc s'
-            |> List.cons (s', Some p')
-      in
-      { board; active_pieces = active; captured_pieces = captured }
+let color_of_piece p = p.color
 
-let color_of_piece p =
-  match p with
-  | None -> failwith "Piece must be non-None."
-  | Some p -> p.color
+let square_of_king c t =
+  let active_pieces = t.active_pieces in
+  let king_matcher p =
+    if p.color = c && p.id = King then true else false
+  in
+  let king = List.find king_matcher active_pieces in
+  square_of_piece king
+
+let move_piece t piece sq' =
+  let p' = { piece with current_pos = Some sq'; has_moved = true } in
+  let active =
+    match piece_of_square t sq' with
+    | None ->
+        active_pieces t
+        |> List.filter (fun x -> x <> piece)
+        |> List.cons p'
+    | Some cp ->
+        active_pieces t
+        |> List.filter (fun x -> x <> piece)
+        |> List.filter (fun x -> x <> cp)
+        |> List.cons p'
+        |> List.cons { cp with current_pos = None }
+  in
+  let captured =
+    match piece_of_square t sq' with
+    | None -> captured_pieces t
+    | Some cp -> { cp with current_pos = None } :: captured_pieces t
+  in
+  let board =
+    let sq = square_of_piece piece in
+    t.board |> List.remove_assoc sq
+    |> List.cons (sq, None)
+    |> List.remove_assoc sq'
+    |> List.cons (sq', Some p')
+  in
+  { board; active_pieces = active; captured_pieces = captured }
 
 let rec merge_singleton_and_list s lst acc reverse =
   if reverse then
@@ -120,7 +114,7 @@ let rec zip_lists lst1 lst2 acc =
   | h :: t -> (
       match lst2 with
       | [] -> List.rev acc
-      | h' :: t' -> zip_lists t t' ((h ^ h') :: acc))
+      | h' :: t' -> zip_lists t t' ((h ^ h') :: acc) )
 
 let merge_rks_and_fls tup =
   match tup with
@@ -147,10 +141,10 @@ let list_second list =
 
 let list_head list = match list with h :: _ -> Some h | [] -> None
 
-let cardinal_it_from_sq square direction =
+let cardinal_it_from_sq (sq : square) direction : square list =
   List.(
-    let fl = Char.escaped square.[0] in
-    let rk = Char.escaped square.[1] in
+    let fl = Char.escaped sq.[0] in
+    let rk = Char.escaped sq.[1] in
     let iterator rk_op fl_op rev_rk rev_fl =
       let valid_rks_fls =
         candidate_lsts rk_op fl_op rk fl rev_rk rev_fl
@@ -181,13 +175,13 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc)))
+            | Some s' -> gen_l_moves square t (s' :: acc) ) )
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
     []
 
-let iterator_from_sq square direction =
+let iterator_from_sq square direction : square list =
   match direction with
   | L -> l_it_from_sq square
   | _ -> cardinal_it_from_sq square direction
@@ -217,14 +211,15 @@ let extract_active_piece j =
   let color = j |> member "color" |> to_string |> color_of_string in
   let positions =
     j |> member "positions" |> to_list
-    |> List.map (fun x -> to_string x) in
+    |> List.map (fun x -> to_string x)
+  in
   let has_moved =
-    j |> member "has_moved" |> to_list |> List.map to_bool in
+    j |> member "has_moved" |> to_list |> List.map to_bool
+  in
   let fields_lst = List.combine positions has_moved in
-  let init_piece = function | f1, f2 -> { id;
-                                          color;
-                                          current_pos = Some f1;
-                                          has_moved = f2 } in
+  let init_piece = function
+    | f1, f2 -> { id; color; current_pos = Some f1; has_moved = f2 }
+  in
   List.map init_piece fields_lst
 
 (** [extract_captured_piece j] extracts a list of captured pieces from
@@ -233,8 +228,11 @@ let extract_captured_piece j : p list =
   let id = j |> member "id" |> to_string |> piece_type_of_string in
   let color = j |> member "color" |> to_string |> color_of_string in
   let has_moved =
-    j |> member "has_moved" |> to_list |> List.map to_bool in
-  let init_piece has_moved = { id; color; current_pos = None; has_moved} in
+    j |> member "has_moved" |> to_list |> List.map to_bool
+  in
+  let init_piece has_moved =
+    { id; color; current_pos = None; has_moved }
+  in
   List.map init_piece has_moved
 
 (** [blank_board] is a blank chess board with no pieces on it. *)
@@ -245,7 +243,7 @@ let blank_board : b =
     | rh :: rt -> (
         match cols with
         | [] -> init rt files b
-        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh, None) :: b))
+        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh, None) :: b) )
   in
   init ranks files []
 
@@ -269,7 +267,7 @@ let init_from_json j =
         let pos = h.current_pos in
         match pos with
         | None -> failwith "Active pieces should have a position."
-        | Some pos -> add_pieces ((pos, Some h) :: b) t)
+        | Some pos -> add_pieces ((pos, Some h) :: b) t )
   in
   let board = add_pieces blank_board active_pieces in
   { board; active_pieces; captured_pieces }

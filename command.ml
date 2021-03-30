@@ -29,8 +29,10 @@ let is_valid_square sq =
   else raise Malformed
 
 let is_piece_consistent id sq board =
-  if id_of_piece (piece_of_square board sq) = id then ()
-  else raise InconsistentPlacement
+  match piece_of_square board sq with
+  | Some p ->
+      if id_of_piece p = id then () else raise InconsistentPlacement
+  | None -> raise InconsistentPlacement
 
 let is_to s = if s = "to" then () else raise Malformed
 
