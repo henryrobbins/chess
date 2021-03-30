@@ -2,46 +2,13 @@ open Board
 open Command
 
 exception Exception
+exception InvalidPieceType
 
 type move = square * square
 
 type check_state =
   | Check of direction list
   | NotCheck
-
-(** [check_from_direction c b direction] is a direction option
-    indicating whether or not the player of color [c] is in check from
-    direction [direction] during game state [b]. *)
-let check_from_direction (c : color) (b : t) (direction : direction) :
-    direction option =
-  let king_sq = square_of_king c b in
-  match active_pieces b with
-  | [] -> None
-  | h :: t ->
-      let h_current_square = square_of_piece h in
-      let poss_moves = iterator_from_sq h_current_square direction in
-      let contained = List.mem king_sq poss_moves in
-      if contained then Some direction else None
-
-(** [all_directions_attacked_from c b] is a list of all the directions
-    from which the player of color [c] is checked during game state [b]. *)
-
-let all_directions_attacked_from (c : color) (b : t) : direction list =
-  let directions = [ N; NE; E; SE; S; SW; W; NW; L ] in
-  let rec attacked_from
-      (l : direction list)
-      (final_list : direction list) =
-    match l with
-    | [] -> []
-    | h :: t -> (
-        let direc = check_from_direction c b h in
-        match direc with
-        | None -> []
-        | Some d -> d :: attacked_from t final_list )
-  in
-  attacked_from directions []
-
-let is_check (c : color) (b : t) : check_state = NotCheck
 
 (* TODO: FOR TESTING ONLY *)
 
@@ -251,6 +218,96 @@ let valid_piece_moves p b cst : move list =
       | Check dir_lst ->
           filter_moves move_lst (intercept_squares c b dir_lst)
       | NotCheck -> move_lst )
+    
+(** [check_from_direction c b direction] is a direction option
+indicating whether or not the player of color [c] is in check from
+direction [direction] during game state [b]. *)
+let check_from_direction (c : color) (b : t) (direction : direction) : direction option =
+  let king_sq = square_of_king c b in
+  match active_pieces b with
+  | [] -> None
+  | h :: t ->
+    let h_current_square = square_of_piece h in
+    let poss_moves = iterator_from_sq h_current_square direction in
+    let contained = List.mem king_sq poss_moves in
+    if contained then Some direction else None
+
+(** [all_directions_attacked_from c b] is a list of all the directions
+from which the player of color [c] is checked during game state [b]. *)
+let all_directions_attacked_from (c : color) (b : t) : direction list =
+  let directions = [ N; NE; E; SE; S; SW; W; NW; L ] in
+  let rec attacked_from
+    (l : direction list)
+    (final_list : direction list) =
+  match l with
+  | [] -> []
+  | h :: t -> begin
+    let direc = check_from_direction c b h in
+    match direc with
+    | None -> []
+    | Some d -> d :: attacked_from t final_list 
+  end in attacked_from directions []
+
+(** [get_piece c n state] is the piece of color [c] with piece id [n]
+in game state [state] *)
+let get_piece (c : color) (n : piece_type) (state : t) : p =
+  let all_pieces = active_pieces state in
+  match all_pieces with
+  | [] -> raise InvalidPieceType
+  | h :: t -> if color_of_piece h = c && id_of_piece h = n then h else raise InvalidPieceType
+
+(** [piece_check ing_square valid_moves] is a boolean value representing whether or not [king_square] 
+    is contained in a list containing another piece's [valid_moves]*)
+let rec piece_check (king_square : square) (valid_moves : (string * string) list) : bool = 
+  match valid_moves with 
+  | [] -> false
+  | h :: t -> begin
+    match h with 
+    | (_, y) -> if y = king_square then true else piece_check king_square t  
+  end
+
+(** [check_from_direction c b direction] is a direction option indicating whether or not the player
+of color [c] is in check from direction [direction] during game state [b]. *)
+let check_from_direction (c : color) (b : t) (direction : direction) : direction option = 
+  let king = get_piece c King b in
+  let king_square = square_of_piece king in
+  let potential_pieces = iterator_from_sq king_square direction in
+  (* Find all the pieces in a given direction*)
+  let rec find_all_pieces square_list = 
+  match square_list with 
+  | [] -> None
+  | h :: t -> begin
+    let h_piece = piece_of_square b h in
+    match h_piece with 
+    | None -> find_all_pieces t 
+    | Some piece -> begin
+      let valid_moves = valid_piece_moves piece b NotCheck in
+      let checked = piece_check king_square valid_moves in
+      if checked = true then Some direction else find_all_pieces t
+    end 
+    end  
+  in find_all_pieces potential_pieces
+
+(** [all_directions_attacked_from c b] is a list of all the directions from which the player
+    of color [c] is checked during game state [b]. *)
+let all_directions_attacked_from (c : color) (b : t) : direction list = 
+  let directions = [N; NE; E; SE; S; SW; W; NW; L] in 
+  let rec attacked_from (l : direction list) (final_list : direction list) = 
+    match l with 
+    | [] -> []
+    | h :: t -> begin
+      let direc = check_from_direction c b h in 
+      match direc with 
+      | None -> []
+      | Some d -> d :: attacked_from t final_list
+    end 
+  in attacked_from directions []
+
+let is_check (c : color) (b : t) : check_state = 
+  let dirs = all_directions_attacked_from c b in 
+  match dirs with 
+  | [] -> NotCheck
+  | h :: t -> Check dirs 
 
 let valid_moves c b : move list =
   let cst = is_check c b in
@@ -268,3 +325,4 @@ let is_valid_move move b : bool =
           let c = color_of_piece p in
           let valid = valid_moves c b in
           List.mem move valid )
+
