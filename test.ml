@@ -1,6 +1,7 @@
 open OUnit2
 open Board
 open Command
+open Validation
 
 let board = init_game ()
 
@@ -39,6 +40,15 @@ let pp_list pp_elt lst =
 (** [pp_pair pp1 pp2 (a, b)] pretty-prints [(a, b)] using [pp1] for [a]
     and [pp2] for [b]. *)
 let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
+
+let pp_check (check_state : check_state) : string = 
+  match check_state with 
+  | NotCheck ->  "Not Check"
+  | Check dirs -> begin
+    match dirs with 
+    | [] -> "Not Check"     
+    | h :: t -> "" ^ h ^ ""
+  end
 
 let extract_piece piece_option =
   match piece_option with None -> failwith "no piece" | Some p -> p
@@ -102,7 +112,16 @@ let board_tests =
         [ "c7"; "d6"; "d4"; "c3"; "a3"; "a7" ];
     ];
   ]
+(** [is_check_test name c b exp] constructs an OUnit
+    test named [name] that asserts the equality of [exp] with
+    [is_check c b]. *)
+let is_check_test (name : string) (c : color) (b : t) exp = 
+  name >:: fun _ ->
+    assert_equal exp (is_check c b) ~printer:Bool.to_string
 
+let validation_tests = [
+  (* TODO: Fill this in *)
+]
 (** [parse_test name str board expected] constructs an OUnit test named
     [name] that asserts the equality of [expected] with
     [parse str board]. *)
