@@ -67,10 +67,15 @@ val color_of_piece : p -> color
 (** [has_moved p] indicates whether piece [p] has been moved. *)
 val has_moved : p -> bool
 
-(** [move_piece t p s] is the game state after the piece contained in p
-    moves to square s in state [t]. If a piece of the opposite color is
-    already at square s in state [t], it is captured. Requires: s is a
-    valid destination square. *)
+(** [capture_piece t p] is the game state after piece [p] has been
+    captured in game state [t]. *)
+val capture_piece : t -> p -> t
+
+(** [move_piece t p s] is the game state after piece [p] moves to square
+    [s] in state [t]. If a piece of the opposite color is already at
+    square s in state [t], it is captured.
+
+    Requires: s is a valid destination square. *)
 val move_piece : t -> p -> square -> t
 
 (** [iterator_from_sq s d] is the list of the squares that can be
