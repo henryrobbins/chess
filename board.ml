@@ -89,7 +89,7 @@ let move_piece t piece sq' =
   in
   let active =
     active_pieces state
-    |> List.filter (fun x -> x <> piece')
+    |> List.filter (fun x -> x <> piece)
     |> List.cons piece'
   in
   let board =

@@ -25,6 +25,16 @@ let rec interact board color =
   print_game_state board;
   print_string (string_of_string_tup_list (valid_moves color board));
   print_string "\n > ";
+  let check_mate board color =
+    match is_check color board with
+    | Check _ ->
+        if valid_moves color board = [] then print_string "CHECKMATE"
+        else ()
+    | NotCheck ->
+        if valid_moves color board = [] then print_string "STALEMATE"
+        else ()
+  in
+  check_mate board color;
   let next_color = match color with Black -> White | White -> Black in
   match read_line () with
   | exception End_of_file -> ()
