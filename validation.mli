@@ -28,8 +28,6 @@ val valid_piece_moves : Board.p -> Board.t -> check_state -> move list
     current board state [board] for player [color]. *)
 val valid_moves : Board.color -> Board.t -> move list
 
-val pinned_pieces : Board.color -> Board.t -> check_state -> p list
-
 (** [is_valid_move move board] is true iff the move [move] is valid for
     the given board state [board]. *)
 val is_valid_move : move -> Board.t -> bool

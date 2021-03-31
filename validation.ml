@@ -11,6 +11,10 @@ type check_state =
   | Check of direction list
   | NotCheck
 
+type pin_state =
+  | Pin of direction
+  | NoPin
+
 (* TODO: FOR TESTING ONLY *)
 
 (** [all_moves p] is all moves from piece [p]'s current square to any
@@ -294,31 +298,37 @@ let is_check color state : check_state =
 
 let is_pinned piece state =
   match id_of_piece piece with
-  | King -> false
+  | King -> NoPin
   | _ -> (
       let color = color_of_piece piece in
       let state' = capture_piece state piece in
       match is_check color state' with
-      | NotCheck -> false
-      | Check _ -> true )
+      | NotCheck -> NoPin
+      | Check directions -> (
+          match directions with
+          | [ h ] -> Pin h
+          | _ -> failwith "pin directions should have length 1" ) )
 
-let pinned_pieces color state cst =
-  match cst with
-  | Check _ -> []
-  | NotCheck ->
-      active_pieces state
-      |> List.filter (fun x -> color_of_piece x = color)
-      |> List.filter (fun x -> is_pinned x state)
+let pin_moves state piece dir =
+  let rev_dir = invert_direction dir in
+  [
+    unblocked_moves state piece dir; unblocked_moves state piece rev_dir;
+  ]
+  |> List.flatten
 
 let valid_moves c b : move list =
   let cst = is_check c b in
-  let piece_pins = pinned_pieces c b cst in
   let pieces =
-    active_pieces b
-    |> List.filter (fun x ->
-           color_of_piece x = c && not (List.mem x piece_pins))
+    active_pieces b |> List.filter (fun x -> color_of_piece x = c)
   in
-  List.map (fun p -> valid_piece_moves p b cst) pieces |> List.flatten
+  let pin_case_router p =
+    let val_moves = valid_piece_moves p b cst in
+    match is_pinned p b with
+    | NoPin -> val_moves
+    | Pin dir ->
+        List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
+  in
+  List.map pin_case_router pieces |> List.flatten
 
 let is_valid_move move b : bool =
   match move with
