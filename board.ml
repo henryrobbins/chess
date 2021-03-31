@@ -69,34 +69,36 @@ let square_of_king c t =
   let king = List.find king_matcher active_pieces in
   square_of_piece king
 
+let capture_piece t piece =
+  let sq = square_of_piece piece in
+  let p' = { piece with current_pos = None } in
+  let active = active_pieces t |> List.filter (fun x -> x <> piece) in
+  let captured = p' :: captured_pieces t in
+  let board = t.board |> List.remove_assoc sq |> List.cons (sq, None) in
+  { board; active_pieces = active; captured_pieces = captured }
+
 let move_piece t piece sq' =
-  let p' = { piece with current_pos = Some sq'; has_moved = true } in
-  let active =
+  let state =
     match piece_of_square t sq' with
-    | None ->
-        active_pieces t
-        |> List.filter (fun x -> x <> piece)
-        |> List.cons p'
-    | Some cp ->
-        active_pieces t
-        |> List.filter (fun x -> x <> piece)
-        |> List.filter (fun x -> x <> cp)
-        |> List.cons p'
-        |> List.cons { cp with current_pos = None }
+    | None -> t
+    | Some p -> capture_piece t p
   in
-  let captured =
-    match piece_of_square t sq' with
-    | None -> captured_pieces t
-    | Some cp -> { cp with current_pos = None } :: captured_pieces t
+  let sq = square_of_piece piece in
+  let piece' =
+    { piece with current_pos = Some sq'; has_moved = true }
+  in
+  let active =
+    active_pieces state
+    |> List.filter (fun x -> x <> piece')
+    |> List.cons piece'
   in
   let board =
-    let sq = square_of_piece piece in
-    t.board |> List.remove_assoc sq
+    state.board |> List.remove_assoc sq
     |> List.cons (sq, None)
     |> List.remove_assoc sq'
-    |> List.cons (sq', Some p')
+    |> List.cons (sq', Some piece')
   in
-  { board; active_pieces = active; captured_pieces = captured }
+  { state with board; active_pieces = active }
 
 let rec merge_singleton_and_list s lst acc reverse =
   if reverse then

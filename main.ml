@@ -12,6 +12,15 @@ let string_of_string_tup_list tup_lst =
   in
   build_str "" rev_lst
 
+let print_pins pin_lst =
+  let rev_lst = List.rev pin_lst in
+  let rec build_str str lst' =
+    match lst' with
+    | [] -> str
+    | h :: t -> build_str (str ^ square_of_piece h ^ ", ") t
+  in
+  build_str "" rev_lst
+
 let rec interact board color =
   print_game_state board;
   print_string (string_of_string_tup_list (valid_moves color board));

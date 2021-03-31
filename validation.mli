@@ -15,9 +15,8 @@ type check_state =
   | Check of direction list
   | NotCheck
 
-(** [is_check c b] is the check state of player [c] for the
-    given board state [b]. The player is either in check [Check] or
-    [NotCheck] *)
+(** [is_check c b] is the check state of player [c] for the given board
+    state [b]. The player is either in check [Check] or [NotCheck] *)
 val is_check : Board.color -> Board.t -> check_state
 
 (** [valid_piece_moves p b is_check] is the list of all valid moves for
@@ -28,6 +27,8 @@ val valid_piece_moves : Board.p -> Board.t -> check_state -> move list
 (** [valid_moves color board] is the list of all valid moves in the
     current board state [board] for player [color]. *)
 val valid_moves : Board.color -> Board.t -> move list
+
+val pinned_pieces : Board.color -> Board.t -> check_state -> p list
 
 (** [is_valid_move move board] is true iff the move [move] is valid for
     the given board state [board]. *)
