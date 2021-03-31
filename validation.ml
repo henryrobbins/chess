@@ -271,7 +271,11 @@ let check_from_dir color state dir =
   | L -> check_from_L color state
   | _ ->
       let king_sq = square_of_king color state in
-      let check_sqs = iterator_from_sq king_sq dir in
+      let king =
+        match piece_of_square state king_sq with
+        | Some p -> p
+        | None -> failwith "King should be on the board." in
+      let check_sqs = unblocked_squares state king dir in
       let attack_dir = invert_direction dir in
       let rec is_attacked sq_lst =
         match sq_lst with
@@ -296,18 +300,37 @@ let is_check color state : check_state =
   | [] -> NotCheck
   | directions -> Check directions
 
+
+let directional_pins state color dir =
+  let king_sq = square_of_king color state in
+  let check_sqs = iterator_from_sq king_sq dir in
+  let attack_dir = invert_direction dir in
+  let rec is_attacked same_color sq_lst =
+    if same_color > 1 then None else
+    match sq_lst with
+    | [] -> None
+    | sq :: t -> (
+        match piece_of_square state sq with
+        | None -> is_attacked same_color t
+        | Some piece ->
+            if color_of_piece piece = color then is_attacked (same_color + 1) t
+            else if List.mem attack_dir (attack_directions piece)
+            && color_of_piece piece <> color then
+              Some (piece, dir)
+            else None)
+  in
+  is_attacked 0 check_sqs
+
+
+let pinned_pieces state color : (p * direction) list =
+  [ N; NE; E; SE; S; SW; W; NW ]
+  |> List.map (directional_pins state color)
+  |> List.filter (fun x -> match x with | None -> false | Some _ -> true)
+  |> List.map (fun x -> match x with | None -> failwith "filtered out" | Some x' -> x')
+
 let is_pinned piece state =
-  match id_of_piece piece with
-  | King -> NoPin
-  | _ -> (
-      let color = color_of_piece piece in
-      let state' = capture_piece state piece in
-      match is_check color state' with
-      | NotCheck -> NoPin
-      | Check directions -> (
-          match directions with
-          | [ h ] -> Pin h
-          | _ -> failwith "pin directions should have length 1" ) )
+  try Pin (List.assoc piece (pinned_pieces state (color_of_piece piece)))
+  with | Not_found -> NoPin
 
 let pin_moves state piece dir =
   let rev_dir = invert_direction dir in
@@ -326,7 +349,7 @@ let valid_moves c b : move list =
     match is_pinned p b with
     | NoPin -> val_moves
     | Pin dir ->
-        List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
+      List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
   in
   List.map pin_case_router pieces |> List.flatten
 
