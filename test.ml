@@ -194,7 +194,7 @@ let valid_moves_test name color json expected =
   let computed_moves = valid_moves color board in
   assert_equal
     (List.filter (fun x -> not (List.mem x computed_moves)) expected)
-    [];
+    [] ~printer:string_of_string_tup_list;
   assert_equal
     (List.filter (fun x -> not (List.mem x expected)) computed_moves)
     [] ~printer:string_of_string_tup_list
@@ -268,7 +268,7 @@ let validation_tests =
        ("d7", "d5");
        ("e7", "e6");
        ("e7", "e5");
-       ("h7", "b6");
+       ("h7", "h6");
        ("g6", "h5");
        ("g6", "h5");
        ("b8", "a6");
@@ -277,6 +277,7 @@ let validation_tests =
        ("f8", "g7");
        ("g8", "f6");
        ("g8", "h6");
+       ("f8", "h6");
        ]
   ]
 
