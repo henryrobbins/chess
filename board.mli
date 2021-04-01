@@ -102,3 +102,7 @@ val init_game : unit -> t
 
 (** [print_game_state t] prints the game state [t] in string format. *)
 val print_game_state : t -> unit
+
+(** [flip_turn t]* is the game state [t], but it is now the opposite
+    color's turn to make a move *)
+val flip_turn : t -> t

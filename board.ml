@@ -82,6 +82,9 @@ let capture_piece t piece =
 
 let switch_color = function White -> Black | Black -> White
 
+let flip_turn t =
+  { t with color_to_move = switch_color (color_to_move t) }
+
 let move_piece t piece sq' =
   let state =
     match piece_of_square t sq' with
