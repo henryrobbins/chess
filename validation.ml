@@ -7,6 +7,16 @@ exception InvalidState
 
 type move = square * square
 
+let string_of_string_tup_list tup_lst =
+  let rev_lst = List.rev tup_lst in
+  let rec build_str str lst' =
+    match lst' with
+    | [] -> str
+    | (h, h') :: t ->
+        build_str (str ^ "(" ^ h ^ ", " ^ h' ^ ")" ^ ", ") t
+  in
+  build_str "" rev_lst
+
 type check_state =
   | Check of direction list
   | NotCheck
@@ -37,14 +47,14 @@ let unblocked_squares state piece direction =
   let potential_squares = iterator_from_sq sq direction in
   let rec valid_moves sq_lst move_lst =
     match sq_lst with
-    | [] -> move_lst
+    | [] -> List.rev move_lst
     | sq' :: t -> (
         match piece_of_square state sq' with
         | None -> valid_moves t (sq' :: move_lst)
         | Some p' ->
             if color_of_piece piece <> color_of_piece p' then
-              sq' :: move_lst
-            else move_lst )
+              List.rev (sq' :: move_lst)
+            else List.rev move_lst )
   in
   valid_moves potential_squares []
 
@@ -274,7 +284,8 @@ let check_from_dir color state dir =
       let king =
         match piece_of_square state king_sq with
         | Some p -> p
-        | None -> failwith "King should be on the board." in
+        | None -> failwith "King should be on the board."
+      in
       let check_sqs = unblocked_squares state king dir in
       let attack_dir = invert_direction dir in
       let rec is_attacked sq_lst =
@@ -300,37 +311,43 @@ let is_check color state : check_state =
   | [] -> NotCheck
   | directions -> Check directions
 
-
 let directional_pins state color dir =
   let king_sq = square_of_king color state in
   let check_sqs = iterator_from_sq king_sq dir in
   let attack_dir = invert_direction dir in
-  let rec is_attacked same_color sq_lst =
-    if same_color > 1 then None else
+  let rec is_attacked same_color_piece sq_lst =
     match sq_lst with
     | [] -> None
     | sq :: t -> (
         match piece_of_square state sq with
-        | None -> is_attacked same_color t
-        | Some piece ->
-            if color_of_piece piece = color then is_attacked (same_color + 1) t
-            else if List.mem attack_dir (attack_directions piece)
-            && color_of_piece piece <> color then
-              Some (piece, dir)
-            else None)
+        | None -> is_attacked same_color_piece t
+        | Some piece -> (
+            match same_color_piece with
+            | None ->
+                if color_of_piece piece = color then
+                  is_attacked (Some piece) t
+                else None
+            | Some piece' ->
+                if
+                  List.mem attack_dir (attack_directions piece)
+                  && color_of_piece piece <> color
+                then Some (piece', dir)
+                else None ) )
   in
-  is_attacked 0 check_sqs
-
+  is_attacked None check_sqs
 
 let pinned_pieces state color : (p * direction) list =
   [ N; NE; E; SE; S; SW; W; NW ]
   |> List.map (directional_pins state color)
-  |> List.filter (fun x -> match x with | None -> false | Some _ -> true)
-  |> List.map (fun x -> match x with | None -> failwith "filtered out" | Some x' -> x')
+  |> List.filter (fun x ->
+         match x with None -> false | Some _ -> true)
+  |> List.map (fun x ->
+         match x with None -> failwith "filtered out" | Some x' -> x')
 
 let is_pinned piece state =
-  try Pin (List.assoc piece (pinned_pieces state (color_of_piece piece)))
-  with | Not_found -> NoPin
+  try
+    Pin (List.assoc piece (pinned_pieces state (color_of_piece piece)))
+  with Not_found -> NoPin
 
 let pin_moves state piece dir =
   let rev_dir = invert_direction dir in
@@ -347,9 +364,11 @@ let valid_moves c b : move list =
   let pin_case_router p =
     let val_moves = valid_piece_moves p b cst in
     match is_pinned p b with
-    | NoPin -> val_moves
+    | NoPin ->
+        (*print_string (string_of_string_tup_list val_moves ^ " "); *)
+        val_moves
     | Pin dir ->
-      List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
+        List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
   in
   List.map pin_case_router pieces |> List.flatten
 

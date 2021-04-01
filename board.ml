@@ -89,7 +89,7 @@ let move_piece t piece sq' =
   in
   let active =
     active_pieces state
-    |> List.filter (fun x -> x <> piece')
+    |> List.filter (fun x -> x <> piece)
     |> List.cons piece'
   in
   let board =
@@ -249,7 +249,8 @@ let blank_board : b =
   in
   init ranks files []
 
-let init_from_json j =
+let init_from_json json =
+  let j = json |> Yojson.Basic.from_file in
   let active_pieces =
     j |> member "active_pieces" |> to_list
     |> List.map extract_active_piece
@@ -274,8 +275,7 @@ let init_from_json j =
   let board = add_pieces blank_board active_pieces in
   { board; active_pieces; captured_pieces }
 
-let init_game () =
-  "board_init.json" |> Yojson.Basic.from_file |> init_from_json
+let init_game () = init_from_json "board_init.json"
 
 (* [print_piece p] is a string with the color and id of piece [p]. If
    the piece is [None], it is a blank space. *)
@@ -298,7 +298,6 @@ let print_piece p =
       let id = List.assoc p.id id_map in
       c ^ id
 
-(* TODO: Print our graveyard pieces somewhere. *)
 let print_board t =
   print_string "  -----------------------------------------\n";
   let row_str i =

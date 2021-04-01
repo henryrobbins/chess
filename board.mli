@@ -92,9 +92,9 @@ val captured_pieces : t -> p list
 (* TODO: Use Yojson.Basic.t here. Need to figure out how to do this.. *)
 
 (** [init_from_json json] is the state of the game read in from the JSON
-    file [json]. Requires: [json] is a valid JSON file representing a
-    board state. *)
-val init_from_json : Yojson.Basic.t -> t
+    file [json]. Requires: [json] is a valid JSON file name representing
+    a board state. *)
+val init_from_json : string -> t
 
 (** [init_game] is the game state at the start of a normal chess game.*)
 val init_game : unit -> t
