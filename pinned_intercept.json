@@ -1,0 +1,55 @@
+{
+  "active_pieces": [
+    {
+      "id": "B",
+      "color": "White",
+      "positions": [
+        "c1"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "K",
+      "color": "Black",
+      "positions": [
+        "b7"
+      ],
+      "has_moved": [
+        true
+      ]
+    },
+    {
+      "id": "K",
+      "color": "White",
+      "positions": [
+        "e1"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "Q",
+      "color": "Black",
+      "positions": [
+        "a5"
+      ],
+      "has_moved": [
+        true
+      ]
+    },
+    {
+      "id": "R",
+      "color": "Black",
+      "positions": [
+        "a1"
+      ],
+      "has_moved": [
+        true
+      ]
+    }
+  ],
+  "captured_pieces": []
+}
