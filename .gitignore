@@ -4,6 +4,9 @@
 # ocaml
 _build
 *.byte
+_doc.private
+_doc.public
+chess.zip
 
 # jupyter notebook
 *.ipynb_checkpoints
