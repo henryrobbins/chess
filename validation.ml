@@ -27,7 +27,7 @@ let all_moves p : move list =
     | rh :: rt -> (
         match cols with
         | [] -> init rt files b
-        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh) :: b) )
+        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh) :: b))
   in
   let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
   List.map (fun x -> (sq, x)) sq_list
@@ -44,7 +44,7 @@ let unblocked_squares state piece direction =
         | Some p' ->
             if color_of_piece piece <> color_of_piece p' then
               List.rev (sq' :: move_lst)
-            else List.rev move_lst )
+            else List.rev move_lst)
   in
   valid_moves potential_squares []
 
@@ -74,7 +74,7 @@ let attack_directions piece =
   | Pawn -> (
       match color_of_piece piece with
       | White -> [ NE; NW ]
-      | Black -> [ SE; SW ] )
+      | Black -> [ SE; SW ])
 
 let invert_direction dir =
   match dir with
@@ -102,7 +102,7 @@ let check_from_L color state =
               color_of_piece piece <> color
               && id_of_piece piece = Knight
             then true
-            else search_squares t )
+            else search_squares t)
   in
   search_squares check_sqs
 
@@ -138,7 +138,7 @@ let check_from_dir state dir =
                       && color_of_piece piece <> color
                 else
                   List.mem attack_dir (attack_directions piece)
-                  && color_of_piece piece <> color )
+                  && color_of_piece piece <> color)
       in
       is_attacked 1 check_sqs
 
@@ -319,7 +319,7 @@ let valid_piece_moves p b cst : move list =
       match cst with
       | Check dir_lst ->
           filter_moves move_lst (intercept_squares c b dir_lst)
-      | NotCheck -> move_lst )
+      | NotCheck -> move_lst)
 
 let directional_pins state color dir =
   let king_sq = square_of_king color state in
@@ -342,7 +342,7 @@ let directional_pins state color dir =
                   List.mem attack_dir (attack_directions piece)
                   && color_of_piece piece <> color
                 then Some (piece', dir)
-                else None ) )
+                else None))
   in
   is_attacked None check_sqs
 
@@ -390,4 +390,14 @@ let is_valid_move move b : bool =
       | None -> false
       | Some p ->
           let valid = valid_moves b in
-          List.mem move valid )
+          List.mem move valid)
+
+let is_checkmate (b : Board.t) =
+  match valid_moves b with
+  | h :: t -> false
+  | [] -> ( match is_check b with NotCheck -> false | Check _ -> true)
+
+let is_stalemate (b : Board.t) =
+  match valid_moves b with
+  | h :: t -> false
+  | [] -> ( match is_check b with NotCheck -> true | Check _ -> false)
