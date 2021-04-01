@@ -15,8 +15,6 @@ type pin_state =
   | Pin of direction
   | NoPin
 
-(* TODO: FOR TESTING ONLY *)
-
 (** [all_moves p] is all moves from piece [p]'s current square to any
     other square on the board *)
 let all_moves p : move list =
@@ -32,6 +30,9 @@ let all_moves p : move list =
   let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
   List.map (fun x -> (sq, x)) sq_list
 
+(** [unblocked_squares state piece direction] is a list of all the squares in 
+  direction [direction] to which a piece [piece] in game state [state] can 
+  move. *)
 let unblocked_squares state piece direction =
   let sq = square_of_piece piece in
   let potential_squares = iterator_from_sq sq direction in
@@ -64,6 +65,8 @@ let rec list_head_n lst n acc =
   | h :: t ->
       if n = 0 then List.rev acc else list_head_n t (n - 1) (h :: acc)
 
+(** [attack_directions piece] is a direction list indicating all the different
+    direcions piece [piece] can attack.*)
 let attack_directions piece =
   match id_of_piece piece with
   | King -> [ N; NE; E; SE; S; SW; W; NW ]
@@ -88,6 +91,8 @@ let invert_direction dir =
   | SE -> NW
   | L -> L
 
+(** [check_from_L color state] is a boolean indicating whether or not the player 
+  of [color] is in check from any knights during game state [state].*)
 let check_from_L color state =
   let king_sq = square_of_king color state in
   let check_sqs = iterator_from_sq king_sq L in
@@ -106,9 +111,8 @@ let check_from_L color state =
   in
   search_squares check_sqs
 
-(** [check_from_direction c b direction] is a direction option
-    indicating whether or not the player of color [c] is in check from
-    direction [direction] during game state [b]. *)
+(** [check_from_dir state dir] is a boolean indicating whether or not the 
+  current player is in check from direction [dir] during game state [state]. *)
 let check_from_dir state dir =
   let color = color_to_move state in
   match dir with
