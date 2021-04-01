@@ -188,7 +188,7 @@ let command_tests =
     [valid_moves color (init_from_json json)] and [expected]. *)
 let valid_moves_test name color json expected =
   name >:: fun _ ->
-  let board = init_from_json json in
+  let board = init_from_json ("test_board_jsons/" ^ json) in
   let computed_moves = valid_moves color board in
   assert_equal
     (List.filter (fun x -> not (List.mem x computed_moves)) expected)
@@ -239,6 +239,8 @@ let validation_tests =
         ("b7", "c6");
         ("b7", "c8");
       ];
+    valid_moves_test "Black moves to get out of check" Black
+      "must_block_check.json" [("g7", "g6")]
   ]
 
 let suite =
