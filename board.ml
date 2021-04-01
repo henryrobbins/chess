@@ -25,16 +25,16 @@ type direction =
   | NW
   | L
 
+let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ]
+
+let files = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ]
+
 type p = {
   id : piece_type;
   color : color;
   current_pos : square option;
   has_moved : bool;
 }
-
-let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ]
-
-let files = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ]
 
 type b = (square * p option) list
 
@@ -45,24 +45,24 @@ type t = {
   color_to_move : color;
 }
 
+let color_to_move t = t.color_to_move
+
 let active_pieces t = t.active_pieces
 
 let captured_pieces t = t.captured_pieces
 
-let color_to_move t = t.color_to_move
-
 let piece_of_square t square = List.assoc square t.board
-
-let square_of_piece p =
-  match p.current_pos with
-  | None -> failwith "[p] should not be captured"
-  | Some sq -> sq
 
 let id_of_piece p = p.id
 
 let has_moved p = p.has_moved
 
 let color_of_piece p = p.color
+
+let square_of_piece p =
+  match p.current_pos with
+  | None -> failwith "[p] should not be captured"
+  | Some sq -> sq
 
 let square_of_king c t =
   let active_pieces = t.active_pieces in
