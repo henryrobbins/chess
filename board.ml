@@ -118,14 +118,14 @@ let rec zip_lists lst1 lst2 acc =
       | [] -> List.rev acc
       | h' :: t' -> zip_lists t t' ((h ^ h') :: acc) )
 
-let merge_rks_and_fls tup =
+let merge_rks_and_fls tup dir =
   match tup with
   | valid_fls, valid_rks ->
-      if List.length valid_rks = 1 then
+      if List.mem dir [ E; W ] then
         match valid_rks with
         | h :: _ -> merge_singleton_and_list h valid_fls [] true
         | [] -> []
-      else if List.length valid_fls = 1 then
+      else if List.mem dir [ N; S ] then
         match valid_fls with
         | h :: _ -> merge_singleton_and_list h valid_rks [] false
         | [] -> []
@@ -151,7 +151,7 @@ let cardinal_it_from_sq (sq : square) direction : square list =
       let valid_rks_fls =
         candidate_lsts rk_op fl_op rk fl rev_rk rev_fl
       in
-      merge_rks_and_fls valid_rks_fls
+      merge_rks_and_fls valid_rks_fls direction
     in
     match direction with
     | N -> iterator ( < ) ( = ) false false
