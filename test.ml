@@ -215,7 +215,10 @@ let is_check_test name color json expected =
 let is_check_tests = [
   is_check_test "White has pinned piece but is not in check" White 
   "pinned_intercept.json" NotCheck;
-  (* is_check_test "White has pinned " *)
+  is_check_test "Black has pinned piece but is not in check" Black 
+  "blocked_black_unchecked.json" NotCheck;
+  is_check_test "White in check from NE" White "white_in_check_NE.json"
+  (Check [NE]);
 ]
 let validation_tests =
   [
