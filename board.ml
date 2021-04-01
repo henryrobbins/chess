@@ -42,11 +42,14 @@ type t = {
   board : b;
   active_pieces : p list;
   captured_pieces : p list;
+  color_to_move : color;
 }
 
 let active_pieces t = t.active_pieces
 
 let captured_pieces t = t.captured_pieces
+
+let color_to_move t = t.color_to_move
 
 let piece_of_square t square = List.assoc square t.board
 
@@ -75,7 +78,9 @@ let capture_piece t piece =
   let active = active_pieces t |> List.filter (fun x -> x <> piece) in
   let captured = p' :: captured_pieces t in
   let board = t.board |> List.remove_assoc sq |> List.cons (sq, None) in
-  { board; active_pieces = active; captured_pieces = captured }
+  { t with board; active_pieces = active; captured_pieces = captured }
+
+let switch_color = function White -> Black | Black -> White
 
 let move_piece t piece sq' =
   let state =
@@ -98,7 +103,12 @@ let move_piece t piece sq' =
     |> List.remove_assoc sq'
     |> List.cons (sq', Some piece')
   in
-  { state with board; active_pieces = active }
+  {
+    state with
+    board;
+    active_pieces = active;
+    color_to_move = switch_color (color_of_piece piece);
+  }
 
 let rec merge_singleton_and_list s lst acc reverse =
   if reverse then
@@ -272,8 +282,14 @@ let init_from_json json =
         | None -> failwith "Active pieces should have a position."
         | Some pos -> add_pieces ((pos, Some h) :: b) t )
   in
+  let color_to_move =
+    match j |> member "color_to_move" |> to_string with
+    | "White" -> White
+    | "Black" -> Black
+    | _ -> failwith "Violates precondition."
+  in
   let board = add_pieces blank_board active_pieces in
-  { board; active_pieces; captured_pieces }
+  { board; active_pieces; captured_pieces; color_to_move }
 
 let init_game () = init_from_json "board_init.json"
 

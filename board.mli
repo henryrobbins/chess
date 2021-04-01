@@ -89,7 +89,8 @@ val active_pieces : t -> p list
 (** [captured_pieces t] is the list of captured pieces in state [t]. *)
 val captured_pieces : t -> p list
 
-(* TODO: Use Yojson.Basic.t here. Need to figure out how to do this.. *)
+(** [color_to_move t] is player that should move next in state [t]. *)
+val color_to_move : t -> color
 
 (** [init_from_json json] is the state of the game read in from the JSON
     file [json]. Requires: [json] is a valid JSON file name representing
