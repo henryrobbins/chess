@@ -212,6 +212,11 @@ let is_check_test name color json expected =
   let check_state = is_check color board in
   assert_equal check_state expected ~printer:check_printer
 
+let is_check_tests = [
+  is_check_test "White has pinned piece but is not in check" White 
+  "pinned_intercept.json" NotCheck;
+  (* is_check_test "White has pinned " *)
+]
 let validation_tests =
   [
     valid_moves_test "White moves in pinned/intercept position" White
