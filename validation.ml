@@ -259,7 +259,7 @@ let valid_queen_moves piece state : move list =
 
 (** [noncheck_king_move st c m] returns False if move [m] puts the king
     of color [c] in check. True otherwise. *)
-let noncheck_king_move state color piece move =
+let noncheck_king_move state piece move =
   let sq' = match move with _, sq -> sq in
   let state' = move_piece state piece sq' in
   match is_check state' with Check _ -> false | NotCheck -> true
@@ -274,7 +274,7 @@ let valid_king_moves piece state cst : move list =
     List.map (fun x -> head (unblocked_moves state piece x)) directions
   in
   List.flatten moves
-  |> List.filter (noncheck_king_move state (color_of_piece piece) piece)
+  |> List.filter (noncheck_king_move state piece)
 
 (** [filter_moves move_lst sq_lst] is the list of moves in [move_lst]
     where the second square of the move is in [sq_list]. *)

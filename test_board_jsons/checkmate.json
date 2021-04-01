@@ -1,1 +1,1 @@
-{"active_pieces": [{"id": "K", "color": "Black", "positions": ["f6"], "has_moved": [true]}, {"id": "K", "color": "White", "positions": ["f8"], "has_moved": [true]}, {"id": "Q", "color": "Black", "positions": ["h8"], "has_moved": [true]}], "captured_pieces": []}
+{"color_to_move": "White", "active_pieces": [{"id": "K", "color": "Black", "positions": ["f6"], "has_moved": [true]}, {"id": "K", "color": "White", "positions": ["f8"], "has_moved": [true]}, {"id": "Q", "color": "Black", "positions": ["h8"], "has_moved": [true]}], "captured_pieces": []}

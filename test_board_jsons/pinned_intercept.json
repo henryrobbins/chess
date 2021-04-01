@@ -1,4 +1,5 @@
 {
+  "color_to_move": "White",
   "active_pieces": [
     {
       "id": "B",
