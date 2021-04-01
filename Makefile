@@ -19,7 +19,7 @@ play:
 	$(OCAMLBUILD) -tag 'debug' $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
 
 zip:
-	zip chess.zip *.ml* *.json *.sh _tags .merlin .ocamlformat .ocamlinit INSTALL.md Makefile
+	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md Makefile
 
 docs: docs-public docs-private
 
