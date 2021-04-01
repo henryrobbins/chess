@@ -21,21 +21,36 @@ let print_pins pin_lst =
   in
   build_str "" rev_lst
 
-let rec interact board color =
-  print_game_state board;
-  print_string (string_of_string_tup_list (valid_moves color board));
-  print_string "\n > ";
-  let check_mate board color =
-    match is_check color board with
-    | Check _ ->
-        if valid_moves color board = [] then print_string "CHECKMATE"
-        else ()
-    | NotCheck ->
-        if valid_moves color board = [] then print_string "STALEMATE"
-        else ()
+let print_checkmate_stalemate board =
+  if is_checkmate board then print_string "CHECKMATE \n"
+  else if is_stalemate board then print_string "STALEMATE \n"
+  else ();
+  if is_checkmate board || is_stalemate board then exit 0 else ()
+
+let prompt_for_move board =
+  let color =
+    match color_to_move board with White -> "White" | Black -> "Black"
   in
-  check_mate board color;
-  let next_color = match color with Black -> White | White -> Black in
+  print_string ("\n" ^ color ^ " to move  > ")
+
+let print_invalid_move () =
+  print_string "The move was invalid. Try again. \n"
+
+let update_with_move_phrase board = function
+  | [ id; sq; "to"; sq' ] ->
+      let p =
+        match piece_of_square board sq with
+        | None -> failwith "never will happen"
+        | Some p' -> p'
+      in
+      if is_valid_move (sq, sq') board then move_piece board p sq'
+      else board
+  | _ -> failwith "parse failed"
+
+let rec interact board =
+  print_game_state board;
+  print_checkmate_stalemate board;
+  prompt_for_move board;
   match read_line () with
   | exception End_of_file -> ()
   | text -> (
@@ -43,33 +58,23 @@ let rec interact board color =
         let command = parse text board in
         match command with
         | Quit -> exit 0
-        | Move move_phrase -> (
-            match move_phrase with
-            | [ id; sq; "to"; sq' ] ->
-                let p =
-                  match piece_of_square board sq with
-                  | None -> failwith "never will happen"
-                  | Some p' -> p'
-                in
-                if is_valid_move (sq, sq') board then
-                  let board' = move_piece board p sq' in
-                  interact board' next_color
-                else print_string "The move was invalid. Try again. \n";
-                interact board color
-            | _ -> () )
+        | Move move_phrase ->
+            let board' = update_with_move_phrase board move_phrase in
+            if board = board' then print_invalid_move () else ();
+            interact board'
       with
       | InconsistentPlacement ->
-          print_string "placement";
-          interact board color
+          print_string "placement \n";
+          interact board
       | InvalidSquares ->
-          print_string "invalid sq";
-          interact board color
+          print_string "invalid sq \n";
+          interact board
       | Malformed ->
-          print_string "malformed";
-          interact board color )
+          print_string "malformed \n";
+          interact board )
 
 (** [main ()] prompts for the game to play, then starts it. *)
-let main () = interact (init_game ()) White
+let main () = interact (init_game ())
 
 (* Execute the game engine. *)
 let () = main ()

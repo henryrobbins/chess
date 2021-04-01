@@ -1,1 +1,90 @@
-{"color_to_move": "Black", "active_pieces": [{"id": "K", "color": "Black", "positions": ["g6"], "has_moved": [true]}, {"id": "K", "color": "White", "positions": ["f1"], "has_moved": [true]}, {"id": "N", "color": "White", "positions": ["d5", "h3"], "has_moved": [true, true]}, {"id": "P", "color": "White", "positions": ["h2"], "has_moved": [false]}, {"id": "Q", "color": "Black", "positions": ["h7", "f6", "h5"], "has_moved": [true, true, true]}, {"id": "Q", "color": "White", "positions": ["e8", "d6", "c5", "f4"], "has_moved": [true, true, true, true]}, {"id": "R", "color": "White", "positions": ["b7", "h4"], "has_moved": [true, true]}], "captured_pieces": []}
+{
+  "color_to_move": "Black",
+  "active_pieces": [
+    {
+      "id": "K",
+      "color": "Black",
+      "positions": [
+        "g6"
+      ],
+      "has_moved": [
+        true
+      ]
+    },
+    {
+      "id": "K",
+      "color": "White",
+      "positions": [
+        "f1"
+      ],
+      "has_moved": [
+        true
+      ]
+    },
+    {
+      "id": "N",
+      "color": "White",
+      "positions": [
+        "d5",
+        "h3"
+      ],
+      "has_moved": [
+        true,
+        true
+      ]
+    },
+    {
+      "id": "P",
+      "color": "White",
+      "positions": [
+        "h2"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "Q",
+      "color": "Black",
+      "positions": [
+        "h7",
+        "f6",
+        "h5"
+      ],
+      "has_moved": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "Q",
+      "color": "White",
+      "positions": [
+        "e8",
+        "d6",
+        "c5",
+        "f4"
+      ],
+      "has_moved": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "R",
+      "color": "White",
+      "positions": [
+        "b7",
+        "h4"
+      ],
+      "has_moved": [
+        true,
+        true
+      ]
+    }
+  ],
+  "captured_pieces": []
+}

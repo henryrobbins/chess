@@ -1,1 +1,166 @@
-{"color_to_move": "Black", "active_pieces": [{"id": "B", "color": "Black", "positions": ["c8", "g3"], "has_moved": [false, true]}, {"id": "B", "color": "White", "positions": ["c1", "f1"], "has_moved": [false, false]}, {"id": "K", "color": "Black", "positions": ["e8"], "has_moved": [false]}, {"id": "K", "color": "White", "positions": ["e1"], "has_moved": [false]}, {"id": "N", "color": "Black", "positions": ["d8", "e7"], "has_moved": [true, true]}, {"id": "N", "color": "White", "positions": ["f6", "g1"], "has_moved": [true, false]}, {"id": "P", "color": "Black", "positions": ["b7", "c7", "d7", "f7", "h7", "e6", "g6", "a5"], "has_moved": [false, false, false, false, false, true, true, true]}, {"id": "P", "color": "White", "positions": ["b6", "c5", "a4", "d4", "e4", "f2", "g2", "h2"], "has_moved": [true, true, true, true, true, false, false, false]}, {"id": "Q", "color": "Black", "positions": ["g4"], "has_moved": [true]}, {"id": "Q", "color": "White", "positions": ["d1"], "has_moved": [false]}, {"id": "R", "color": "Black", "positions": ["a8", "f8"], "has_moved": [false, true]}, {"id": "R", "color": "White", "positions": ["a1", "h1"], "has_moved": [false, false]}], "captured_pieces": []}
+{
+  "color_to_move": "Black",
+  "active_pieces": [
+    {
+      "id": "B",
+      "color": "Black",
+      "positions": [
+        "c8",
+        "g3"
+      ],
+      "has_moved": [
+        false,
+        true
+      ]
+    },
+    {
+      "id": "B",
+      "color": "White",
+      "positions": [
+        "c1",
+        "f1"
+      ],
+      "has_moved": [
+        false,
+        false
+      ]
+    },
+    {
+      "id": "K",
+      "color": "Black",
+      "positions": [
+        "e8"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "K",
+      "color": "White",
+      "positions": [
+        "e1"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "N",
+      "color": "Black",
+      "positions": [
+        "d8",
+        "e7"
+      ],
+      "has_moved": [
+        true,
+        true
+      ]
+    },
+    {
+      "id": "N",
+      "color": "White",
+      "positions": [
+        "f6",
+        "g1"
+      ],
+      "has_moved": [
+        true,
+        false
+      ]
+    },
+    {
+      "id": "P",
+      "color": "Black",
+      "positions": [
+        "b7",
+        "c7",
+        "d7",
+        "f7",
+        "h7",
+        "e6",
+        "g6",
+        "a5"
+      ],
+      "has_moved": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "P",
+      "color": "White",
+      "positions": [
+        "b6",
+        "c5",
+        "a4",
+        "d4",
+        "e4",
+        "f2",
+        "g2",
+        "h2"
+      ],
+      "has_moved": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "Q",
+      "color": "Black",
+      "positions": [
+        "g4"
+      ],
+      "has_moved": [
+        true
+      ]
+    },
+    {
+      "id": "Q",
+      "color": "White",
+      "positions": [
+        "d1"
+      ],
+      "has_moved": [
+        false
+      ]
+    },
+    {
+      "id": "R",
+      "color": "Black",
+      "positions": [
+        "a8",
+        "f8"
+      ],
+      "has_moved": [
+        false,
+        true
+      ]
+    },
+    {
+      "id": "R",
+      "color": "White",
+      "positions": [
+        "a1",
+        "h1"
+      ],
+      "has_moved": [
+        false,
+        false
+      ]
+    }
+  ],
+  "captured_pieces": []
+}
