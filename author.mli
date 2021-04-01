@@ -5,9 +5,9 @@
    or use it for commercial purposes.
  ************************************************************)
 
-(** CS 3110 Spring 2021 Assignment A2 Adventure
+(** CS 3110 Spring 2021 Chess Final Project
 
-    @author Henry Robbins (hwr26) *)
+    @author Henry Robbins (hwr26), Anders Wikum (aew236), Yunwoo Kim (yk765), Nalu Concepcion (lac327) *)
 
 (************************************************************
 
