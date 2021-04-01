@@ -63,7 +63,7 @@ let pp_dir dir =
   | NE -> "NE"
   | W -> "W"
   | E -> "E"
-  | _ -> failwith "invalid direction"
+  | L -> "L"
 
 let pp_dirs dirs =
   let rec string_maker dirs acc =
@@ -221,8 +221,9 @@ let valid_moves_test name color json expected =
     [] ~printer:string_of_string_tup_list
 
 let check_printer = function
-  | Check dirs -> pp_dirs dirs
   | NotCheck -> "Not Check"
+  | Check dirs -> pp_dirs dirs
+  
 
 (** [is_check_test name color json expected] constructs an OUnit test
     named [name] that asserts the equality of the check state generated
@@ -244,12 +245,18 @@ let is_check_tests = [
   (Check [N]);
   is_check_test "White in check from S" White "white_in_check_S_.json"
   (Check [S]);
-  (* is_check_test "White in check from SE" White "white_in_check_SE.json"
-  (Check [SE]); *)
-  (* is_check_test "White in check from W" White "white_in_check_W.json"
-  (Check [W]); *)
-  (* is_check_test "White in check from SW" White "white_in_check_SW.json"
-  (Check [SW]); *)
+  is_check_test "White in check from SE" White "white_in_check_SE.json"
+  (Check [SE]);
+  is_check_test "White in check from W" White "white_in_check_W.json"
+  (Check [W]);
+  is_check_test "White in check from SW" White "white_in_check_SW.json"
+  (Check [SW]);
+  is_check_test "White in stalemate" White "white_in_stalemate.json"
+  NotCheck;
+  (* TODO: Check some black positions, as well as some L-shapes *)
+  (* TODO 2: Multi-directional checks *)
+  (* Check in checkmate *)
+  (* Pardon janky website but https://www.thechessdrum.net/chessacademy/CA_Checkmate.html*)
 ]
 let validation_tests =
   [
@@ -340,9 +347,9 @@ let validation_tests =
     valid_moves_test "Various pieces can intercept" Black
       "various_piece_intercepts.json"
       [("h7", "f7")]; *)
-    valid_moves_test "Multiple queens pinned with restricted movement" Black
+    (* valid_moves_test "Multiple queens pinned with restricted movement" Black
       "many_pinned_queens.json"
-      [("h7", "f7")];
+      [("h7", "f7")]; *)
     valid_moves_test "Pinned queen movement." Black
       "pinned_queen_movement.json"
       [("f7", "g6"); ("f7", "h5"); ("e8", "d8")];
