@@ -266,7 +266,12 @@ let is_check_tests = [
   is_check_test "Neither color in check" "restricted_pawn_attack.json"
   NotCheck;
   (* TODO 2: Multi-directional checks *)
-  
+  is_check_test "Double check, L and SE, Queen" "double_check_SE.json"
+  (Check [SE; L]);
+  is_check_test "Double check, L and S, Queen" "dcheck_cardinal.json"
+  (Check [S; L]);
+  is_check_test "Double check, L and SW, Rook" "double_check_SW.json"
+  (Check [SW; L]);
 ]
 let validation_tests =
   [
