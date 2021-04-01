@@ -53,8 +53,8 @@ let pp_list pp_elt lst =
     and [pp2] for [b]. *)
 let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
-let pp_dir dir = 
-  match dir with 
+let pp_dir dir =
+  match dir with
   | N -> "N"
   | S -> "S"
   | SW -> "SW"
@@ -65,9 +65,9 @@ let pp_dir dir =
   | E -> "E"
   | _ -> failwith "invalid direction"
 
-let pp_dirs dirs = 
-  let rec string_maker dirs acc = 
-    match dirs with 
+let pp_dirs dirs =
+  let rec string_maker dirs acc =
+    match dirs with
     | h :: [] -> acc ^ pp_dir h ^ "]"
     | h :: t -> acc ^ pp_dir h ^ ";" ^ string_maker t acc
     | [] -> acc ^ "]"
@@ -128,6 +128,7 @@ let board_tests =
       iterator_from_sq_test "a1 -> SW" "a1" SW [];
       iterator_from_sq_test "a4 -> W" "a4" W [];
       iterator_from_sq_test "a8 -> N" "a8" NW [];
+      iterator_from_sq_test "h7 -> NW" "h7" NW ["g7"];
       iterator_from_sq_test "d4 -> L" "d4" L
         [ "e6"; "f5"; "f3"; "e2"; "c2"; "b3"; "b5"; "c6" ];
       iterator_from_sq_test "a1 -> L" "a1" L [ "b3"; "c2" ];
@@ -233,15 +234,15 @@ let is_check_test name color json expected =
   assert_equal check_state expected ~printer:check_printer
 
 let is_check_tests = [
-  is_check_test "White has pinned piece and is in check from NW" White 
+  is_check_test "White has pinned piece and is in check from NW" White
   "pinned_intercept.json" (Check [NW]);
-  is_check_test "Black has pinned piece but is not in check" Black 
+  is_check_test "Black has pinned piece but is not in check" Black
   "blocked_black_unchecked.json" NotCheck;
   is_check_test "White in check from NE" White "white_in_check_NE.json"
   (Check [NE]);
   is_check_test "White in check from N" White "white_in_check_north_.json"
   (Check [N]);
-  is_check_test "White in check from S" White "white_in_check_S_.json" 
+  is_check_test "White in check from S" White "white_in_check_S_.json"
   (Check [S]);
   (* is_check_test "White in check from SE" White "white_in_check_SE.json"
   (Check [SE]); *)
