@@ -63,7 +63,7 @@ let pp_dir dir =
   | NE -> "NE"
   | W -> "W"
   | E -> "E"
-  | _ -> failwith "invalid direction"
+  | L -> "L"
 
 let pp_dirs dirs = 
   let rec string_maker dirs acc = 
@@ -220,8 +220,9 @@ let valid_moves_test name color json expected =
     [] ~printer:string_of_string_tup_list
 
 let check_printer = function
-  | Check dirs -> pp_dirs dirs
   | NotCheck -> "Not Check"
+  | Check dirs -> pp_dirs dirs
+  
 
 (** [is_check_test name color json expected] constructs an OUnit test
     named [name] that asserts the equality of the check state generated
@@ -241,14 +242,16 @@ let is_check_tests = [
   (Check [NE]);
   is_check_test "White in check from N" White "white_in_check_north_.json"
   (Check [N]);
-  is_check_test "White in check from S" White "white_in_check_S_.json" 
-  (Check [S]);
+  (* is_check_test "White in check from S" White "white_in_check_S_.json" 
+  (Check [S]); *)
   (* is_check_test "White in check from SE" White "white_in_check_SE.json"
   (Check [SE]); *)
   (* is_check_test "White in check from W" White "white_in_check_W.json"
   (Check [W]); *)
   (* is_check_test "White in check from SW" White "white_in_check_SW.json"
   (Check [SW]); *)
+  (* is_check_test "White in stalemate" White "white_in_stalemate.json"
+  NotCheck; *)
 ]
 let validation_tests =
   [
