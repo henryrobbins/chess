@@ -64,7 +64,7 @@ let rec list_head_n lst n acc =
   | h :: t ->
       if n = 0 then List.rev acc else list_head_n t (n - 1) (h :: acc)
 
-  let attack_directions piece =
+let attack_directions piece =
   match id_of_piece piece with
   | King -> [ N; NE; E; SE; S; SW; W; NW ]
   | Queen -> [ N; NE; E; SE; S; SW; W; NW ]
@@ -98,8 +98,10 @@ let check_from_L color state =
         match piece_of_square state sq with
         | None -> search_squares t
         | Some piece ->
-            if color_of_piece piece <> color
-              && id_of_piece piece = Knight then true
+            if
+              color_of_piece piece <> color
+              && id_of_piece piece = Knight
+            then true
             else search_squares t )
   in
   search_squares check_sqs
@@ -107,7 +109,8 @@ let check_from_L color state =
 (** [check_from_direction c b direction] is a direction option
     indicating whether or not the player of color [c] is in check from
     direction [direction] during game state [b]. *)
-let check_from_dir color state dir =
+let check_from_dir state dir =
+  let color = color_to_move state in
   match dir with
   | L -> check_from_L color state
   | _ ->
@@ -130,21 +133,23 @@ let check_from_dir color state dir =
                   match id_of_piece piece with
                   | King -> false
                   | Pawn -> false
-                  | _ -> List.mem attack_dir (attack_directions piece)
-                         && color_of_piece piece <> color
-                else List.mem attack_dir (attack_directions piece)
-                && color_of_piece piece <> color )
+                  | _ ->
+                      List.mem attack_dir (attack_directions piece)
+                      && color_of_piece piece <> color
+                else
+                  List.mem attack_dir (attack_directions piece)
+                  && color_of_piece piece <> color )
       in
       is_attacked 1 check_sqs
 
 (** [all_directions_attacked_from c b] is a list of all the directions
     from which the player of color [c] is checked during game state [b]. *)
-let all_checks color state : direction list =
+let all_checks state : direction list =
   let cardinal_dirs = [ N; NE; E; SE; S; SW; W; NW; L ] in
-  List.filter (fun x -> check_from_dir color state x) cardinal_dirs
+  List.filter (fun x -> check_from_dir state x) cardinal_dirs
 
-let is_check color state : check_state =
-  match all_checks color state with
+let is_check state : check_state =
+  match all_checks state with
   | [] -> NotCheck
   | directions -> Check directions
 
@@ -252,14 +257,12 @@ let valid_queen_moves piece state : move list =
   in
   List.flatten moves
 
-(** [noncheck_king_move st c m] returns False if move [m] puts the king of
-    color [c] in check. True otherwise. *)
+(** [noncheck_king_move st c m] returns False if move [m] puts the king
+    of color [c] in check. True otherwise. *)
 let noncheck_king_move state color piece move =
-  let sq' = match move with (_,sq) -> sq in
+  let sq' = match move with _, sq -> sq in
   let state' = move_piece state piece sq' in
-  match is_check color state' with
-  | Check _ -> false
-  | NotCheck -> true
+  match is_check state' with Check _ -> false | NotCheck -> true
 
 (** [valid_king_moves p b cst] is the list of all valid moves for piece
     [p] with board state [b] given check state [cst]. Requires: piece
@@ -355,8 +358,9 @@ let pin_moves state piece dir =
   ]
   |> List.flatten
 
-let valid_moves c b : move list =
-  let cst = is_check c b in
+let valid_moves b : move list =
+  let c = color_to_move b in
+  let cst = is_check b in
   let pieces =
     active_pieces b |> List.filter (fun x -> color_of_piece x = c)
   in
@@ -377,6 +381,5 @@ let is_valid_move move b : bool =
       match piece_of_square b sq with
       | None -> false
       | Some p ->
-          let c = color_of_piece p in
-          let valid = valid_moves c b in
+          let valid = valid_moves b in
           List.mem move valid )
