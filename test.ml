@@ -115,7 +115,9 @@ let board_tests =
         [ "c7"; "d6"; "d4"; "c3"; "a3"; "a7" ];
     ];
   ]
-
+let validation_tests = [
+  (* TODO: Fill this in *)
+]
 (** [parse_test name str board expected] constructs an OUnit test named
     [name] that asserts the equality of [expected] with
     [parse str board]. *)
@@ -196,6 +198,19 @@ let valid_moves_test name color json expected =
   assert_equal
     (List.filter (fun x -> not (List.mem x expected)) computed_moves)
     [] ~printer:string_of_string_tup_list
+
+let check_printer = function
+  | Check _ -> "Check"
+  | NotCheck -> "Not Check"
+
+(** [is_check_test name color json expected] constructs an OUnit test
+    named [name] that asserts the equality of the check state generated
+    by [is_check_test color (init_from_json json)] and [expected]. *)
+let is_check_test name color json expected =
+  name >:: fun _ ->
+  let board = init_from_json json in
+  let check_state = is_check color board in
+  assert_equal check_state expected ~printer:check_printer
 
 let validation_tests =
   [

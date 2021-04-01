@@ -7,16 +7,6 @@ exception InvalidState
 
 type move = square * square
 
-let string_of_string_tup_list tup_lst =
-  let rev_lst = List.rev tup_lst in
-  let rec build_str str lst' =
-    match lst' with
-    | [] -> str
-    | (h, h') :: t ->
-        build_str (str ^ "(" ^ h ^ ", " ^ h' ^ ")" ^ ", ") t
-  in
-  build_str "" rev_lst
-
 type check_state =
   | Check of direction list
   | NotCheck
