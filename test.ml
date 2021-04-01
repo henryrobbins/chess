@@ -53,6 +53,26 @@ let pp_list pp_elt lst =
     and [pp2] for [b]. *)
 let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
+let pp_dir dir = 
+  match dir with 
+  | N -> "N"
+  | S -> "S"
+  | SW -> "SW"
+  | SE -> "SE"
+  | NW -> "NW"
+  | NE -> "NE"
+  | W -> "W"
+  | E -> "E"
+  | _ -> failwith "invalid direction"
+
+let pp_dirs dirs = 
+  let rec string_maker dirs acc = 
+    match dirs with 
+    | h :: [] -> acc ^ pp_dir h ^ "]"
+    | h :: t -> acc ^ pp_dir h ^ ";" ^ string_maker t acc
+    | [] -> acc ^ "]"
+  in "[" ^ string_maker dirs ""
+
 let extract_piece piece_option =
   match piece_option with None -> failwith "no piece" | Some p -> p
 
@@ -200,7 +220,7 @@ let valid_moves_test name color json expected =
     [] ~printer:string_of_string_tup_list
 
 let check_printer = function
-  | Check _ -> "Check"
+  | Check dirs -> pp_dirs dirs
   | NotCheck -> "Not Check"
 
 (** [is_check_test name color json expected] constructs an OUnit test
@@ -210,7 +230,6 @@ let is_check_test name color json expected =
   name >:: fun _ ->
   let board = init_from_json ("test_board_jsons/" ^ json) in
   let check_state = is_check color board in
-  print_string (check_printer check_state);
   assert_equal check_state expected ~printer:check_printer
 
 let is_check_tests = [
@@ -220,6 +239,16 @@ let is_check_tests = [
   "blocked_black_unchecked.json" NotCheck;
   is_check_test "White in check from NE" White "white_in_check_NE.json"
   (Check [NE]);
+  is_check_test "White in check from N" White "white_in_check_north_.json"
+  (Check [N]);
+  is_check_test "White in check from S" White "white_in_check_S_.json" 
+  (Check [S]);
+  (* is_check_test "White in check from SE" White "white_in_check_SE.json"
+  (Check [SE]); *)
+  (* is_check_test "White in check from W" White "white_in_check_W.json"
+  (Check [W]); *)
+  (* is_check_test "White in check from SW" White "white_in_check_SW.json"
+  (Check [SW]); *)
 ]
 let validation_tests =
   [
