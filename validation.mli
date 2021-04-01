@@ -33,3 +33,9 @@ val valid_moves : Board.color -> Board.t -> move list
     the given board state [board]. *)
 val is_valid_move : move -> Board.t -> bool
 
+
+(* DELETE THIS *)
+
+val valid_queen_moves : Board.p -> Board.t -> move list
+
+val unblocked_moves : Board.t -> Board.p -> Board.direction -> move list

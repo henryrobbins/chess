@@ -66,7 +66,7 @@ let rec list_head_n lst n acc =
 
   let attack_directions piece =
   match id_of_piece piece with
-  | King -> []
+  | King -> [ N; NE; E; SE; S; SW; W; NW ]
   | Queen -> [ N; NE; E; SE; S; SW; W; NW ]
   | Rook -> [ N; E; S; W ]
   | Bishop -> [ NE; NW; SE; SW ]
@@ -265,16 +265,8 @@ let noncheck_king_move state color piece move =
     [p] with board state [b] given check state [cst]. Requires: piece
     [p] is of id [K] *)
 let valid_king_moves piece state cst : move list =
-  let prohib_directions =
-    match cst with Check dir_lst -> dir_lst | NotCheck -> []
-  in
-  let check_direction dir =
-    if List.mem dir prohib_directions then false else true
-  in
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
-  let directions =
-    List.filter check_direction [ N; NE; E; SE; S; SW; W; NW ]
-  in
+  let directions = attack_directions piece in
   let moves =
     List.map (fun x -> head (unblocked_moves state piece x)) directions
   in
