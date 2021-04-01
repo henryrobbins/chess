@@ -208,13 +208,14 @@ let check_printer = function
     by [is_check_test color (init_from_json json)] and [expected]. *)
 let is_check_test name color json expected =
   name >:: fun _ ->
-  let board = init_from_json json in
+  let board = init_from_json ("test_board_jsons/" ^ json) in
   let check_state = is_check color board in
+  print_string (check_printer check_state);
   assert_equal check_state expected ~printer:check_printer
 
 let is_check_tests = [
-  is_check_test "White has pinned piece but is not in check" White 
-  "pinned_intercept.json" NotCheck;
+  is_check_test "White has pinned piece and is in check from NW" White 
+  "pinned_intercept.json" (Check [NW]);
   is_check_test "Black has pinned piece but is not in check" Black 
   "blocked_black_unchecked.json" NotCheck;
   is_check_test "White in check from NE" White "white_in_check_NE.json"
@@ -292,6 +293,6 @@ let validation_tests =
 let suite =
   "test suite for chess"
   >::: List.flatten
-         [ List.flatten board_tests; command_tests; validation_tests ]
+         [ List.flatten board_tests; command_tests; validation_tests; is_check_tests ]
 
 let _ = run_test_tt_main suite
