@@ -55,16 +55,16 @@ let piece_of_square t square = List.assoc square t.board
 
 let id_of_piece p = p.id
 
-let has_moved p = p.has_moved
-
 let color_of_piece p = p.color
+
+let has_moved p = p.has_moved
 
 let square_of_piece p =
   match p.current_pos with
   | None -> failwith "[p] should not be captured"
   | Some sq -> sq
 
-let square_of_king c t =
+let square_of_king t c =
   let active_pieces = t.active_pieces in
   let king_matcher p =
     if p.color = c && p.id = King then true else false
@@ -80,10 +80,8 @@ let capture_piece t piece =
   let board = t.board |> List.remove_assoc sq |> List.cons (sq, None) in
   { t with board; active_pieces = active; captured_pieces = captured }
 
+(** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
-
-let flip_turn t =
-  { t with color_to_move = switch_color (color_to_move t) }
 
 let move_piece t piece sq' =
   let state =
@@ -113,37 +111,44 @@ let move_piece t piece sq' =
     color_to_move = switch_color (color_of_piece piece);
   }
 
-let rec merge_singleton_and_list s lst acc reverse =
-  if reverse then
-    match lst with
-    | [] -> List.rev acc
-    | h :: t -> merge_singleton_and_list s t ((h ^ s) :: acc) true
-  else
-    match lst with
-    | [] -> List.rev acc
-    | h :: t -> merge_singleton_and_list s t ((s ^ h) :: acc) false
+let flip_turn t = { t with color_to_move = switch_color (color_to_move t) }
 
-let rec zip_lists lst1 lst2 acc =
-  match lst1 with
-  | [] -> List.rev acc
-  | h :: t -> (
-      match lst2 with
-      | [] -> List.rev acc
-      | h' :: t' -> zip_lists t t' ((h ^ h') :: acc) )
+(** [merge_singleton_and_list s lst rev] is the list of elements of list [lst]
+    with the singleton [s] appended on. If [rev] is true, [s] is concatenated
+    to back of elements of [lst]. Otherwise, [s] is concatenated to front of
+    elements of [lst]. *)
+let merge_singleton_and_list s lst reverse =
+  let concat_s = fun x -> if reverse then (x ^ s) else (s ^ x) in
+  List.map concat_s lst
 
+(** [zip_lists lst1 lst2] is the same as List.combine [lst1] [lst2] except the
+    two lists can have different lengths. The remaining elements of the longer
+    list are ignored. *)
+let zip_lists lst1 lst2 =
+  let rec zip lst1 lst2 acc =
+    match lst1 with
+    | [] -> List.rev acc
+    | h :: t -> (
+        match lst2 with
+        | [] -> List.rev acc
+        | h' :: t' -> zip t t' ((h ^ h') :: acc) ) in
+  zip lst1 lst2 []
+
+(** TODO: meaningful description of [merge_rks_and_fls tup dir]. *)
 let merge_rks_and_fls tup dir =
   match tup with
   | valid_fls, valid_rks ->
-      if List.mem dir [ E; W ] then
+      if List.mem dir [ E; W; ] then
         match valid_rks with
-        | h :: _ -> merge_singleton_and_list h valid_fls [] true
+        | h :: _ -> merge_singleton_and_list h valid_fls true
         | [] -> []
       else if List.mem dir [ N; S ] then
         match valid_fls with
-        | h :: _ -> merge_singleton_and_list h valid_rks [] false
+        | h :: _ -> merge_singleton_and_list h valid_rks false
         | [] -> []
-      else zip_lists valid_fls valid_rks []
+      else zip_lists valid_fls valid_rks
 
+(** TODO: meaningful description of [candidate_lsts]. *)
 let candidate_lsts op1 op2 rk fl rev_rk rev_fl =
   let ord_ranks = if rev_rk then List.rev ranks else ranks in
   let ord_files = if rev_fl then List.rev files else files in
@@ -151,10 +156,14 @@ let candidate_lsts op1 op2 rk fl rev_rk rev_fl =
   let valid_fls = List.filter (op2 fl) ord_files in
   (valid_fls, valid_rks)
 
+(** [list_head lst] is the head of the list [lst] if it exists.
+    None otherwise. *)
+let list_head list = match list with h :: _ -> Some h | [] -> None
+
+(** [list_head lst] is the second element of the list [lst] if it exists.
+    None otherwise. *)
 let list_second list =
   match list with h :: h' :: _ -> Some h' | [ h ] -> None | [] -> None
-
-let list_head list = match list with h :: _ -> Some h | [] -> None
 
 let cardinal_it_from_sq (sq : square) direction : square list =
   List.(
@@ -177,7 +186,9 @@ let cardinal_it_from_sq (sq : square) direction : square list =
     | NW -> iterator ( < ) ( > ) false true
     | _ -> [])
 
-(* Returns possible knight moves in clock-wise order starting from due N*)
+(** [l_it_from_sq sq] are the possible possible knight moves in clock-wise
+    order starting from due N.
+    Requires: [s] is in standard algebraic notation. *)
 let l_it_from_sq sq =
   let rec gen_l_moves square list acc =
     match list with
@@ -317,6 +328,9 @@ let print_piece p =
       let id = List.assoc p.id id_map in
       c ^ id
 
+(** [print_board t] prints a graphical representation of the chess board where
+    each square is labeled with the piece (if any) that is currently on that
+    square. It also prints files and ranks along the side. *)
 let print_board t =
   print_string "  -----------------------------------------\n";
   let row_str i =
@@ -331,14 +345,11 @@ let print_board t =
   print_string "  -----------------------------------------\n";
   print_string "    a    b    c    d    e    f    g    h\n"
 
-let rec partition_pieces_by_color lst acc1 acc2 =
-  match lst with
-  | [] -> (acc1, acc2)
-  | p :: t ->
-      if p.color = White then
-        partition_pieces_by_color t (print_piece (Some p) :: acc1) acc2
-      else
-        partition_pieces_by_color t acc1 (print_piece (Some p) :: acc2)
+let partition_pieces_by_color lst =
+  let printer = fun x -> print_piece (Some x) in
+  let white = List.filter (fun x -> x.color = White) lst |> List.map printer in
+  let black = List.filter (fun x -> x.color = Black) lst |> List.map printer in
+  (white, black)
 
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
@@ -348,7 +359,7 @@ let string_of_string_list lst =
   build_str "" rev_lst
 
 let print_captured t =
-  let print_lists = partition_pieces_by_color t.captured_pieces [] [] in
+  let print_lists = partition_pieces_by_color t.captured_pieces in
   match print_lists with
   | lst, lst' ->
       print_string ("\n" ^ "Black has Captured: ");

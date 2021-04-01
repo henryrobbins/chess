@@ -30,8 +30,8 @@ let all_moves p : move list =
   let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
   List.map (fun x -> (sq, x)) sq_list
 
-(** [unblocked_squares state piece direction] is a list of all the squares in 
-  direction [direction] to which a piece [piece] in game state [state] can 
+(** [unblocked_squares state piece direction] is a list of all the squares in
+  direction [direction] to which a piece [piece] in game state [state] can
   move. *)
 let unblocked_squares state piece direction =
   let sq = square_of_piece piece in
@@ -91,10 +91,10 @@ let invert_direction dir =
   | SE -> NW
   | L -> L
 
-(** [check_from_L color state] is a boolean indicating whether or not the player 
+(** [check_from_L color state] is a boolean indicating whether or not the player
   of [color] is in check from any knights during game state [state].*)
 let check_from_L color state =
-  let king_sq = square_of_king color state in
+  let king_sq = square_of_king state color in
   let check_sqs = iterator_from_sq king_sq L in
   let rec search_squares sq_lst =
     match sq_lst with
@@ -111,14 +111,14 @@ let check_from_L color state =
   in
   search_squares check_sqs
 
-(** [check_from_dir state dir] is a boolean indicating whether or not the 
+(** [check_from_dir state dir] is a boolean indicating whether or not the
   current player is in check from direction [dir] during game state [state]. *)
 let check_from_dir state dir =
   let color = color_to_move state in
   match dir with
   | L -> check_from_L color state
   | _ ->
-      let king_sq = square_of_king color state in
+      let king_sq = square_of_king state color in
       let king =
         match piece_of_square state king_sq with
         | Some p -> p
@@ -291,7 +291,7 @@ let filter_moves move_lst sq_lst : move list =
     king given the king is in check from directions [dir_lst] in board
     state [b]. Requires: L is not in dir_lst*)
 let intercept_squares color state dir_lst : square list =
-  match piece_of_square state (square_of_king color state) with
+  match piece_of_square state (square_of_king state color) with
   | None -> []
   | Some p ->
       List.map (fun x -> unblocked_squares state p x) dir_lst
@@ -318,7 +318,7 @@ let valid_piece_moves p b cst : move list =
       | NotCheck -> move_lst )
 
 let directional_pins state color dir =
-  let king_sq = square_of_king color state in
+  let king_sq = square_of_king state color in
   let check_sqs = iterator_from_sq king_sq dir in
   let attack_dir = invert_direction dir in
   let rec is_attacked same_color_piece sq_lst =

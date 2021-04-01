@@ -67,16 +67,16 @@ val id_of_piece : p -> piece_type
 (** [color_of_piece p] is the color of piece [p]. *)
 val color_of_piece : p -> color
 
+(** [has_moved p] indicates whether piece [p] has been moved. *)
+val has_moved : p -> bool
+
 (** [square_of_piece p] is the square where piece [p] is located.
     Requires: [p] has not been captured. *)
 val square_of_piece : p -> square
 
-(** [square_of_king c b] is the square where the king of color [c] is
+(** [square_of_king b c] is the square where the king of color [c] is
     located in board state [b] *)
-val square_of_king : color -> t -> square
-
-(** [has_moved p] indicates whether piece [p] has been moved. *)
-val has_moved : p -> bool
+val square_of_king : t -> color  -> square
 
 (** [capture_piece t p] is the game state after piece [p] has been
     captured in game state [t]. *)
@@ -88,14 +88,14 @@ val capture_piece : t -> p -> t
     Requires: [s] is in standard algebraic notation. *)
 val move_piece : t -> p -> square -> t
 
+(** [flip_turn t] is the game state [t], but it is now the opposite
+    color's turn to make a move. *)
+val flip_turn : t -> t
+
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s].
     Requires: [s] is in standard algebraic notation. *)
 val iterator_from_sq : square -> direction -> square list
-
-(** [flip_turn t] is the game state [t], but it is now the opposite
-    color's turn to make a move. *)
-val flip_turn : t -> t
 
 (** [init_from_json json] is the state of the game in the JSON file [json].
     Requires: [json] is a valid JSON file name representing a board state. *)
