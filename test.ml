@@ -213,10 +213,10 @@ let valid_moves_test name color json expected =
   let board = init_from_json ("test_board_jsons/" ^ json) in
   let computed_moves = valid_moves color board in
   assert_equal
-    (List.filter (fun x -> not (List.mem x computed_moves)) expected)
+    (List.filter (fun x -> not (List.mem x expected)) computed_moves)
     [] ~printer:string_of_string_tup_list;
   assert_equal
-    (List.filter (fun x -> not (List.mem x expected)) computed_moves)
+    (List.filter (fun x -> not (List.mem x computed_moves)) expected)
     [] ~printer:string_of_string_tup_list
 
 let check_printer = function
@@ -319,7 +319,40 @@ let validation_tests =
        ("g8", "f6");
        ("g8", "h6");
        ("f8", "h6");
-       ]
+       ];
+    (* valid_moves_test "Black king must capture or move to escape check." Black
+      "king_moves_in_check.json"
+      [("g5", "f5"); ("g5", "g6"); ("g5", "h6"); ("g5", "g4"); ("g5", "h4")];
+    valid_moves_test "Prevent moves placing king under check by other king" Black
+    "checked_by_king.json"
+      [("b7", "a7"); ("b7", "c7")];
+    valid_moves_test "No valid moves when under checkmate" Black
+      "checkmate.json" [];
+    valid_moves_test "Capture a piece to prevent a check" Black
+      "take_piece_to_stop_check.json"
+      [("8h", "8g"); ("e7", "f8")];
+    (* valid_moves_test "Rook can take a piece to stop check" Black
+      "rook_takes_piece.json"
+      [("b8", "c6");
+       ("b8", "d7");
+       ("c8", "d7");
+       ("e8", "f7");
+       ("d8", "d7");
+       ("c7", "c6")]; *)
+    valid_moves_test "Various pieces can intercept" Black
+      "various_piece_intercepts.json"
+      [("h7", "f7")]; *)
+    valid_moves_test "Multiple queens pinned with restricted movement" Black
+      "many_pinned_queens.json"
+      [("h7", "f7")];
+    valid_moves_test "Pinned queen movement." Black
+      "pinned_queen_movement.json"
+      [("f7", "g6"); ("f7", "h5"); ("e8", "d8")];
+
+
+
+
+
   ]
 
 let suite =
