@@ -53,8 +53,8 @@ let pp_list pp_elt lst =
     and [pp2] for [b]. *)
 let pp_pair pp1 pp2 (a, b) = "(" ^ pp1 a ^ ", " ^ pp2 b ^ ")"
 
-let pp_dir dir = 
-  match dir with 
+let pp_dir dir =
+  match dir with
   | N -> "N"
   | S -> "S"
   | SW -> "SW"
@@ -65,9 +65,9 @@ let pp_dir dir =
   | E -> "E"
   | L -> "L"
 
-let pp_dirs dirs = 
-  let rec string_maker dirs acc = 
-    match dirs with 
+let pp_dirs dirs =
+  let rec string_maker dirs acc =
+    match dirs with
     | h :: [] -> acc ^ pp_dir h ^ "]"
     | h :: t -> acc ^ pp_dir h ^ ";" ^ string_maker t acc
     | [] -> acc ^ "]"
@@ -128,6 +128,7 @@ let board_tests =
       iterator_from_sq_test "a1 -> SW" "a1" SW [];
       iterator_from_sq_test "a4 -> W" "a4" W [];
       iterator_from_sq_test "a8 -> N" "a8" NW [];
+      iterator_from_sq_test "h7 -> NW" "h7" NW ["g8"];
       iterator_from_sq_test "d4 -> L" "d4" L
         [ "e6"; "f5"; "f3"; "e2"; "c2"; "b3"; "b5"; "c6" ];
       iterator_from_sq_test "a1 -> L" "a1" L [ "b3"; "c2" ];
@@ -222,35 +223,35 @@ let valid_moves_test name json expected =
 let check_printer = function
   | NotCheck -> "Not Check"
   | Check dirs -> pp_dirs dirs
-  
 
-(** [is_check_test name color json expected] constructs an OUnit test
+
+(** [is_check_test name json expected] constructs an OUnit test
     named [name] that asserts the equality of the check state generated
-    by [is_check_test color (init_from_json json)] and [expected]. *)
-let is_check_test name color json expected =
+    by [is_check_test (init_from_json json)] and [expected]. *)
+let is_check_test name json expected =
   name >:: fun _ ->
   let board = init_from_json ("test_board_jsons/" ^ json) in
   let check_state = is_check board in
   assert_equal check_state expected ~printer:check_printer
 
 let is_check_tests = [
-  is_check_test "White has pinned piece and is in check from NW" White 
+  is_check_test "White has pinned piece and is in check from NW"
   "pinned_intercept.json" (Check [NW]);
-  is_check_test "Black has pinned piece but is not in check" Black 
+  is_check_test "Black has pinned piece but is not in check"
   "blocked_black_unchecked.json" NotCheck;
-  is_check_test "White in check from NE" White "white_in_check_NE.json"
+  is_check_test "White in check from NE" "white_in_check_NE.json"
   (Check [NE]);
-  is_check_test "White in check from N" White "white_in_check_north_.json"
+  is_check_test "White in check from N" "white_in_check_north_.json"
   (Check [N]);
-  is_check_test "White in check from S" White "white_in_check_S_.json" 
+  is_check_test "White in check from S" "white_in_check_S_.json"
   (Check [S]);
-  is_check_test "White in check from SE" White "white_in_check_SE.json"
+  is_check_test "White in check from SE" "white_in_check_SE.json"
   (Check [SE]);
-  is_check_test "White in check from W" White "white_in_check_W.json"
+  is_check_test "White in check from W" "white_in_check_W.json"
   (Check [W]);
-  is_check_test "White in check from SW" White "white_in_check_SW.json"
+  is_check_test "White in check from SW" "white_in_check_SW.json"
   (Check [SW]);
-  is_check_test "White in stalemate" White "white_in_stalemate.json"
+  is_check_test "White in stalemate" "white_in_stalemate.json"
   NotCheck;
   (* TODO: Check some black positions, as well as some L-shapes *)
   (* TODO 2: Multi-directional checks *)
@@ -259,49 +260,12 @@ let is_check_tests = [
 ]
 let validation_tests =
   [
-    valid_moves_test "White moves in pinned/intercept position" White
+    valid_moves_test "White moves in pinned/intercept position"
       "pinned_intercept.json"
       [ ("e1", "d1"); ("e1", "f1"); ("e1", "e2"); ("e1", "f2") ];
-    valid_moves_test "Black moves in pinned/intercept position" Black
-      "pinned_intercept.json"
-      [
-        ("a1", "b1");
-        ("a1", "c1");
-        ("a1", "a2");
-        ("a1", "a3");
-        ("a1", "a4");
-        ("a5", "a2");
-        ("a5", "a3");
-        ("a5", "a4");
-        ("a5", "b4");
-        ("a5", "c3");
-        ("a5", "d2");
-        ("a5", "e1");
-        ("a5", "b5");
-        ("a5", "c5");
-        ("a5", "d5");
-        ("a5", "e5");
-        ("a5", "b6");
-        ("a5", "c7");
-        ("a5", "d8");
-        ("a5", "f5");
-        ("a5", "g5");
-        ("a5", "h5");
-        ("a5", "a6");
-        ("a5", "a7");
-        ("a5", "a8");
-        ("b7", "a7");
-        ("b7", "c7");
-        ("b7", "b8");
-        ("b7", "b6");
-        ("b7", "a6");
-        ("b7", "a8");
-        ("b7", "c6");
-        ("b7", "c8");
-      ];
-    valid_moves_test "Black moves to get out of check" Black
+    valid_moves_test "Black moves to get out of check"
       "must_block_check.json" [("g7", "g6")];
-    valid_moves_test "Pinned black piece takes white piece." Black
+    valid_moves_test "Pinned black piece takes white piece."
       "capture_while_pinned.json"
       [("a7", "a6");
        ("a7", "a5");
@@ -324,40 +288,76 @@ let validation_tests =
        ("g8", "h6");
        ("f8", "h6");
        ];
-    (* valid_moves_test "Black king must capture or move to escape check." Black
+    valid_moves_test "Black king must capture or move to escape check."
       "king_moves_in_check.json"
       [("g5", "f5"); ("g5", "g6"); ("g5", "h6"); ("g5", "g4"); ("g5", "h4")];
-    valid_moves_test "Prevent moves placing king under check by other king" Black
+    valid_moves_test "Prevent moves placing king under check by other king"
     "checked_by_king.json"
       [("b7", "a7"); ("b7", "c7")];
-    valid_moves_test "No valid moves when under checkmate" Black
+    valid_moves_test "No valid moves when under checkmate"
       "checkmate.json" [];
-    valid_moves_test "Capture a piece to prevent a check" Black
+    valid_moves_test "Capture a piece to prevent a check"
       "take_piece_to_stop_check.json"
-      [("8h", "8g"); ("e7", "f8")];
-    (* valid_moves_test "Rook can take a piece to stop check" Black
-      "rook_takes_piece.json"
+      [("h8", "g8"); ("e7", "f8")];
+    valid_moves_test "Various pieces can intercept"
+      "various_piece_intercepts.json"
       [("b8", "c6");
        ("b8", "d7");
        ("c8", "d7");
        ("e8", "f7");
        ("d8", "d7");
-       ("c7", "c6")]; *)
-    valid_moves_test "Various pieces can intercept" Black
-      "various_piece_intercepts.json"
-      [("h7", "f7")]; *)
-    (* valid_moves_test "Multiple queens pinned with restricted movement" Black
+       ("c7", "c6")];
+    valid_moves_test "Multiple queens pinned with restricted movement"
       "many_pinned_queens.json"
-      [("h7", "f7")]; *)
-    valid_moves_test "Pinned queen movement." Black
+      [("h7", "f7")];
+    valid_moves_test "Pinned queen movement."
       "pinned_queen_movement.json"
       [("f7", "g6"); ("f7", "h5"); ("e8", "d8")];
-
-
-
-
-
-  ]
+    valid_moves_test "Full range of pawn attack"
+      "full_range_pawn_attack.json" [("f4", "g5"); ("f4", "f5"); ("f4", "e5")];
+    valid_moves_test "Pawn attack and initial one or two space move"
+      "pawn_attack_and_2_spaces.json"
+      [("d2", "e3");
+       ("d2", "d3");
+       ("d2", "c3");
+       ("d2", "d4");
+       ("h1", "g2");
+       ("h1", "h2")];
+    valid_moves_test "Pawn intercept from start square moving up 2."
+      "pawn_2_space_intercept.json" [("d2", "d4"); ("a1", "a2")];
+    valid_moves_test "Test king having a move during a check"
+      "king_move_during_check.json"
+      [("a8", "c6");
+       ("b8", "d6");
+       ("c8", "c6");
+       ("c8", "e6");
+       ("d8", "d6");
+       ("d8", "f6");
+       ("e8", "c6");
+       ("e8", "e6");
+       ("f8", "d6");
+       ("f8", "f6");
+       ("g8", "e6");
+       ("h8", "f6");
+       ("g6", "h7");
+       ("g6", "g5");
+       ("g6", "f5")];
+    valid_moves_test "Checkmate, enemy king can check a king"
+      "check_from_king.json" [];
+    valid_moves_test "Test multiple calls to is_check"
+      "multiple_is_check_calls.json" [("e3", "f2")];
+    valid_moves_test "Move restricted by its own piece"
+      "move_restricted_by_own_piece.json" [];
+    valid_moves_test "Forced draw"
+      "forced_draw.json" [];
+    valid_moves_test "" "restricted_pawn_attack.json"
+      [("d7", "c6");
+       ("d7", "d6");
+       ("d7", "e6");
+       ("g8", "f8");
+       ("g8", "g7");
+       ("g8", "h7");
+       ("g8", "h8")]]
 
 let suite =
   "test suite for chess"
