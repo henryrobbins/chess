@@ -1,13 +1,9 @@
-(************************************************************
-   Copyright (C) 2021 Cornell University.
-   Created by Michael Clarkson (mrc26@cornell.edu) and CS 3110 course staff.
-   You may not redistribute this assignment, distribute any derivatives,
-   or use it for commercial purposes.
- ************************************************************)
-
 (** CS 3110 Spring 2021 Chess Final Project
 
-    @author Henry Robbins (hwr26), Anders Wikum (aew236), Yunwoo Kim (yk765), Nalu Concepcion (lac327) *)
+    @author Henry Robbins (hwr26)
+    @author Anders Wikum (aew236)
+    @author Yunwoo Kim (yk765)
+    @author Nalu Concepcion (lac327) *)
 
 (************************************************************
 

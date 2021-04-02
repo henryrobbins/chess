@@ -1,2 +1,2 @@
-(** TODO: Replace this value with the correct number of hours. *)
-let hours_worked = 40
+(** NOTE: We interpreted this to mean "man hours". *)
+let hours_worked = 100
