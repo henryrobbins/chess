@@ -23,6 +23,11 @@ zip:
 
 docs: docs-public docs-private
 
+gui:
+	ocamlfind ocamlc -g -package lablgtk2 -linkpkg gui_test.ml -o gui_test
+	rm -rf gui_test.cmi gui_test.cmo
+	./gui_test
+
 docs-public: build
 	mkdir -p _doc.public
 	ocamlfind ocamldoc -I _build -package yojson \
@@ -30,10 +35,10 @@ docs-public: build
 
 docs-private: build
 	mkdir -p _doc.private
-	ocamlfind ocamldoc -I _build -package yojson \
+	ocamlfind ocamldoc -I _build -package yojson lablgtk2 \
 		-html -stars -d _doc.private \
 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
 clean:
 	ocamlbuild -clean
-	rm -rf _doc.public _doc.private adventure.zip
+	rm -rf _doc.public _doc.private chess.zip

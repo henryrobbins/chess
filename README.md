@@ -21,3 +21,8 @@ Robbins (hwr26), Anders Wikum (aew236).
     - parsing commands
     - calling state functions
     - offer draws
+
+# Installation Instructions (GUI)
+
+- `brew install gtk+` (OSX)
+- `opam install lablgtk`

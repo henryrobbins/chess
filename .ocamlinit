@@ -1,5 +1,6 @@
 #require "ounit2";;
 #require "yojson";;
+#require "lablgtk2";;
 #directory "_build";;
 #load "board.cmo";;
 #load "command.cmo";;
