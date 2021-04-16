@@ -1,5 +1,6 @@
 open GMain
 open GdkKeysyms
+open Board
 
 (* Connect a signal handler, ignoring the resulting signal ID.
    This avoids having to use [|> ignore] everywhere.
@@ -18,9 +19,6 @@ let main () =
   window#connect#destroy  ==> Main.quit;
 
   (* TODO: Make a grid of buttons *)
-  let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ] in
-  let files = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ] in
-
   let rec button_matrix rows cols =
     match rows with
     | [] -> ();
@@ -30,9 +28,9 @@ let main () =
       | c :: ct ->
         let button = GButton.button ~label:(r^c) ~packing:vbox#add () in
         button#connect#clicked  ==> (fun () -> prerr_endline (r^c));
-        (* button#set_xalign 0.5; *)
-        (* button#set_yalign 0.5; *)
-        (* button#set_relief `NONE; *)
+        button#set_xalign 0.5;
+        button#set_yalign 0.5;
+        button#set_relief `NONE;
         button_matrix (r :: rt) ct in
 
   button_matrix ranks files;
