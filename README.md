@@ -26,3 +26,5 @@ Robbins (hwr26), Anders Wikum (aew236).
 
 - `brew install gtk+` (OSX)
 - `opam install lablgtk`
+
+First, check out the [Introduction to Gtk](https://ocaml.org/learn/tutorials/introduction_to_gtk.html) from OCaml. Next, there are two sources of relevant documentation: the [LablGTK API](https://garrigue.github.io/lablgtk/refdoc/index.html) and the [GTK+ 3 Reference Manual](https://developer.gnome.org/gtk3/).
