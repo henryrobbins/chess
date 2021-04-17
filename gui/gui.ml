@@ -6,7 +6,7 @@ open Validation
 
 (* Static parameters for the GUI *)
 let width = 300
-let height = 00
+let height = 300
 
 (* TODO: Decide how to remove duplication of this code from main.ml *)
 
@@ -45,13 +45,12 @@ let main () =
                               ~position: `CENTER
                               ~resizable: true
                               ~title:"OCaml Chess" () in
+  window#connect#destroy  ==> Main.quit;
   let table = GPack.table ~packing:window#add () in
   let add i j x = table#attach i j x in
   let board_table = GPack.table ~packing:(add 0 0) ()
-                                ~homogeneous: true
-                                ~width: width ~height: height in
-  let vbox = GPack.vbox ~packing:(add 0 1) () ~width: width in
-  window#connect#destroy  ==> Main.quit;
+                                ~homogeneous: true in
+  let vbox = GPack.vbox ~packing:(add 0 1) () in
 
   (* state variables *)
   let board = ref (init_game ()) in
@@ -74,9 +73,9 @@ let main () =
   labels 0;
 
   (* captured pieces *)
-  let black_captured = GMisc.label ~packing:vbox#add () ~width: width in
+  let black_captured = GMisc.label ~packing:vbox#add () in
   black_captured#set_text "Black has Captured\n";
-  let white_captured = GMisc.label ~packing:vbox#add () ~width: width in
+  let white_captured = GMisc.label ~packing:vbox#add () in
   white_captured#set_text "White has Captured\n";
 
   let update_captured b =
