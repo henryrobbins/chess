@@ -5,27 +5,15 @@ open Command
 open Validation
 
 (* Static parameters for the GUI *)
-let width = 250
-let height = 250
+let width = 300
+let height = 00
 
 (* TODO: Decide how to remove duplication of this code from main.ml *)
 
-let string_of_string_tup_list tup_lst =
-  let rev_lst = List.rev tup_lst in
+let string_of_string_list lst =
+  let rev_lst = List.rev lst in
   let rec build_str str lst' =
-    match lst' with
-    | [] -> str
-    | (h, h') :: t ->
-        build_str (str ^ "(" ^ h ^ ", " ^ h' ^ ")" ^ ", ") t
-  in
-  build_str "" rev_lst
-
-let print_pins pin_lst =
-  let rev_lst = List.rev pin_lst in
-  let rec build_str str lst' =
-    match lst' with
-    | [] -> str
-    | h :: t -> build_str (str ^ square_of_piece h ^ ", ") t
+    match lst' with [] -> str | h :: t -> build_str (str ^ h ^ ", ") t
   in
   build_str "" rev_lst
 
@@ -55,11 +43,14 @@ let locale = GtkMain.Main.init ()
 let main () =
   let window = GWindow.window ~width:width ~height:height
                               ~position: `CENTER
-                              ~resizable: false
+                              ~resizable: true
                               ~title:"OCaml Chess" () in
-  let table = GPack.table ~packing:window#add () ~homogeneous: true
-                          ~rows: 8 ~columns: 8
-                          ~width: width ~height: height in
+  let table = GPack.table ~packing:window#add () in
+  let add i j x = table#attach i j x in
+  let board_table = GPack.table ~packing:(add 0 0) ()
+                                ~homogeneous: true
+                                ~width: width ~height: height in
+  let vbox = GPack.vbox ~packing:(add 0 1) () ~width: width in
   window#connect#destroy  ==> Main.quit;
 
   (* state variables *)
@@ -68,22 +59,51 @@ let main () =
   let from_sq = ref None in
   let to_sq = ref None in
 
+  (* add file and rank labels *)
+  let rec labels i =
+    if i < 8 then (
+      let add_file x = board_table#attach (i + 1) 8 x in
+      let f_text = GMisc.label ~packing:add_file () in
+      f_text#set_text (List.nth files i);
+      f_text#set_justify `LEFT;
+      let add_rank x = board_table#attach 0 (7 - i) x in
+      let r_text = GMisc.label ~packing:add_rank () in
+      r_text#set_text (List.nth ranks i);
+      r_text#set_justify `LEFT;
+      labels (i + 1)) in
+  labels 0;
+
+  (* captured pieces *)
+  let black_captured = GMisc.label ~packing:vbox#add () ~width: width in
+  black_captured#set_text "Black has Captured\n";
+  let white_captured = GMisc.label ~packing:vbox#add () ~width: width in
+  white_captured#set_text "White has Captured\n";
+
+  let update_captured b =
+    let print_lists = partition_pieces_by_color (captured_pieces b) in
+    match print_lists with
+    | lst, lst' ->
+        let black_txt = "Black has Captured\n"^(string_of_string_list lst) in
+        black_captured#set_text black_txt;
+        let white_txt = "White has Captured\n"^(string_of_string_list lst') in
+        white_captured#set_text white_txt; in
+
   (* construct button matrix *)
   let rec button_matrix rows cols i j btns =
     match rows with
     | [] -> btns;
     | r :: rt ->
       match cols with
-      | [] -> if rt = [] then btns else button_matrix rt ranks (i + 1) 0 btns
+      | [] ->
+        if rt = [] then btns else button_matrix rt ranks (i + 1) 0 btns
       | c :: ct ->
         let id = print_piece (piece_of_square !board (r^c)) in
-        let test x = table#attach i (7 - j) x in
-        let button = GButton.button ~label:id ~packing:test () in
-        button#set_relief `NONE;
+        let add x = board_table#attach i (7 - j) x in
+        let button = GButton.button ~label:id ~packing:add () in
         let btns = (r^c, button) :: btns in
         button_matrix (r :: rt) ct i (j + 1) btns in
 
-  let buttons = button_matrix files ranks 0 0 [] in
+  let buttons = button_matrix files ranks 1 0 [] in
 
   (* go back and set all the button callbacks *)
   let rec set_callbacks rows cols =
@@ -127,7 +147,8 @@ let main () =
               else (
                 board := board';
                 from_btn#set_label (print_piece (piece_of_square board' a));
-                to_btn#set_label (print_piece (piece_of_square board' b)));
+                to_btn#set_label (print_piece (piece_of_square board' b));
+                update_captured board');
           print_endline "==================TESTING==================";
           print_game_state board';
           print_checkmate_stalemate board';

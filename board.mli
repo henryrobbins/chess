@@ -109,3 +109,4 @@ val print_game_state : t -> unit
 
 (* TODO: Temporary or decide to keep *)
 val print_piece : p option -> string
+val partition_pieces_by_color : p list -> string list * string list
