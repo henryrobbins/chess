@@ -25,7 +25,7 @@ val is_check : Board.t -> check_state
 (** [valid_piece_moves p b is_check] is the list of all valid moves for
     piece [p] give the current board state [b] with check state
     [is_check]. *)
-val valid_piece_moves : Board.p -> Board.t -> check_state -> move list
+val valid_piece_moves : Board.t -> check_state -> Board.p -> move list
 
 (** [valid_moves color board] is the list of all valid moves in the
     current board state [board] for player [color]. *)
