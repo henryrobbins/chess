@@ -4,6 +4,7 @@ MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
 MAIN=main.byte
+GUI=gui.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 default: build
@@ -16,17 +17,15 @@ test:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
 
 play:
-	$(OCAMLBUILD) -tag 'debug' $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
+	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
+
+game:
+	$(OCAMLBUILD) -tag 'debug' -I gui $(GUI) && OCAMLRUNPARAM=b ./$(GUI)
 
 zip:
 	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md Makefile
 
 docs: docs-public docs-private
-
-gui:
-	ocamlfind ocamlc -g -package lablgtk2 -linkpkg gui_test.ml -o gui_test
-	rm -rf gui_test.cmi gui_test.cmo
-	./gui_test
 
 docs-public: build
 	mkdir -p _doc.public
