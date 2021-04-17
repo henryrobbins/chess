@@ -271,16 +271,15 @@ let noncheck_king_move state piece move =
   let state'' = flip_turn state' in
   match is_check state'' with Check _ -> false | NotCheck -> true
 
-(** [valid_king_moves p b cst] is the list of all valid moves for piece
-    [p] with board state [b] given check state [cst]. Requires: piece
-    [p] is of id [K] *)
-let valid_king_moves piece state cst : move list =
+(** [valid_king_moves p b] is the list of all valid moves for piece
+    [p] with board state [b]. Requires: piece [p] is of id [K] *)
+let valid_king_moves p b : move list =
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
-  let directions = attack_directions piece in
+  let directions = attack_directions p in
   let moves =
-    List.map (fun x -> head (unblocked_moves state piece x)) directions
+    List.map (fun x -> head (unblocked_moves b p x)) directions
   in
-  List.flatten moves |> List.filter (noncheck_king_move state piece)
+  List.flatten moves |> List.filter (noncheck_king_move b p)
 
 (** [filter_moves move_lst sq_lst] is the list of moves in [move_lst]
     where the second square of the move is in [sq_list]. *)
@@ -299,10 +298,11 @@ let intercept_squares color state dir_lst : square list =
       List.map (fun x -> unblocked_squares state p x) dir_lst
       |> List.flatten
 
-let potential_piece_moves p b cst : move list =
+let potential_piece_moves p b : move list =
+  let cst = is_check b in
   let piece_type = id_of_piece p in
   match piece_type with
-  | King -> valid_king_moves p b cst
+  | King -> valid_king_moves p b
   | _ -> (
       let move_lst =
         match piece_type with
@@ -368,8 +368,8 @@ let pin_moves state piece dir =
   ]
   |> List.flatten
 
-let valid_piece_moves b cst p : move list =
-  let val_moves = potential_piece_moves p b cst in
+let valid_piece_moves b p : move list =
+  let val_moves = potential_piece_moves p b in
   match is_pinned p b with
   | NoPin ->
       (*print_string (string_of_string_tup_list val_moves ^ " "); *)
@@ -379,11 +379,10 @@ let valid_piece_moves b cst p : move list =
 
 let valid_moves b : move list =
   let c = color_to_move b in
-  let cst = is_check b in
   let pieces =
     active_pieces b |> List.filter (fun x -> color_of_piece x = c)
   in
-  List.map (valid_piece_moves b cst) pieces |> List.flatten
+  List.map (valid_piece_moves b) pieces |> List.flatten
 
 let is_valid_move move b : bool =
   match move with
