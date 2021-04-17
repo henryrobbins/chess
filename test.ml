@@ -254,13 +254,13 @@ let is_check_tests = [
   is_check_test "White in stalemate" "white_in_stalemate.json"
   NotCheck;
   (* TODO: Check some black positions, as well as some L-shapes *)
-  is_check_test "Black in checkmate" "must_block_check.json" 
-  (Check [SE]); 
+  is_check_test "Black in checkmate" "must_block_check.json"
+  (Check [SE]);
   is_check_test "Black in check N" "multiple_is_check_calls.json"
   (Check [N]);
   is_check_test "Black King in check L" "move_restricted_by_own_piece.json"
   (Check [L]);
-  is_check_test "Black in check SW" "checked_by_king.json" 
+  is_check_test "Black in check SW" "checked_by_king.json"
   (Check [SW]);
   is_check_test "Black in check East" "checkmate.json" (Check [E]);
   is_check_test "Neither color in check" "restricted_pawn_attack.json"
