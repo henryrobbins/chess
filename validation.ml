@@ -30,9 +30,9 @@ let all_moves p : move list =
   let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
   List.map (fun x -> (sq, x)) sq_list
 
-(** [unblocked_squares state piece direction] is a list of all the squares in
-  direction [direction] to which a piece [piece] in game state [state] can
-  move. *)
+(** [unblocked_squares state piece direction] is a list of all the
+    squares in direction [direction] to which a piece [piece] in game
+    state [state] can move. *)
 let unblocked_squares state piece direction =
   let sq = square_of_piece piece in
   let potential_squares = iterator_from_sq sq direction in
@@ -65,8 +65,8 @@ let rec list_head_n lst n acc =
   | h :: t ->
       if n = 0 then List.rev acc else list_head_n t (n - 1) (h :: acc)
 
-(** [attack_directions piece] is a direction list indicating all the different
-    direcions piece [piece] can attack.*)
+(** [attack_directions piece] is a direction list indicating all the
+    different direcions piece [piece] can attack.*)
 let attack_directions piece =
   match id_of_piece piece with
   | King -> [ N; NE; E; SE; S; SW; W; NW ]
@@ -91,8 +91,9 @@ let invert_direction dir =
   | SE -> NW
   | L -> L
 
-(** [check_from_L color state] is a boolean indicating whether or not the player
-  of [color] is in check from any knights during game state [state].*)
+(** [check_from_L color state] is a boolean indicating whether or not
+    the player of [color] is in check from any knights during game state
+    [state].*)
 let check_from_L color state =
   let king_sq = square_of_king state color in
   let check_sqs = iterator_from_sq king_sq L in
@@ -111,8 +112,9 @@ let check_from_L color state =
   in
   search_squares check_sqs
 
-(** [check_from_dir state dir] is a boolean indicating whether or not the
-  current player is in check from direction [dir] during game state [state]. *)
+(** [check_from_dir state dir] is a boolean indicating whether or not
+    the current player is in check from direction [dir] during game
+    state [state]. *)
 let check_from_dir state dir =
   let color = color_to_move state in
   match dir with
@@ -269,16 +271,15 @@ let noncheck_king_move state piece move =
   let state'' = flip_turn state' in
   match is_check state'' with Check _ -> false | NotCheck -> true
 
-(** [valid_king_moves p b cst] is the list of all valid moves for piece
-    [p] with board state [b] given check state [cst]. Requires: piece
-    [p] is of id [K] *)
-let valid_king_moves piece state cst : move list =
+(** [valid_king_moves p b] is the list of all valid moves for piece
+    [p] with board state [b]. Requires: piece [p] is of id [K] *)
+let valid_king_moves p b : move list =
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
-  let directions = attack_directions piece in
+  let directions = attack_directions p in
   let moves =
-    List.map (fun x -> head (unblocked_moves state piece x)) directions
+    List.map (fun x -> head (unblocked_moves b p x)) directions
   in
-  List.flatten moves |> List.filter (noncheck_king_move state piece)
+  List.flatten moves |> List.filter (noncheck_king_move b p)
 
 (** [filter_moves move_lst sq_lst] is the list of moves in [move_lst]
     where the second square of the move is in [sq_list]. *)
@@ -297,10 +298,11 @@ let intercept_squares color state dir_lst : square list =
       List.map (fun x -> unblocked_squares state p x) dir_lst
       |> List.flatten
 
-let valid_piece_moves p b cst : move list =
+let potential_piece_moves p b : move list =
+  let cst = is_check b in
   let piece_type = id_of_piece p in
   match piece_type with
-  | King -> valid_king_moves p b cst
+  | King -> valid_king_moves p b
   | _ -> (
       let move_lst =
         match piece_type with
@@ -333,12 +335,16 @@ let directional_pins state color dir =
                 if color_of_piece piece = color then
                   is_attacked (Some piece) t
                 else None
-            | Some piece' ->
-                if
-                  List.mem attack_dir (attack_directions piece)
-                  && color_of_piece piece <> color
-                then Some (piece', dir)
-                else None ) )
+            | Some piece' -> (
+                match id_of_piece piece with
+                | King -> None
+                | Pawn -> None
+                | _ ->
+                    if
+                      List.mem attack_dir (attack_directions piece)
+                      && color_of_piece piece <> color
+                    then Some (piece', dir)
+                    else None ) ) )
   in
   is_attacked None check_sqs
 
@@ -362,22 +368,21 @@ let pin_moves state piece dir =
   ]
   |> List.flatten
 
+let valid_piece_moves b p : move list =
+  let val_moves = potential_piece_moves p b in
+  match is_pinned p b with
+  | NoPin ->
+      (*print_string (string_of_string_tup_list val_moves ^ " "); *)
+      val_moves
+  | Pin dir ->
+      List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
+
 let valid_moves b : move list =
   let c = color_to_move b in
-  let cst = is_check b in
   let pieces =
     active_pieces b |> List.filter (fun x -> color_of_piece x = c)
   in
-  let pin_case_router p =
-    let val_moves = valid_piece_moves p b cst in
-    match is_pinned p b with
-    | NoPin ->
-        (*print_string (string_of_string_tup_list val_moves ^ " "); *)
-        val_moves
-    | Pin dir ->
-        List.filter (fun x -> List.mem x (pin_moves b p dir)) val_moves
-  in
-  List.map pin_case_router pieces |> List.flatten
+  List.map (valid_piece_moves b) pieces |> List.flatten
 
 let is_valid_move move b : bool =
   match move with
