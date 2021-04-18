@@ -1,1 +1,3 @@
+<{board,validation,command}.ml>: coverage
+<test.{byte,native}>: coverage
 true: package(ounit2),package(yojson),package(lablgtk2)

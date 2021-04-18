@@ -10,3 +10,7 @@ chess.zip
 
 # jupyter notebook
 *.ipynb_checkpoints
+
+# bisect
+_coverage
+bisect*.coverage
