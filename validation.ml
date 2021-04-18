@@ -189,6 +189,7 @@ let diag_pawn_sq p =
     dir
   |> List.flatten
 
+let en_passant board = failwith "Not Implemented"
 (** [valid_pawn_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [P] *)
