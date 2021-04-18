@@ -242,47 +242,6 @@ let color_of_string = function
   | "Black" -> Black
   | _ -> failwith "Invalid piece color."
 
-(** [extract_active_piece j] extracts a list of active pieces from JSON.
-    Requires: JSON is in valid format. *)
-let extract_active_piece j =
-  let id = j |> member "id" |> to_string |> piece_type_of_string in
-  let color = j |> member "color" |> to_string |> color_of_string in
-  let positions =
-    j |> member "positions" |> to_list
-    |> List.map (fun x -> to_string x)
-  in
-  let has_moved =
-    j |> member "has_moved" |> to_list |> List.map to_bool
-  in
-  let fields_lst = List.combine positions has_moved in
-  let init_piece = function
-    | f1, f2 -> { id; color; current_pos = Some f1 }
-  in
-  List.map init_piece fields_lst
-
-(** [extract_captured_piece j] extracts a list of captured pieces from
-    JSON. Requires: JSON is in valid format. *)
-let extract_captured_piece j : p list =
-  let id = j |> member "id" |> to_string |> piece_type_of_string in
-  let color = j |> member "color" |> to_string |> color_of_string in
-  let has_moved =
-    j |> member "has_moved" |> to_list |> List.map to_bool
-  in
-  let init_piece has_moved = { id; color; current_pos = None } in
-  List.map init_piece has_moved
-
-(** [blank_board] is a blank chess board with no pieces on it. *)
-let blank_board : b =
-  let rec init rows cols b =
-    match rows with
-    | [] -> b
-    | rh :: rt -> (
-        match cols with
-        | [] -> init rt files b
-        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh, None) :: b) )
-  in
-  init ranks files []
-
 let rec remove_first_n lst n =
   match lst with
   | [] -> []
@@ -382,39 +341,9 @@ let init_from_fen fen =
       }
   | _ -> failwith "impossible"
 
-let init_from_json json =
-  let j = json |> Yojson.Basic.from_file in
-  let active_pieces =
-    j |> member "active_pieces" |> to_list
-    |> List.map extract_active_piece
-    |> List.flatten
-  in
-  let captured_pieces =
-    j
-    |> member "captured_pieces"
-    |> to_list
-    |> List.map extract_captured_piece
-    |> List.flatten
-  in
-  let rec add_pieces b piece_list =
-    match piece_list with
-    | [] -> b
-    | h :: t -> (
-        let pos = h.current_pos in
-        match pos with
-        | None -> failwith "Active pieces should have a position."
-        | Some pos -> add_pieces ((pos, Some h) :: b) t )
-  in
-  let color_to_move =
-    match j |> member "color_to_move" |> to_string with
-    | "White" -> White
-    | "Black" -> Black
-    | _ -> failwith "Violates precondition."
-  in
-  let board = add_pieces blank_board active_pieces in
-  { board; active_pieces; captured_pieces; color_to_move }
-
-let init_game () = init_from_json "board_init.json"
+let init_game () =
+  init_from_fen
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 (* [print_piece p] is a string with the color and id of piece [p]. If
    the piece is [None], it is a blank space. *)

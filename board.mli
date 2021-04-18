@@ -104,11 +104,6 @@ val flip_turn : t -> t
     in standard algebraic notation. *)
 val iterator_from_sq : square -> direction -> square list
 
-(** [init_from_json json] is the state of the game in the JSON file
-    [json]. Requires: [json] is a valid JSON file name representing a
-    board state. *)
-val init_from_json : string -> t
-
 (*TODO: Parse the remaining parts of the string*)
 
 (** [init_from_fen fen] is the board state of the game defined in the

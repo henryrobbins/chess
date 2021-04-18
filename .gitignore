@@ -10,4 +10,3 @@ chess.zip
 
 # jupyter notebook
 *.ipynb_checkpoints
-fen_to_json.ipynb
