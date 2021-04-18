@@ -95,6 +95,14 @@ let capture_piece t piece =
 (** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
 
+let get_en_passant sq sq' =
+  let file = Char.escaped sq.[0] in
+  let rank = int_of_string (Char.escaped sq.[1]) in
+  let rank' = int_of_string (Char.escaped sq'.[1]) in
+  if abs (rank - rank') = 2 then
+    Some (file ^ string_of_int ((rank + rank') / 2))
+  else None
+
 let move_piece t piece sq' =
   let state =
     match piece_of_square t sq' with
@@ -114,11 +122,15 @@ let move_piece t piece sq' =
     |> List.remove_assoc sq'
     |> List.cons (sq', Some piece')
   in
+  let en_passant =
+    match piece.id with Pawn -> get_en_passant sq sq' | _ -> None
+  in
   {
     state with
     board;
     active_pieces = active;
     color_to_move = switch_color (color_of_piece piece);
+    en_passant;
   }
 
 let flip_turn t =

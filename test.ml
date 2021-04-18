@@ -88,6 +88,10 @@ let pp_dirs dirs =
 let extract_piece piece_option =
   match piece_option with None -> failwith "no piece" | Some p -> p
 
+let move b sq sq' =
+  let p = piece_of_square b sq |> extract_piece in
+  move_piece b p sq'
+
 (** [move_piece_test name b s s'] constructs OUnit tests named [name]
     that assert [move_piece b (piece_of_square s) s'] is correct. *)
 let move_piece_test name b s s' : test list =
@@ -95,15 +99,38 @@ let move_piece_test name b s s' : test list =
   let b' = move_piece b p s' in
   let p' = piece_of_square b' s' |> extract_piece in
   [
-    ( name ^ " | previous board sqaure" >:: fun _ ->
+    ( name ^ " | previous board square" >:: fun _ ->
       assert_equal None (piece_of_square b' s) );
-    ( name ^ " | new board sqaure (piece id) " >:: fun _ ->
+    ( name ^ " | new board square (piece id) " >:: fun _ ->
       assert_equal (id_of_piece p) (id_of_piece p') );
-    ( name ^ " | new board sqaure (piece color) " >:: fun _ ->
+    ( name ^ " | new board square (piece color) " >:: fun _ ->
       assert_equal (color_of_piece p) (color_of_piece p') );
-    ( name ^ " | new board sqaure (piece pos) " >:: fun _ ->
+    ( name ^ " | new board square (piece pos) " >:: fun _ ->
       assert_equal (square_of_piece p') s' ~printer:(fun x -> x) );
   ]
+
+(** [move_piece_special_moves_test name b p s expected_ep expected_cast]
+    constructs a list of OUnit tests named [name] that assert the
+    equality of [expected_ep] with the en-passant state in game state
+    [b] and the boolean tuple [expected_cast] with the castle states in
+    game state [b].*)
+let move_piece_special_moves_test name b s s' expected_ep expected_cast
+    =
+  let b' = move b s s' in
+  match expected_cast with
+  | wk, wq, bk, bq ->
+      [
+        ( name ^ " | en_passant" >:: fun _ ->
+          assert_equal expected_ep (en_passant b') );
+        ( name ^ " | white_kingside_castle" >:: fun _ ->
+          assert_equal wk (can_castle b' White King) );
+        ( name ^ " | white_queenside_castle" >:: fun _ ->
+          assert_equal wq (can_castle b' White Queen) );
+        ( name ^ " | black_kingside_castle" >:: fun _ ->
+          assert_equal bk (can_castle b' Black King) );
+        ( name ^ " | black_queenside_castle" >:: fun _ ->
+          assert_equal bq (can_castle b' Black Queen) );
+      ]
 
 (** [iterator_from_sq_test name board s d expected] constructs an OUnit
     test named [name] that asserts the equality of [expected] with
@@ -119,6 +146,15 @@ let board_tests =
     move_piece_test "d2 -> d4" board "d2" "d4";
     move_piece_test "e7 -> e5" board "e7" "e5";
     move_piece_test "g1 -> h3" board "g1" "h3";
+    (* move_piece special moves tests *)
+    move_piece_special_moves_test "d2 -> d4, d3 becomes en-passant"
+      board "d2" "d4" (Some "d3")
+      (true, true, true, true);
+    (let board' = move board "e2" "e4" in
+     let board'' = move board' "e7" "e6" in
+     move_piece_special_moves_test "bong cloud can't castle" board''
+       "e1" "e2" None
+       (false, false, true, true));
     (* iterator_from_sq tests *)
     [
       iterator_from_sq_test "d5 -> N" "d5" N [ "d6"; "d7"; "d8" ];
