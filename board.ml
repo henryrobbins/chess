@@ -111,19 +111,20 @@ let move_piece t piece sq' =
     color_to_move = switch_color (color_of_piece piece);
   }
 
-let flip_turn t = { t with color_to_move = switch_color (color_to_move t) }
+let flip_turn t =
+  { t with color_to_move = switch_color (color_to_move t) }
 
-(** [merge_singleton_and_list s lst rev] is the list of elements of list [lst]
-    with the singleton [s] appended on. If [rev] is true, [s] is concatenated
-    to back of elements of [lst]. Otherwise, [s] is concatenated to front of
-    elements of [lst]. *)
+(** [merge_singleton_and_list s lst rev] is the list of elements of list
+    [lst] with the singleton [s] appended on. If [rev] is true, [s] is
+    concatenated to back of elements of [lst]. Otherwise, [s] is
+    concatenated to front of elements of [lst]. *)
 let merge_singleton_and_list s lst reverse =
-  let concat_s = fun x -> if reverse then (x ^ s) else (s ^ x) in
+  let concat_s x = if reverse then x ^ s else s ^ x in
   List.map concat_s lst
 
-(** [zip_lists lst1 lst2] is the same as List.combine [lst1] [lst2] except the
-    two lists can have different lengths. The remaining elements of the longer
-    list are ignored. *)
+(** [zip_lists lst1 lst2] is the same as List.combine [lst1] [lst2]
+    except the two lists can have different lengths. The remaining
+    elements of the longer list are ignored. *)
 let zip_lists lst1 lst2 =
   let rec zip lst1 lst2 acc =
     match lst1 with
@@ -131,14 +132,15 @@ let zip_lists lst1 lst2 =
     | h :: t -> (
         match lst2 with
         | [] -> List.rev acc
-        | h' :: t' -> zip t t' ((h ^ h') :: acc) ) in
+        | h' :: t' -> zip t t' ((h ^ h') :: acc) )
+  in
   zip lst1 lst2 []
 
 (** TODO: meaningful description of [merge_rks_and_fls tup dir]. *)
 let merge_rks_and_fls tup dir =
   match tup with
   | valid_fls, valid_rks ->
-      if List.mem dir [ E; W; ] then
+      if List.mem dir [ E; W ] then
         match valid_rks with
         | h :: _ -> merge_singleton_and_list h valid_fls true
         | [] -> []
@@ -156,12 +158,12 @@ let candidate_lsts op1 op2 rk fl rev_rk rev_fl =
   let valid_fls = List.filter (op2 fl) ord_files in
   (valid_fls, valid_rks)
 
-(** [list_head lst] is the head of the list [lst] if it exists.
-    None otherwise. *)
+(** [list_head lst] is the head of the list [lst] if it exists. None
+    otherwise. *)
 let list_head list = match list with h :: _ -> Some h | [] -> None
 
-(** [list_head lst] is the second element of the list [lst] if it exists.
-    None otherwise. *)
+(** [list_head lst] is the second element of the list [lst] if it
+    exists. None otherwise. *)
 let list_second list =
   match list with h :: h' :: _ -> Some h' | [ h ] -> None | [] -> None
 
@@ -186,9 +188,9 @@ let cardinal_it_from_sq (sq : square) direction : square list =
     | NW -> iterator ( < ) ( > ) false true
     | _ -> [])
 
-(** [l_it_from_sq sq] are the possible possible knight moves in clock-wise
-    order starting from due N.
-    Requires: [s] is in standard algebraic notation. *)
+(** [l_it_from_sq sq] are the possible possible knight moves in
+    clock-wise order starting from due N. Requires: [s] is in standard
+    algebraic notation. *)
 let l_it_from_sq sq =
   let rec gen_l_moves square list acc =
     match list with
@@ -273,6 +275,99 @@ let blank_board : b =
   in
   init ranks files []
 
+let rec remove_first_n lst n =
+  match lst with
+  | [] -> []
+  | h :: t -> if n > 0 then remove_first_n t (n - 1) else lst
+
+let get_first_n lst n =
+  let rec get_n_aux lst' n' acc =
+    match lst' with
+    | [] -> acc
+    | h :: t -> if n > 0 then get_n_aux t (n' - 1) (h :: acc) else acc
+  in
+  get_n_aux lst n []
+
+let rec gen_empty_squares rk fls acc =
+  match fls with
+  | [] -> acc
+  | h :: t -> gen_empty_squares rk t ((h ^ rk, None) :: acc)
+
+let gen_piece id rk fl : p =
+  let color = if String.uppercase_ascii id = id then White else Black in
+  let p_id =
+    match String.lowercase_ascii id with
+    | "k" -> King
+    | "q" -> Queen
+    | "b" -> Bishop
+    | "n" -> Knight
+    | "r" -> Rook
+    | "p" -> Pawn
+    | x -> failwith x
+  in
+  let sq = fl ^ rk in
+  { id = p_id; color; has_moved = false; current_pos = Some sq }
+
+let extract_rank rank_str rk : (square * p option) list =
+  let rec extract_aux i fls acc =
+    match fls with
+    | [] -> acc
+    | h :: t -> (
+        match rank_str.[i] with
+        | x -> (
+            try
+              let skip = int_of_string (Char.escaped x) in
+              let unread_fls = remove_first_n fls skip in
+              let skip_fls = get_first_n fls skip in
+              extract_aux (i + 1) unread_fls
+                (acc @ gen_empty_squares rk skip_fls [])
+            with exn ->
+              let piece = gen_piece (Char.escaped x) rk h in
+              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc) ) )
+  in
+  extract_aux 0 files []
+
+let extract_board board_str =
+  let by_rank = String.split_on_char '/' board_str in
+  let rks = List.rev ranks in
+  let rec extract i acc =
+    if i >= List.length by_rank then acc
+    else
+      let rk_str = List.nth by_rank i in
+      let rk = List.nth rks i in
+      extract (i + 1) acc @ extract_rank rk_str rk
+  in
+  extract 0 []
+
+let parse_color_to_play ctp =
+  match ctp with
+  | "w" -> White
+  | "b" -> Black
+  | _ -> failwith "not implemented"
+
+let active_pieces_of_board b_assoc =
+  let rec a_piece_aux board a_pieces =
+    match board with
+    | [] -> a_pieces
+    | (sq, p) :: t -> (
+        match p with
+        | None -> a_piece_aux t a_pieces
+        | Some p' -> a_piece_aux t (p' :: a_pieces) )
+  in
+  a_piece_aux b_assoc []
+
+let init_from_fen fen =
+  let state_info_list = String.split_on_char ' ' fen in
+  match state_info_list with
+  | [ b; ctp; cast; ep; _; _ ] ->
+      {
+        board = extract_board b;
+        captured_pieces = [];
+        active_pieces = active_pieces_of_board (extract_board b);
+        color_to_move = parse_color_to_play ctp;
+      }
+  | _ -> failwith "impossible"
+
 let init_from_json json =
   let j = json |> Yojson.Basic.from_file in
   let active_pieces =
@@ -328,9 +423,10 @@ let print_piece p =
       let id = List.assoc p.id id_map in
       c ^ id
 
-(** [print_board t] prints a graphical representation of the chess board where
-    each square is labeled with the piece (if any) that is currently on that
-    square. It also prints files and ranks along the side. *)
+(** [print_board t] prints a graphical representation of the chess board
+    where each square is labeled with the piece (if any) that is
+    currently on that square. It also prints files and ranks along the
+    side. *)
 let print_board t =
   print_string "  -----------------------------------------\n";
   let row_str i =
@@ -346,9 +442,13 @@ let print_board t =
   print_string "    a    b    c    d    e    f    g    h\n"
 
 let partition_pieces_by_color lst =
-  let printer = fun x -> print_piece (Some x) in
-  let white = List.filter (fun x -> x.color = White) lst |> List.map printer in
-  let black = List.filter (fun x -> x.color = Black) lst |> List.map printer in
+  let printer x = print_piece (Some x) in
+  let white =
+    List.filter (fun x -> x.color = White) lst |> List.map printer
+  in
+  let black =
+    List.filter (fun x -> x.color = Black) lst |> List.map printer
+  in
   (white, black)
 
 let string_of_string_list lst =
