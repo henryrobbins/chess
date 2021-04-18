@@ -400,7 +400,8 @@ let init_from_json json =
   let board = add_pieces blank_board active_pieces in
   { board; active_pieces; captured_pieces; color_to_move }
 
-let init_game () = init_from_json "board_init.json"
+let init_game () =
+  init_from_fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 (* [print_piece p] is a string with the color and id of piece [p]. If
    the piece is [None], it is a blank space. *)
