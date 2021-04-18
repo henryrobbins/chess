@@ -33,7 +33,6 @@ type p = {
   id : piece_type;
   color : color;
   current_pos : square option;
-  has_moved : bool;
 }
 
 type b = (square * p option) list
@@ -43,9 +42,24 @@ type t = {
   active_pieces : p list;
   captured_pieces : p list;
   color_to_move : color;
+  w_castle_ks : bool;
+  w_castle_qs : bool;
+  b_castle_ks : bool;
+  b_castle_qs : bool;
+  en_passant : square option;
 }
 
 let color_to_move t = t.color_to_move
+
+let en_passant t = t.en_passant
+
+let can_castle t color side =
+  match (color, side) with
+  | White, King -> t.w_castle_ks
+  | White, Queen -> t.w_castle_qs
+  | Black, King -> t.b_castle_ks
+  | Black, Queen -> t.b_castle_qs
+  | _ -> failwith "impossible"
 
 let active_pieces t = t.active_pieces
 
@@ -56,8 +70,6 @@ let piece_of_square t square = List.assoc square t.board
 let id_of_piece p = p.id
 
 let color_of_piece p = p.color
-
-let has_moved p = p.has_moved
 
 let square_of_piece p =
   match p.current_pos with
@@ -90,9 +102,7 @@ let move_piece t piece sq' =
     | Some p -> capture_piece t p
   in
   let sq = square_of_piece piece in
-  let piece' =
-    { piece with current_pos = Some sq'; has_moved = true }
-  in
+  let piece' = { piece with current_pos = Some sq' } in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
@@ -246,7 +256,7 @@ let extract_active_piece j =
   in
   let fields_lst = List.combine positions has_moved in
   let init_piece = function
-    | f1, f2 -> { id; color; current_pos = Some f1; has_moved = f2 }
+    | f1, f2 -> { id; color; current_pos = Some f1 }
   in
   List.map init_piece fields_lst
 
@@ -258,9 +268,7 @@ let extract_captured_piece j : p list =
   let has_moved =
     j |> member "has_moved" |> to_list |> List.map to_bool
   in
-  let init_piece has_moved =
-    { id; color; current_pos = None; has_moved }
-  in
+  let init_piece has_moved = { id; color; current_pos = None } in
   List.map init_piece has_moved
 
 (** [blank_board] is a blank chess board with no pieces on it. *)
@@ -306,7 +314,7 @@ let gen_piece id rk fl : p =
     | x -> failwith x
   in
   let sq = fl ^ rk in
-  { id = p_id; color; has_moved = false; current_pos = Some sq }
+  { id = p_id; color; current_pos = Some sq }
 
 let extract_rank rank_str rk : (square * p option) list =
   let rec extract_aux i fls acc =
@@ -360,11 +368,17 @@ let init_from_fen fen =
   let state_info_list = String.split_on_char ' ' fen in
   match state_info_list with
   | [ b; ctp; cast; ep; _; _ ] ->
+      let en_passant = match ep with "-" -> None | x -> Some x in
       {
         board = extract_board b;
         captured_pieces = [];
         active_pieces = active_pieces_of_board (extract_board b);
         color_to_move = parse_color_to_play ctp;
+        w_castle_ks = String.contains cast 'K';
+        w_castle_qs = String.contains cast 'Q';
+        b_castle_ks = String.contains cast 'k';
+        b_castle_qs = String.contains cast 'q';
+        en_passant;
       }
   | _ -> failwith "impossible"
 

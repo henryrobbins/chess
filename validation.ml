@@ -210,7 +210,7 @@ let valid_pawn_moves piece board : move list =
   let enemy_piece sq' =
     match piece_of_square board sq' with
     | None -> false
-    | Some p -> if color_of_piece p <> c then true else false
+    | Some p -> if color_of_piece p <> c || true then true else false
   in
   let valid_diag_sq = List.filter enemy_piece potential_diag_sq in
   let all_sq = valid_vert_sq @ valid_diag_sq in
@@ -271,8 +271,8 @@ let noncheck_king_move state piece move =
   let state'' = flip_turn state' in
   match is_check state'' with Check _ -> false | NotCheck -> true
 
-(** [valid_king_moves p b] is the list of all valid moves for piece
-    [p] with board state [b]. Requires: piece [p] is of id [K] *)
+(** [valid_king_moves p b] is the list of all valid moves for piece [p]
+    with board state [b]. Requires: piece [p] is of id [K] *)
 let valid_king_moves p b : move list =
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
   let directions = attack_directions p in

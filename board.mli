@@ -51,6 +51,15 @@ type t
 (** [color_to_move t] is the player that should move next in state [t]. *)
 val color_to_move : t -> color
 
+(** [can_castle t c p] is true iff the player of color [c] can castle in
+    the direction of piece [p] in game state [t]. *)
+val can_castle : t -> color -> piece_type -> bool
+
+(** [en_passant t] is a square option which is either the square behind
+    a two-square pawn movement made in the previous turn of game state
+    [t], or otherwise None. *)
+val en_passant : t -> square option
+
 (** [active_pieces t] is the list of pieces on the board in state [t]. *)
 val active_pieces : t -> p list
 
@@ -67,9 +76,6 @@ val id_of_piece : p -> piece_type
 
 (** [color_of_piece p] is the color of piece [p]. *)
 val color_of_piece : p -> color
-
-(** [has_moved p] indicates whether piece [p] has been moved. *)
-val has_moved : p -> bool
 
 (** [square_of_piece p] is the square where piece [p] is located.
     Requires: [p] has not been captured. *)
