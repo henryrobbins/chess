@@ -1,35 +1,36 @@
 (** Maintains the state of a chess board. *)
 
 (** The type of a chess board square identifier in algebraic notation.
-    Algebraic notation consists of a lower-case letter followed by a number
-    indicating the file (column) and rank (row) of a square respectively. *)
+    Algebraic notation consists of a lower-case letter followed by a
+    number indicating the file (column) and rank (row) of a square
+    respectively. *)
 type square = string
 
 (** The color of the player. *)
 type color =
-    | White
-    | Black
+  | White
+  | Black
 
 (** The type of the chess piece. *)
 type piece_type =
-    | Pawn
-    | Rook
-    | Bishop
-    | Knight
-    | Queen
-    | King
+  | Pawn
+  | Rook
+  | Bishop
+  | Knight
+  | Queen
+  | King
 
 (** The type of a direction on the chess board. *)
 type direction =
-    | N
-    | NE
-    | E
-    | SE
-    | S
-    | SW
-    | W
-    | NW
-    | L
+  | N
+  | NE
+  | E
+  | SE
+  | S
+  | SW
+  | W
+  | NW
+  | L
 
 (** The ranks (rows) of the chess board. *)
 val ranks : string list
@@ -50,6 +51,15 @@ type t
 (** [color_to_move t] is the player that should move next in state [t]. *)
 val color_to_move : t -> color
 
+(** [can_castle t c p] is true iff the player of color [c] can castle in
+    the direction of piece [p] in game state [t]. *)
+val can_castle : t -> color -> piece_type -> bool
+
+(** [en_passant t] is a square option which is either the square behind
+    a two-square pawn movement made in the previous turn of game state
+    [t], or otherwise None. *)
+val en_passant : t -> square option
+
 (** [active_pieces t] is the list of pieces on the board in state [t]. *)
 val active_pieces : t -> p list
 
@@ -67,16 +77,13 @@ val id_of_piece : p -> piece_type
 (** [color_of_piece p] is the color of piece [p]. *)
 val color_of_piece : p -> color
 
-(** [has_moved p] indicates whether piece [p] has been moved. *)
-val has_moved : p -> bool
-
 (** [square_of_piece p] is the square where piece [p] is located.
     Requires: [p] has not been captured. *)
 val square_of_piece : p -> square
 
 (** [square_of_king b c] is the square where the king of color [c] is
     located in board state [b] *)
-val square_of_king : t -> color  -> square
+val square_of_king : t -> color -> square
 
 (** [capture_piece t p] is the game state after piece [p] has been
     captured in game state [t]. *)
@@ -84,8 +91,8 @@ val capture_piece : t -> p -> t
 
 (** [move_piece t p s] is the game state after piece [p] moves to square
     [s] in state [t]. If a piece of the opposite color is already at
-    square [s] in state [t], it is captured.
-    Requires: [s] is in standard algebraic notation. *)
+    square [s] in state [t], it is captured. Requires: [s] is in
+    standard algebraic notation. *)
 val move_piece : t -> p -> square -> t
 
 (** [flip_turn t] is the game state [t], but it is now the opposite
@@ -93,13 +100,15 @@ val move_piece : t -> p -> square -> t
 val flip_turn : t -> t
 
 (** [iterator_from_sq s d] is the list of the squares that can be
-    reached by moving in direction [d] from square [s].
-    Requires: [s] is in standard algebraic notation. *)
+    reached by moving in direction [d] from square [s]. Requires: [s] is
+    in standard algebraic notation. *)
 val iterator_from_sq : square -> direction -> square list
 
-(** [init_from_json json] is the state of the game in the JSON file [json].
-    Requires: [json] is a valid JSON file name representing a board state. *)
-val init_from_json : string -> t
+(*TODO: Parse the remaining parts of the string*)
+
+(** [init_from_fen fen] is the board state of the game defined in the
+    FEN string [fen]. *)
+val init_from_fen : string -> t
 
 (** [init_game] is the game state at the start of a normal chess game. *)
 val init_game : unit -> t
@@ -109,4 +118,5 @@ val print_game_state : t -> unit
 
 (* TODO: Temporary or decide to keep *)
 val print_piece : p option -> string
+
 val partition_pieces_by_color : p list -> string list * string list

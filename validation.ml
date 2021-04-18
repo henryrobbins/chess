@@ -15,21 +15,6 @@ type pin_state =
   | Pin of direction
   | NoPin
 
-(** [all_moves p] is all moves from piece [p]'s current square to any
-    other square on the board *)
-let all_moves p : move list =
-  let sq = square_of_piece p in
-  let rec init rows cols b =
-    match rows with
-    | [] -> b
-    | rh :: rt -> (
-        match cols with
-        | [] -> init rt files b
-        | ch :: ct -> init (rh :: rt) ct ((ch ^ rh) :: b) )
-  in
-  let sq_list = init ranks files [] |> List.filter (fun x -> x <> sq) in
-  List.map (fun x -> (sq, x)) sq_list
-
 (** [unblocked_squares state piece direction] is a list of all the
     squares in direction [direction] to which a piece [piece] in game
     state [state] can move. *)
@@ -159,27 +144,24 @@ let is_check state : check_state =
   | [] -> NotCheck
   | directions -> Check directions
 
-let pawn_movement_restriction has_moved direction =
-  if (not has_moved) && (direction = N || direction = S) then 2 else 1
+let has_moved_pawn p =
+  let get_rank sq = Char.escaped sq.[1] in
+  let sq = square_of_piece p in
+  match color_of_piece p with
+  | White -> get_rank sq <> "2"
+  | Black -> get_rank sq <> "7"
 
-(* [pawn_has_moved piece state] is a boolean representing whether or not [piece]
-    has moved in game state [state]. Requires: [piece] is a piece of type 
-    [Pawn].*)
-let pawn_has_moved piece = 
-  let c = color_of_piece piece in 
-  let sq = square_of_piece piece in
-  match c with 
-  | Black -> String.get sq 1 <> '7'
-  | White -> String.get sq 1 <> '2'
+let pawn_movement_restriction p direction =
+  if (not (has_moved_pawn p)) && (direction = N || direction = S) then 2
+  else 1
 
-let vert_pawn_sq piece =
-  let c = color_of_piece piece in
-  let sq = square_of_piece piece in
+let vert_pawn_sq p =
+  let c = color_of_piece p in
+  let sq = square_of_piece p in
   let dir = match c with White -> N | Black -> S in
-  let moved = pawn_has_moved piece in
   list_head_n
     (iterator_from_sq sq dir)
-    (pawn_movement_restriction moved dir)
+    (pawn_movement_restriction p dir)
     []
 
 let valid_vert_pawn_sq sq_lst board =
@@ -195,19 +177,19 @@ let valid_vert_pawn_sq sq_lst board =
       else []
   | _ -> []
 
-let diag_pawn_sq piece =
-  let c = color_of_piece piece in
-  let sq = square_of_piece piece in
+let diag_pawn_sq p =
+  let c = color_of_piece p in
+  let sq = square_of_piece p in
   let dir = match c with White -> [ NE; NW ] | Black -> [ SE; SW ] in
-  let moved = has_moved piece in
   List.map
     (fun x ->
       list_head_n (iterator_from_sq sq x)
-        (pawn_movement_restriction moved x)
+        (pawn_movement_restriction p x)
         [])
     dir
   |> List.flatten
 
+let en_passant board = failwith "Not Implemented"
 (** [valid_pawn_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [P] *)
@@ -220,7 +202,7 @@ let valid_pawn_moves piece board : move list =
   let enemy_piece sq' =
     match piece_of_square board sq' with
     | None -> false
-    | Some p -> if color_of_piece p <> c then true else false
+    | Some p -> color_of_piece p <> c || Some sq' = en_passant board
   in
   let valid_diag_sq = List.filter enemy_piece potential_diag_sq in
   let all_sq = valid_vert_sq @ valid_diag_sq in
@@ -281,8 +263,8 @@ let noncheck_king_move state piece move =
   let state'' = flip_turn state' in
   match is_check state'' with Check _ -> false | NotCheck -> true
 
-(** [valid_king_moves p b] is the list of all valid moves for piece
-    [p] with board state [b]. Requires: piece [p] is of id [K] *)
+(** [valid_king_moves p b] is the list of all valid moves for piece [p]
+    with board state [b]. Requires: piece [p] is of id [K] *)
 let valid_king_moves p b : move list =
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
   let directions = attack_directions p in
