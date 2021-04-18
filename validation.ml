@@ -162,11 +162,21 @@ let is_check state : check_state =
 let pawn_movement_restriction has_moved direction =
   if (not has_moved) && (direction = N || direction = S) then 2 else 1
 
+(* [pawn_has_moved piece state] is a boolean representing whether or not [piece]
+    has moved in game state [state]. Requires: [piece] is a piece of type 
+    [Pawn].*)
+let pawn_has_moved piece = 
+  let c = color_of_piece piece in 
+  let sq = square_of_piece piece in
+  match c with 
+  | Black -> String.get sq 1 <> '7'
+  | White -> String.get sq 1 <> '2'
+
 let vert_pawn_sq piece =
   let c = color_of_piece piece in
   let sq = square_of_piece piece in
   let dir = match c with White -> N | Black -> S in
-  let moved = has_moved piece in
+  let moved = pawn_has_moved piece in
   list_head_n
     (iterator_from_sq sq dir)
     (pawn_movement_restriction moved dir)
