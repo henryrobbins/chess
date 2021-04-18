@@ -2,8 +2,19 @@ open OUnit2
 open Board
 open Command
 open Validation
+open Yojson.Basic.Util
 
 let board = init_game ()
+
+let extract j =
+  let description = j |> member "description" |> to_string in
+  let fen = j |> member "fen" |> to_string in
+  (description, fen)
+
+let init_tests_json json =
+  json |> Yojson.Basic.from_file |> to_list |> List.map extract
+
+let tests = init_tests_json "test_fens.json"
 
 (* HELPER FUNCTIONS *)
 
@@ -211,7 +222,7 @@ let command_tests =
     [valid_moves color (init_from_json json)] and [expected]. *)
 let valid_moves_test name json expected =
   name >:: fun _ ->
-  let board = init_from_json ("test_board_jsons/" ^ json) in
+  let board = init_from_fen (List.assoc json tests) in
   let computed_moves = valid_moves board in
   assert_equal
     (List.filter (fun x -> not (List.mem x expected)) computed_moves)
@@ -225,7 +236,7 @@ let valid_moves_test name json expected =
     [valid_piece_moves board p] and [expected]. *)
 let valid_piece_moves_test name json sq expected =
   name >:: fun _ ->
-  let board = init_from_json ("test_board_jsons/" ^ json) in
+  let board = init_from_fen (List.assoc json tests) in
   let p =
     match piece_of_square board sq with
     | None -> failwith "bad test"
@@ -248,57 +259,57 @@ let check_printer = function
     by [is_check_test (init_from_json json)] and [expected]. *)
 let is_check_test name json expected =
   name >:: fun _ ->
-  let board = init_from_json ("test_board_jsons/" ^ json) in
+  let board = init_from_fen (List.assoc json tests) in
   let check_state = is_check board in
   assert_equal check_state expected ~printer:check_printer
 
 let is_check_tests = [
   is_check_test "White has pinned piece and is in check from NW"
-  "pinned_intercept.json" (Check [NW]);
+  "pinned_intercept" (Check [NW]);
   is_check_test "Black has pinned piece but is not in check"
-  "blocked_black_unchecked.json" NotCheck;
-  is_check_test "White in check from NE" "white_in_check_NE.json"
+  "blocked_black_unchecked" NotCheck;
+  is_check_test "White in check from NE" "white_in_check_NE"
   (Check [NE]);
-  is_check_test "White in check from N" "white_in_check_north_.json"
+  is_check_test "White in check from N" "white_in_check_north_"
   (Check [N]);
-  is_check_test "White in check from S" "white_in_check_S_.json"
+  is_check_test "White in check from S" "white_in_check_S_"
   (Check [S]);
-  is_check_test "White in check from SE" "white_in_check_SE.json"
+  is_check_test "White in check from SE" "white_in_check_SE"
   (Check [SE]);
-  is_check_test "White in check from W" "white_in_check_W.json"
+  is_check_test "White in check from W" "white_in_check_W"
   (Check [W]);
-  is_check_test "White in check from SW" "white_in_check_SW.json"
+  is_check_test "White in check from SW" "white_in_check_SW"
   (Check [SW]);
-  is_check_test "White in stalemate" "white_in_stalemate.json"
+  is_check_test "White in stalemate" "white_in_stalemate"
   NotCheck;
   (* TODO: Check some black positions, as well as some L-shapes *)
-  is_check_test "Black in checkmate" "must_block_check.json"
+  is_check_test "Black in checkmate" "must_block_check"
   (Check [SE]);
-  is_check_test "Black in check N" "multiple_is_check_calls.json"
+  is_check_test "Black in check N" "multiple_is_check_calls"
   (Check [N]);
-  is_check_test "Black King in check L" "move_restricted_by_own_piece.json"
+  is_check_test "Black King in check L" "move_restricted_by_own_piece"
   (Check [L]);
-  is_check_test "Black in check SW" "checked_by_king.json"
+  is_check_test "Black in check SW" "checked_by_king"
   (Check [SW]);
-  is_check_test "Black in check East" "checkmate.json" (Check [E]);
-  is_check_test "Neither color in check" "restricted_pawn_attack.json"
+  is_check_test "Black in check East" "checkmate" (Check [E]);
+  is_check_test "Neither color in check" "restricted_pawn_attack"
   NotCheck;
-  is_check_test "Double check, L and SE, Queen" "double_check_SE.json"
+  is_check_test "Double check, L and SE, Queen" "double_check_SE"
   (Check [SE; L]);
-  is_check_test "Double check, L and S, Queen" "dcheck_cardinal.json"
+  is_check_test "Double check, L and S, Queen" "dcheck_cardinal"
   (Check [S; L]);
-  is_check_test "Double check, L and SW, Rook" "double_check_SW.json"
+  is_check_test "Double check, L and SW, Rook" "double_check_SW"
   (Check [SW; L]);
 ]
 let validation_tests =
   [
     valid_moves_test "White moves in pinned/intercept position"
-      "pinned_intercept.json"
+      "pinned_intercept"
       [ ("e1", "d1"); ("e1", "f1"); ("e1", "e2"); ("e1", "f2") ];
     valid_moves_test "Black moves to get out of check"
-      "must_block_check.json" [("g7", "g6")];
+      "must_block_check" [("g7", "g6")];
     valid_moves_test "Pinned black piece takes white piece."
-      "capture_while_pinned.json"
+      "capture_while_pinned"
       [("a7", "a6");
        ("a7", "a5");
        ("b7", "b6");
@@ -321,18 +332,18 @@ let validation_tests =
        ("f8", "h6");
        ];
     valid_moves_test "Black king must capture or move to escape check."
-      "king_moves_in_check.json"
+      "king_moves_in_check"
       [("g5", "f5"); ("g5", "g6"); ("g5", "h6"); ("g5", "g4"); ("g5", "h4")];
     valid_moves_test "Prevent moves placing king under check by other king"
-    "checked_by_king.json"
+    "checked_by_king"
       [("b7", "a7"); ("b7", "c7")];
     valid_moves_test "No valid moves when under checkmate"
-      "checkmate.json" [];
+      "checkmate" [];
     valid_moves_test "Capture a piece to prevent a check"
-      "take_piece_to_stop_check.json"
+      "take_piece_to_stop_check"
       [("h8", "g8"); ("e7", "f8")];
     valid_moves_test "Various pieces can intercept"
-      "various_piece_intercepts.json"
+      "various_piece_intercepts"
       [("b8", "c6");
        ("b8", "d7");
        ("c8", "d7");
@@ -340,15 +351,15 @@ let validation_tests =
        ("d8", "d7");
        ("c7", "c6")];
     valid_moves_test "Multiple queens pinned with restricted movement"
-      "many_pinned_queens.json"
+      "many_pinned_queens"
       [("h7", "f7")];
     valid_moves_test "Pinned queen movement."
-      "pinned_queen_movement.json"
+      "pinned_queen_movement"
       [("f7", "g6"); ("f7", "h5"); ("e8", "d8")];
     valid_moves_test "Full range of pawn attack"
-      "full_range_pawn_attack.json" [("f4", "g5"); ("f4", "f5"); ("f4", "e5")];
+      "full_range_pawn_attack" [("f4", "g5"); ("f4", "f5"); ("f4", "e5")];
     valid_moves_test "Pawn attack and initial one or two space move"
-      "pawn_attack_and_2_spaces.json"
+      "pawn_attack_and_2_spaces"
       [("d2", "e3");
        ("d2", "d3");
        ("d2", "c3");
@@ -356,9 +367,9 @@ let validation_tests =
        ("h1", "g2");
        ("h1", "h2")];
     valid_moves_test "Pawn intercept from start square moving up 2."
-      "pawn_2_space_intercept.json" [("d2", "d4"); ("a1", "a2")];
+      "pawn_2_space_intercept" [("d2", "d4"); ("a1", "a2")];
     valid_moves_test "Test king having a move during a check"
-      "king_move_during_check.json"
+      "king_move_during_check"
       [("a8", "c6");
        ("b8", "d6");
        ("c8", "c6");
@@ -375,14 +386,14 @@ let validation_tests =
        ("g6", "g5");
        ("g6", "f5")];
     valid_moves_test "Checkmate, enemy king can check a king"
-      "check_from_king.json" [];
+      "check_from_king" [];
     valid_moves_test "Test multiple calls to is_check"
-      "multiple_is_check_calls.json" [("e3", "f2")];
+      "multiple_is_check_calls" [("e3", "f2")];
     valid_moves_test "Move restricted by its own piece"
-      "move_restricted_by_own_piece.json" [];
+      "move_restricted_by_own_piece" [];
     valid_moves_test "Forced draw"
-      "forced_draw.json" [];
-    valid_moves_test "Restricted Pawn Attack" "restricted_pawn_attack.json"
+      "forced_draw" [];
+    valid_moves_test "Restricted Pawn Attack" "restricted_pawn_attack"
       [("d7", "c6");
        ("d7", "d6");
        ("d7", "e6");
@@ -391,11 +402,11 @@ let validation_tests =
        ("g8", "h7");
        ("g8", "h8")];
     valid_piece_moves_test "King can not deliver a pin"
-      "king_cant_deliver_pin.json" "e5"
+      "king_cant_deliver_pin" "e5"
       [("e5", "d4");
        ("e5", "e4")];
     valid_piece_moves_test "Pawn can not deliver a pin"
-      "pawn_cant_pin.json" "f7"
+      "pawn_cant_pin" "f7"
       [("f7", "f6");
       ("f7", "f5")]]
 
