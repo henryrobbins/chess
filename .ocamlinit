@@ -1,8 +1,8 @@
 #require "ounit2";;
 #require "yojson";;
 #require "lablgtk2";;
-#directory "_build";;
 #require "bisect_ppx.runtime";;
+#directory "_build";;
 #load "board.cmo";;
 #load "command.cmo";;
 #load "validation.cmo";;

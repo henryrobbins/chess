@@ -7,7 +7,6 @@ MAIN=main.byte
 GUI=gui.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind \
 	-plugin-tag 'package(bisect_ppx-ocamlbuild)'
-PKGS=unix,ounit2,str,qcheck
 
 default: build
         OCAMLRUNPARAM=b utop
@@ -19,8 +18,7 @@ test:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
 
 bisect-test:
-	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(TEST) \
-		&& ./$(TEST)
+	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
 play:
 	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
