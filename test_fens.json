@@ -134,5 +134,13 @@
   {
     "description": "check_from_king",
     "fen": "QQQQ1QQQ/7r/6K1/8/7k/8/8/8 b  - 0 0"
+  },
+  {
+    "description": "en_passant_reverse_mate",
+    "fen": "5B2/8/8/4RPpk/4pK1N/6P1/4qP2/8 w - g6 0 41"
+  },
+  {
+    "description": "take_piece_to_intercept",
+    "fen": "rnb1kbnr/ppp2ppp/4P3/8/4q3/3P4/PPP2PPP/RNBQKBNR w KQkq - 1 5"
   }
 ]

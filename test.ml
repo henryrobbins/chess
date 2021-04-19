@@ -121,7 +121,7 @@ let move_piece_special_moves_test name b s s' expected_ep expected_cast
   | wk, wq, bk, bq ->
       [
         ( name ^ " | en_passant" >:: fun _ ->
-          assert_equal expected_ep (en_passant b') );
+          assert_equal expected_ep (en_passant_sq b') );
         ( name ^ " | white_kingside_castle" >:: fun _ ->
           assert_equal wk (can_castle b' White King) );
         ( name ^ " | white_queenside_castle" >:: fun _ ->
@@ -449,12 +449,16 @@ let validation_tests =
         ("g8", "h7");
         ("g8", "h8");
       ];
+    valid_moves_test "En-passant Discovered Checkmate"
+      "en_passant_reverse_mate" [ ("f5", "g6") ];
     valid_piece_moves_test "King can not deliver a pin"
       "king_cant_deliver_pin" "e5"
       [ ("e5", "d4"); ("e5", "e4") ];
     valid_piece_moves_test "Pawn can not deliver a pin" "pawn_cant_pin"
       "f7"
       [ ("f7", "f6"); ("f7", "f5") ];
+    valid_piece_moves_test "Take piece to intercept"
+      "take_piece_to_intercept" "d3" [ ("d3", "e4") ];
   ]
 
 let suite =
