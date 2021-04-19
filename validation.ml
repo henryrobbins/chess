@@ -289,7 +289,7 @@ let intercept_squares color state dir_lst : square list =
       List.map (fun x -> unblocked_squares state p x) dir_lst
       |> List.flatten
 
-let ext_sq_option sq =
+let extract_sq_option sq =
   match sq with
   | None -> failwith "Invalid Application"
   | Some sq' -> sq'
@@ -311,17 +311,21 @@ let potential_piece_moves p b : move list =
       in
       let c = color_of_piece p in
       match cst with
-      | Check dir_lst ->
+      | Check dir_lst -> (
           let intercepts = intercept_squares c b dir_lst in
-          let move_filter =
-            match en_passant_piece b with
-            | None -> intercepts
-            | Some p ->
-                if List.mem (square_of_piece p) intercepts then
-                  ext_sq_option (en_passant_sq b) :: intercepts
-                else intercepts
-          in
-          filter_moves move_lst move_filter
+          match piece_type with
+          | Pawn ->
+              let move_filter =
+                match en_passant_piece b with
+                | None -> intercepts
+                | Some p ->
+                    if List.mem (square_of_piece p) intercepts then
+                      (en_passant_sq b |> extract_sq_option)
+                      :: intercepts
+                    else intercepts
+              in
+              filter_moves move_lst move_filter
+          | _ -> filter_moves move_lst intercepts )
       | NotCheck -> move_lst )
 
 let directional_pins state color dir =
