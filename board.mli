@@ -114,6 +114,9 @@ val iterator_from_sq : square -> direction -> square list
     FEN string [fen]. *)
 val init_from_fen : string -> t
 
+(** [export_to_fen t] is the FEN string representing the game state [t]. *)
+val export_to_fen : t -> string
+
 (** [init_game] is the game state at the start of a normal chess game. *)
 val init_game : unit -> t
 

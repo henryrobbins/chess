@@ -392,6 +392,32 @@ let init_from_fen fen =
       }
   | _ -> failwith "impossible"
 
+(* TODO: Andy and Nalu to implement these
+   [https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation] *)
+
+(** [board_fen_string t] is the component of the FEN string representing the
+    current pieces on the board [t.board]. *)
+let board_fen_string t = failwith "Unimplemented."
+
+(** [next_to_move_string t] is the string representation of the player whose
+    turn it is: "b" or "w". *)
+let next_to_move_string t = failwith "Unimplemented."
+
+(** [castle_fen_string t] is the component of the FEN string representing the
+    possible castles in the board state [t]. If no castles possible, '-'. *)
+let castle_fen_string t = failwith "Unimplemented."
+
+(** [en_passant_string t] is the component of the FEN string representing the
+    possible en_passant captured square in board state [t]. Otherwise, '-'. *)
+let en_passant_string t = failwith "Unimplemented."
+
+let export_to_fen t =
+  let board_str = board_fen_string t in
+  let turn_str = next_to_move_string t in
+  let castle_str = castle_fen_string t in
+  let en_passant_str = en_passant_string t in
+  board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str ^ " 0 1"
+
 let init_game () =
   init_from_fen
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
