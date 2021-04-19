@@ -2,6 +2,7 @@
 #require "yojson";;
 #require "lablgtk2";;
 #directory "_build";;
+#require "bisect_ppx.runtime";;
 #load "board.cmo";;
 #load "command.cmo";;
 #load "validation.cmo";;
