@@ -55,10 +55,14 @@ val color_to_move : t -> color
     the direction of piece [p] in game state [t]. *)
 val can_castle : t -> color -> piece_type -> bool
 
-(** [en_passant t] is a square option which is either the square behind
-    a two-square pawn movement made in the previous turn of game state
-    [t], or otherwise None. *)
-val en_passant : t -> square option
+(** [en_passant_sq t] is a square option which is either the square
+    behind a two-square pawn movement made in the previous turn of game
+    state [t], or otherwise None. *)
+val en_passant_sq : t -> square option
+
+(** [en_passant_sq t] is a piece option which is either the piece
+    corresponding to the current en-passant square, or None. *)
+val en_passant_piece : t -> p option
 
 (** [active_pieces t] is the list of pieces on the board in state [t]. *)
 val active_pieces : t -> p list

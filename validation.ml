@@ -189,7 +189,6 @@ let diag_pawn_sq p =
     dir
   |> List.flatten
 
-let en_passant board = failwith "Not Implemented"
 (** [valid_pawn_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [P] *)
@@ -201,8 +200,8 @@ let valid_pawn_moves piece board : move list =
   let valid_vert_sq = valid_vert_pawn_sq potential_vert_sq board in
   let enemy_piece sq' =
     match piece_of_square board sq' with
-    | None -> false
-    | Some p -> color_of_piece p <> c || Some sq' = en_passant board
+    | None -> Some sq' = en_passant_sq board
+    | Some p -> color_of_piece p <> c
   in
   let valid_diag_sq = List.filter enemy_piece potential_diag_sq in
   let all_sq = valid_vert_sq @ valid_diag_sq in
@@ -290,6 +289,11 @@ let intercept_squares color state dir_lst : square list =
       List.map (fun x -> unblocked_squares state p x) dir_lst
       |> List.flatten
 
+let ext_sq_option sq =
+  match sq with
+  | None -> failwith "Invalid Application"
+  | Some sq' -> sq'
+
 let potential_piece_moves p b : move list =
   let cst = is_check b in
   let piece_type = id_of_piece p in
@@ -308,7 +312,16 @@ let potential_piece_moves p b : move list =
       let c = color_of_piece p in
       match cst with
       | Check dir_lst ->
-          filter_moves move_lst (intercept_squares c b dir_lst)
+          let intercepts = intercept_squares c b dir_lst in
+          let move_filter =
+            match en_passant_piece b with
+            | None -> intercepts
+            | Some p ->
+                if List.mem (square_of_piece p) intercepts then
+                  ext_sq_option (en_passant_sq b) :: intercepts
+                else intercepts
+          in
+          filter_moves move_lst move_filter
       | NotCheck -> move_lst )
 
 let directional_pins state color dir =

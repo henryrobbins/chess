@@ -47,11 +47,14 @@ type t = {
   b_castle_ks : bool;
   b_castle_qs : bool;
   en_passant : square option;
+  ep_piece : p option;
 }
 
 let color_to_move t = t.color_to_move
 
-let en_passant t = t.en_passant
+let en_passant_sq t = t.en_passant
+
+let en_passant_piece t = t.ep_piece
 
 let can_castle t color side =
   match (color, side) with
@@ -103,11 +106,40 @@ let get_en_passant sq sq' =
     Some (file ^ string_of_int ((rank + rank') / 2))
   else None
 
+let get_ep_piece active_pieces color_to_move ep_sq =
+  match ep_sq with
+  | None -> None
+  | Some sq ->
+      let file = Char.escaped sq.[0] in
+      let rank = int_of_string (Char.escaped sq.[1]) in
+      let color = switch_color color_to_move in
+      let op = match color with White -> ( + ) | Black -> ( - ) in
+      let rec search_pieces p_lst =
+        match p_lst with
+        | [] -> None
+        | p :: t ->
+            if
+              color_of_piece p = color
+              && square_of_piece p = file ^ string_of_int (op rank 1)
+            then Some p
+            else search_pieces t
+      in
+      search_pieces active_pieces
+
+let extract_piece p_option : p =
+  match p_option with None -> failwith "no piece" | Some p -> p
+
 let move_piece t piece sq' =
   let state =
     match piece_of_square t sq' with
-    | None -> t
     | Some p -> capture_piece t p
+    | None -> (
+        match t.en_passant with
+        | None -> t
+        | Some ep_sq ->
+            if piece.id = Pawn && sq' = ep_sq then
+              capture_piece t (t.ep_piece |> extract_piece)
+            else t )
   in
   let sq = square_of_piece piece in
   let piece' = { piece with current_pos = Some sq' } in
@@ -125,12 +157,16 @@ let move_piece t piece sq' =
   let en_passant =
     match piece.id with Pawn -> get_en_passant sq sq' | _ -> None
   in
+  let ep_piece =
+    match en_passant with None -> None | Some _ -> Some piece'
+  in
   {
     state with
     board;
     active_pieces = active;
     color_to_move = switch_color (color_of_piece piece);
     en_passant;
+    ep_piece;
   }
 
 let flip_turn t =
@@ -340,16 +376,19 @@ let init_from_fen fen =
   match state_info_list with
   | [ b; ctp; cast; ep; _; _ ] ->
       let en_passant = match ep with "-" -> None | x -> Some x in
+      let color_to_move = parse_color_to_play ctp in
+      let active_pieces = active_pieces_of_board (extract_board b) in
       {
         board = extract_board b;
         captured_pieces = [];
-        active_pieces = active_pieces_of_board (extract_board b);
-        color_to_move = parse_color_to_play ctp;
+        active_pieces;
+        color_to_move;
         w_castle_ks = String.contains cast 'K';
         w_castle_qs = String.contains cast 'Q';
         b_castle_ks = String.contains cast 'k';
         b_castle_qs = String.contains cast 'q';
         en_passant;
+        ep_piece = get_ep_piece active_pieces color_to_move en_passant;
       }
   | _ -> failwith "impossible"
 
