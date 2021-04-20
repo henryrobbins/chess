@@ -98,6 +98,9 @@ let capture_piece t piece =
 (** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
 
+let extract_piece p_option : p =
+  match p_option with None -> failwith "no piece" | Some p -> p
+
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
@@ -126,8 +129,22 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-let extract_piece p_option : p =
-  match p_option with None -> failwith "no piece" | Some p -> p
+
+(** [promote_pawn t sq'] is a Queen option after the player whose turn
+  it is in game state [t] can move a pawn to the a square [sq'] on either the 
+  8th rank (if white to move), or the 1st rank (if black to move). *)
+let promote_pawn t piece sq' = 
+  let color = color_of_piece piece in
+  let sq = square_of_piece piece in 
+  let id = id_of_piece piece in 
+  let new_square_piece_opt = piece_of_square t sq' in
+  if id = Pawn && color = White && String.contains sq '7' 
+    && String.contains sq' '8' && new_square_piece_opt = None then 
+      {id=Queen; color=White; current_pos=Some sq}
+  else if id = Pawn && color = Black && String.contains sq '2' 
+    && String.contains sq' '1' && new_square_piece_opt = None then 
+      {id=Queen; color=Black; current_pos=Some sq}
+else {id; color; current_pos=Some sq}
 
 let move_piece t piece sq' =
   let state =
@@ -142,7 +159,8 @@ let move_piece t piece sq' =
             else t)
   in
   let sq = square_of_piece piece in
-  let piece' = { piece with current_pos = Some sq' } in
+  let promoted = promote_pawn t piece sq' in
+  let piece' = { promoted with current_pos = Some sq' } in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
@@ -391,9 +409,6 @@ let init_from_fen fen =
         ep_piece = get_ep_piece active_pieces color_to_move en_passant;
       }
   | _ -> failwith "impossible"
-
-(* TODO: Andy and Nalu to implement these
-   [https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation] *)
 
 (** [board_fen_string t] is the component of the FEN string representing
     the current pieces on the board [t.board]. *)
