@@ -152,7 +152,15 @@
     "fen": "8/8/7Q/2P1k3/Pp6/3P4/1P2KPPP/RNB2BNR b - a3 0 24"
   },
   {
-    "description": "not_en_passant",
+    "description": "two_step_not_en_passant",
     "fen": "8/8/7Q/2Pk4/Pp6/3P4/1P2KPPP/RNB2BNR b - - 0 25"
+  },
+  {
+    "description": "overlooked_en_passant",
+    "fen": "r7/3n4/6k1/pPp1p3/4P3/3Q4/P1PP1PPP/RNB1KBNR w KQ c6 0 18"
+  },
+  {
+    "description": "no_en_passant",
+    "fen": "8/3r1k2/5n2/pPp1pP2/4P3/4Q3/P1PP2PP/RNB1KBNR w KQ - 1 22"
   }
 ]

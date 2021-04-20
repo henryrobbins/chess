@@ -465,8 +465,15 @@ let validation_tests =
       "en_passant_black_on_white" "b4" 
       [ ("b4", "b3"); ("b4", "a3") ];
     valid_piece_moves_test "Not En-passant, but in the same position"
-      "not_en_passant" "b4"
+      "two_step_not_en_passant" "b4"
       [ ("b4", "b3") ];
+    valid_piece_moves_test "Overlooked En-passant left, new En-passant right"
+      "overlooked_en_passant" "b5"
+      [ ("b5", "b6"); ("b5", "c6") ];
+    valid_piece_moves_test "Not En-passant, but in the same position on both \
+    sides"
+      "no_en_passant" "b5"
+      [ ("b5", "b6") ];
   ]
 
 let suite =
