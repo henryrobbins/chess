@@ -139,7 +139,7 @@ let move_piece t piece sq' =
         | Some ep_sq ->
             if piece.id = Pawn && sq' = ep_sq then
               capture_piece t (t.ep_piece |> extract_piece)
-            else t )
+            else t)
   in
   let sq = square_of_piece piece in
   let piece' = { piece with current_pos = Some sq' } in
@@ -190,7 +190,7 @@ let zip_lists lst1 lst2 =
     | h :: t -> (
         match lst2 with
         | [] -> List.rev acc
-        | h' :: t' -> zip t t' ((h ^ h') :: acc) )
+        | h' :: t' -> zip t t' ((h ^ h') :: acc))
   in
   zip lst1 lst2 []
 
@@ -261,7 +261,7 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc) ) )
+            | Some s' -> gen_l_moves square t (s' :: acc)))
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
@@ -338,7 +338,7 @@ let extract_rank rank_str rk : (square * p option) list =
                 (acc @ gen_empty_squares rk skip_fls [])
             with exn ->
               let piece = gen_piece (Char.escaped x) rk h in
-              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc) ) )
+              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc)))
   in
   extract_aux 0 files []
 
@@ -367,7 +367,7 @@ let active_pieces_of_board b_assoc =
     | (sq, p) :: t -> (
         match p with
         | None -> a_piece_aux t a_pieces
-        | Some p' -> a_piece_aux t (p' :: a_pieces) )
+        | Some p' -> a_piece_aux t (p' :: a_pieces))
   in
   a_piece_aux b_assoc []
 
@@ -395,20 +395,96 @@ let init_from_fen fen =
 (* TODO: Andy and Nalu to implement these
    [https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation] *)
 
-(** [board_fen_string t] is the component of the FEN string representing the
-    current pieces on the board [t.board]. *)
-let board_fen_string t = failwith "Unimplemented."
+(** [board_fen_string t] is the component of the FEN string representing
+    the current pieces on the board [t.board]. *)
+let board_fen_string t =
+  let piece_classifier sq =
+    match piece_of_square t sq with
+    | Some h -> (
+        if color_of_piece h = White then
+          match id_of_piece h with
+          | Pawn -> "P"
+          | Knight -> "N"
+          | Bishop -> "B"
+          | Rook -> "R"
+          | Queen -> "Q"
+          | King -> "K"
+        else
+          match id_of_piece h with
+          | Pawn -> "p"
+          | Knight -> "n"
+          | Bishop -> "b"
+          | Rook -> "r"
+          | Queen -> "q"
+          | King -> "k")
+    | None -> "1"
+  in
+  let rec file_to_fen file =
+    match file with
+    | h :: t -> piece_classifier h ^ file_to_fen t
+    | [] -> ""
+  in
+  let rec space_counter (filestring : string list) (acc : int) =
+    match filestring with
+    | "" :: t -> space_counter t (acc + 1)
+    | h :: s :: t ->
+        if s != "" then string_of_int acc ^ h ^ "1" ^ space_counter t 0
+        else string_of_int acc ^ h ^ space_counter t 0
+    | h :: t -> string_of_int acc ^ h ^ space_counter t 0
+    | [] -> ""
+  in
+  space_counter
+    (String.split_on_char '1'
+       (file_to_fen ("a1" :: iterator_from_sq "a1" E)))
+    0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a2" :: iterator_from_sq "a2" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a3" :: iterator_from_sq "a3" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a4" :: iterator_from_sq "a4" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a5" :: iterator_from_sq "a5" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a6" :: iterator_from_sq "a6" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a7" :: iterator_from_sq "a7" E)))
+      0
+  ^ "/"
+  ^ space_counter
+      (String.split_on_char '1'
+         (file_to_fen ("a8" :: iterator_from_sq "a8" E)))
+      0
 
-(** [next_to_move_string t] is the string representation of the player whose
-    turn it is: "b" or "w". *)
-let next_to_move_string t = failwith "Unimplemented."
+(** [next_to_move_string t] is the string representation of the player
+    whose turn it is: "Black" or "White". *)
+let next_to_move_string t = if t.color_to_move = Black then "b" else "w"
 
-(** [castle_fen_string t] is the component of the FEN string representing the
-    possible castles in the board state [t]. If no castles possible, '-'. *)
+(** [castle_fen_string t] is the component of the FEN string
+    representing the possible castles in the board state [t]. If no
+    castles possible, '-'. *)
 let castle_fen_string t = failwith "Unimplemented."
 
-(** [en_passant_string t] is the component of the FEN string representing the
-    possible en_passant captured square in board state [t]. Otherwise, '-'. *)
+(** [en_passant_string t] is the component of the FEN string
+    representing the possible en_passant captured square in board state
+    [t]. Otherwise, '-'. *)
 let en_passant_string t = failwith "Unimplemented."
 
 let export_to_fen t =
@@ -416,7 +492,8 @@ let export_to_fen t =
   let turn_str = next_to_move_string t in
   let castle_str = castle_fen_string t in
   let en_passant_str = en_passant_string t in
-  board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str ^ " 0 1"
+  board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str
+  ^ " 0 1"
 
 let init_game () =
   init_from_fen
