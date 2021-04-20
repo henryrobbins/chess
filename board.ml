@@ -428,7 +428,7 @@ let board_fen_string t =
     match filestring with
     | "" :: t -> space_counter t (acc + 1)
     | h :: s :: t ->
-        if s != "" then string_of_int acc ^ h ^ "1" ^ space_counter t 0
+        if s != "" then string_of_int acc ^ h ^ "" ^ space_counter t 0
         else string_of_int acc ^ h ^ space_counter t 0
     | h :: t -> string_of_int acc ^ h ^ space_counter t 0
     | [] -> ""
