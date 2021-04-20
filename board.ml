@@ -399,14 +399,42 @@ let init_from_fen fen =
     current pieces on the board [t.board]. *)
 let board_fen_string t = failwith "Unimplemented."
 
-
 (** [next_to_move_string t] is the string representation of the player whose
     turn it is: "b" or "w". *)
 let next_to_move_string t = failwith "Unimplemented."
 
+(** [char_to_castle lst] is the string representation of the list [lst] form
+    of possible castles. *)
+let char_to_castle lst = 
+  let sorted = List.sort Stdlib.compare lst in
+  if sorted = [] then "-" else 
+  let rec concat lst acc = match lst with 
+  | h :: [] -> acc
+  | h :: t -> concat lst (h ^ acc)
+  | _ -> failwith "imossible"
+  in concat sorted ""
+
 (** [castle_fen_string t] is the component of the FEN string representing the
     possible castles in the board state [t]. If no castles possible, '-'. *)
-let castle_fen_string t = failwith "Unimplemented."
+let castle_fen_string t = 
+  let pairs = [ (White, King); (White, Queen); (Black, King); (Black, Queen) ] 
+  in 
+  let rec check_castles ls acc = 
+    match ls with 
+    | [] -> acc
+    | (c, s) :: rest -> 
+      if (can_castle t c s) then check_castles rest ((c, s) :: acc)
+      else check_castles rest acc
+  in let res = check_castles pairs []
+  in let rec characterize tup_list acc = 
+    match tup_list with 
+    | [] -> []
+    | (c, s) :: rest -> 
+      if c = White && s = King then characterize rest ("K" :: acc)
+      else if c = Black && s = King then characterize rest ("k" :: acc)
+      else if c = White && s = Queen then characterize rest ("Q" :: acc)
+      else characterize rest ("q" :: acc)
+  in char_to_castle (characterize res [])
 
 (** [en_passant_string t] is the component of the FEN string representing the
     possible en_passant captured square in board state [t]. Otherwise, '-'. *)
