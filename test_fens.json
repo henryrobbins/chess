@@ -142,5 +142,17 @@
   {
     "description": "take_piece_to_intercept",
     "fen": "rnb1kbnr/ppp2ppp/4P3/8/4q3/3P4/PPP2PPP/RNBQKBNR w KQkq - 1 5"
+  },
+  {
+    "description": "en_passant_white_on_black",
+    "fen": "8/8/7Q/1pP5/4k3/8/PP1P1PPP/RNB1KBNR w KQ b6 0 22"
+  },
+  {
+    "description": "en_passant_black_on_white",
+    "fen": "8/8/7Q/2P1k3/Pp6/3P4/1P2KPPP/RNB2BNR b - a3 0 24"
+  },
+  {
+    "description": "not_en_passant",
+    "fen": "8/8/7Q/2Pk4/Pp6/3P4/1P2KPPP/RNB2BNR b - - 0 25"
   }
 ]

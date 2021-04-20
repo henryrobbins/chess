@@ -316,7 +316,6 @@ let is_check_tests =
     is_check_test "White in check from SW" "white_in_check_SW"
       (Check [ SW ]);
     is_check_test "White in stalemate" "white_in_stalemate" NotCheck;
-    (* TODO: Check some black positions, as well as some L-shapes *)
     is_check_test "Black in checkmate" "must_block_check" (Check [ SE ]);
     is_check_test "Black in check N" "multiple_is_check_calls"
       (Check [ N ]);
@@ -459,6 +458,15 @@ let validation_tests =
       [ ("f7", "f6"); ("f7", "f5") ];
     valid_piece_moves_test "Take piece to intercept"
       "take_piece_to_intercept" "d3" [ ("d3", "e4") ];
+    valid_piece_moves_test "En-passant white on black"
+      "en_passant_white_on_black" "c5"
+      [ ("c5", "c6"); ("c5", "b6") ];
+    valid_piece_moves_test "En-passant black on white"
+      "en_passant_black_on_white" "b4" 
+      [ ("b4", "b3"); ("b4", "a3") ];
+    valid_piece_moves_test "Not En-passant, but in the same position"
+      "not_en_passant" "b4"
+      [ ("b4", "b3") ];
   ]
 
 let suite =
