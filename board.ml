@@ -399,6 +399,7 @@ let init_from_fen fen =
     current pieces on the board [t.board]. *)
 let board_fen_string t = failwith "Unimplemented."
 
+
 (** [next_to_move_string t] is the string representation of the player whose
     turn it is: "b" or "w". *)
 let next_to_move_string t = failwith "Unimplemented."
@@ -409,7 +410,8 @@ let castle_fen_string t = failwith "Unimplemented."
 
 (** [en_passant_string t] is the component of the FEN string representing the
     possible en_passant captured square in board state [t]. Otherwise, '-'. *)
-let en_passant_string t = failwith "Unimplemented."
+let en_passant_string t = 
+  match en_passant_sq t with | None -> "-" | Some sq -> sq
 
 let export_to_fen t =
   let board_str = board_fen_string t in
