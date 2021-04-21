@@ -2,13 +2,27 @@
   {
     "description": "Prevent moves placing king under check by other king",
     "fen": "4R3/1k6/P7/1K6/8/8/5q2/8 b  - 0 0",
-    "check": ["SW"],
-    "moves": [["b7", "a7"], ["b7", "c7"]]
+    "check": [
+      "SW"
+    ],
+    "moves": [
+      [
+        "b7",
+        "a7"
+      ],
+      [
+        "b7",
+        "c7"
+      ]
+    ]
   },
   {
     "description": "Double check, L and S, Queen",
     "fen": "2k5/8/PN6/8/8/1P2B1Q1/1P2P2R/2R1KBN1 b  - 0 0",
-    "check": ["S", "L"],
+    "check": [
+      "S",
+      "L"
+    ],
     "moves": []
   },
   {
@@ -26,50 +40,139 @@
   {
     "description": "White in check from W",
     "fen": "4kbnr/ppP1pppp/4r3/8/8/7b/1q1K4/8 w Q - 0 0",
-    "check": ["W"],
+    "check": [
+      "W"
+    ],
     "moves": []
   },
   {
     "description": "Neither color in check",
     "fen": "6k1/3p4/2P1P3/3P2K1/8/8/8/8 b  - 0 0",
     "check": [],
-    "moves": [["d7", "c6"],
-      ["d7", "d6"],
-      ["d7", "e6"],
-      ["g8", "f8"],
-      ["g8", "g7"],
-      ["g8", "h7"],
-      ["g8", "h8"]]
+    "moves": [
+      [
+        "d7",
+        "c6"
+      ],
+      [
+        "d7",
+        "d6"
+      ],
+      [
+        "d7",
+        "e6"
+      ],
+      [
+        "g8",
+        "f8"
+      ],
+      [
+        "g8",
+        "g7"
+      ],
+      [
+        "g8",
+        "h7"
+      ],
+      [
+        "g8",
+        "h8"
+      ]
+    ]
   },
   {
     "description": "Pinned black piece takes white piece",
     "fen": "rnbqkbnr/ppppp2p/6p1/5P1Q/8/8/PPPP1PPP/RNB1KBNR b KQkq - 0 0",
     "check": [],
-    "moves": [["a7", "a6"],
-      ["a7", "a5"],
-      ["b7", "b6"],
-      ["b7", "b5"],
-      ["c7", "c6"],
-      ["c7", "c5"],
-      ["d7", "d6"],
-      ["d7", "d5"],
-      ["e7", "e6"],
-      ["e7", "e5"],
-      ["h7", "h6"],
-      ["g6", "h5"],
-      ["g6", "h5"],
-      ["b8", "a6"],
-      ["b8", "c6"],
-      ["e8", "f7"],
-      ["f8", "g7"],
-      ["g8", "f6"],
-      ["g8", "h6"],
-      ["f8", "h6"]]
+    "moves": [
+      [
+        "a7",
+        "a6"
+      ],
+      [
+        "a7",
+        "a5"
+      ],
+      [
+        "b7",
+        "b6"
+      ],
+      [
+        "b7",
+        "b5"
+      ],
+      [
+        "c7",
+        "c6"
+      ],
+      [
+        "c7",
+        "c5"
+      ],
+      [
+        "d7",
+        "d6"
+      ],
+      [
+        "d7",
+        "d5"
+      ],
+      [
+        "e7",
+        "e6"
+      ],
+      [
+        "e7",
+        "e5"
+      ],
+      [
+        "h7",
+        "h6"
+      ],
+      [
+        "g6",
+        "h5"
+      ],
+      [
+        "g6",
+        "h5"
+      ],
+      [
+        "b8",
+        "a6"
+      ],
+      [
+        "b8",
+        "c6"
+      ],
+      [
+        "e8",
+        "f7"
+      ],
+      [
+        "f8",
+        "g7"
+      ],
+      [
+        "g8",
+        "f6"
+      ],
+      [
+        "g8",
+        "h6"
+      ],
+      [
+        "f8",
+        "h6"
+      ]
+    ]
   },
   {
     "description": "White in check from NE",
     "fen": "4kbnr/pp2pppp/2P1r3/8/8/7b/3q4/2K5 w Q - 0 0",
-    "check": ["NE"],
+    "check": [
+      "NE"
+    ],
     "moves": []
   },
   {
@@ -82,39 +185,103 @@
     "description": "Pinned queen movement",
     "fen": "4k3/1R3q2/8/P6Q/8/B7/6PP/1N2KBNR b K - 0 0",
     "check": [],
-    "moves": [["f7", "g6"], ["f7", "h5"], ["e8", "d8"]]
+    "moves": [
+      [
+        "f7",
+        "g6"
+      ],
+      [
+        "f7",
+        "h5"
+      ],
+      [
+        "e8",
+        "d8"
+      ]
+    ]
   },
   {
     "description": "White in check from SE",
     "fen": "4kbnr/pp2pppp/2P1r3/8/8/7b/2K5/3q4 w Q - 0 0",
-    "check": ["SE"],
+    "check": [
+      "SE"
+    ],
     "moves": []
   },
   {
     "description": "White in check from S",
     "fen": "4kbnr/pp2pppp/2P1r3/8/8/7b/2K5/2q5 w Q - 0 0",
-    "check": ["S"],
+    "check": [
+      "S"
+    ],
     "moves": []
   },
   {
     "description": "Test king having a move during a check",
     "fen": "QQQQQQQQ/7r/2q3K1/8/8/8/8/7k w  - 0 0",
     "check": [],
-    "moves": [["a8", "c6"],
-      ["b8", "d6"],
-      ["c8", "c6"],
-      ["c8", "e6"],
-      ["d8", "d6"],
-      ["d8", "f6"],
-      ["e8", "c6"],
-      ["e8", "e6"],
-      ["f8", "d6"],
-      ["f8", "f6"],
-      ["g8", "e6"],
-      ["h8", "f6"],
-      ["g6", "h7"],
-      ["g6", "g5"],
-      ["g6", "f5"]]
+    "moves": [
+      [
+        "a8",
+        "c6"
+      ],
+      [
+        "b8",
+        "d6"
+      ],
+      [
+        "c8",
+        "c6"
+      ],
+      [
+        "c8",
+        "e6"
+      ],
+      [
+        "d8",
+        "d6"
+      ],
+      [
+        "d8",
+        "f6"
+      ],
+      [
+        "e8",
+        "c6"
+      ],
+      [
+        "e8",
+        "e6"
+      ],
+      [
+        "f8",
+        "d6"
+      ],
+      [
+        "f8",
+        "f6"
+      ],
+      [
+        "g8",
+        "e6"
+      ],
+      [
+        "h8",
+        "f6"
+      ],
+      [
+        "g6",
+        "h7"
+      ],
+      [
+        "g6",
+        "g5"
+      ],
+      [
+        "g6",
+        "f5"
+      ]
+    ]
   },
   {
     "description": "Pawn can not deliver a pin",
@@ -131,36 +298,80 @@
   {
     "description": "Black in check East",
     "fen": "5K1q/8/5k2/8/8/8/8/8 w  - 0 0",
-    "check": ["E"],
+    "check": [
+      "E"
+    ],
     "moves": []
   },
   {
     "description": "White in check from SW",
     "fen": "4kbnr/pp2pppp/2P1r3/8/8/7b/2K5/1q6 w Q - 0 0",
-    "check": ["SW"],
+    "check": [
+      "SW"
+    ],
     "moves": []
   },
   {
     "description": "Various pieces can intercept",
     "fen": "rnbqkbnr/ppp3pp/1P2pp2/3p4/Q1P5/B2P4/P3PPPP/RN2KBNR b KQkq - 0 0",
     "check": [],
-    "moves": [["b8", "c6"],
-      ["b8", "d7"],
-      ["c8", "d7"],
-      ["e8", "f7"],
-      ["d8", "d7"],
-      ["c7", "c6"]]
+    "moves": [
+      [
+        "b8",
+        "c6"
+      ],
+      [
+        "b8",
+        "d7"
+      ],
+      [
+        "c8",
+        "d7"
+      ],
+      [
+        "e8",
+        "f7"
+      ],
+      [
+        "d8",
+        "d7"
+      ],
+      [
+        "c7",
+        "c6"
+      ]
+    ]
   },
   {
     "description": "Pawn attack and initial one or two space move",
     "fen": "2k5/8/8/7p/8/2p1b3/3P4/7K w  - 0 0",
     "check": [],
-    "moves": [ ["d2", "e3"],
-      ["d2", "d3"],
-      ["d2", "c3"],
-      ["d2", "d4"],
-      ["h1", "g2"],
-      ["h1", "h2"]]
+    "moves": [
+      [
+        "d2",
+        "e3"
+      ],
+      [
+        "d2",
+        "d3"
+      ],
+      [
+        "d2",
+        "c3"
+      ],
+      [
+        "d2",
+        "d4"
+      ],
+      [
+        "h1",
+        "g2"
+      ],
+      [
+        "h1",
+        "h2"
+      ]
+    ]
   },
   {
     "description": "white_in_check_NW",
@@ -172,76 +383,172 @@
     "description": "Pawn intercept from start square moving up 2.",
     "fen": "2k5/8/5q2/8/8/4b3/2pP4/K7 w  - 0 0",
     "check": [],
-    "moves": [["d2", "d4"], ["a1", "a2"]]
+    "moves": [
+      [
+        "d2",
+        "d4"
+      ],
+      [
+        "a1",
+        "a2"
+      ]
+    ]
   },
   {
     "description": "Move restricted by its own piece",
     "fen": "r1bnkr2/1pppnp1p/1P2pNp1/p1P5/P2PP1q1/6b1/5PPP/R1BQKBNR b Kkq - 0 0",
-    "check": ["L"],
+    "check": [
+      "L"
+    ],
     "moves": []
   },
   {
     "description": "Double check, L and SE, Queen",
     "fen": "1k6/8/2N5/P7/5Q2/P1R5/1P2P3/R1B1KBN1 b k - 0 0",
-    "check": ["SE", "L"],
+    "check": [
+      "SE",
+      "L"
+    ],
     "moves": []
   },
   {
     "description": "White in check from N",
     "fen": "4kbnr/pp2pppp/2r5/8/8/7b/5q2/2K5 w Q - 0 0",
-    "check": ["N"],
+    "check": [
+      "N"
+    ],
     "moves": []
   },
   {
     "description": "Black in checkmate",
     "fen": "rnbqkbnr/ppppp1pp/8/5p1Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 0",
-    "check": ["SE"],
-    "moves": [["g7", "g6"] ]
+    "check": [
+      "SE"
+    ],
+    "moves": [
+      [
+        "g7",
+        "g6"
+      ]
+    ]
   },
   {
     "description": "Full range of pawn attack",
     "fen": "8/8/3k4/4p1p1/4pP1p/8/1p3q2/7K w  - 0 0",
     "check": [],
-    "moves": [["f4", "g5"], ["f4", "f5"], ["f4", "e5"]]
+    "moves": [
+      [
+        "f4",
+        "g5"
+      ],
+      [
+        "f4",
+        "f5"
+      ],
+      [
+        "f4",
+        "e5"
+      ]
+    ]
   },
   {
     "description": "White has pinned piece and in check NW",
     "fen": "8/1k6/8/q7/8/8/8/r1B1K3 w  - 0 0",
-    "check": ["NW"],
-    "moves": [["e1", "d1"], ["e1", "f1"], ["e1", "e2"], ["e1", "f2"]]
+    "check": [
+      "NW"
+    ],
+    "moves": [
+      [
+        "e1",
+        "d1"
+      ],
+      [
+        "e1",
+        "f1"
+      ],
+      [
+        "e1",
+        "e2"
+      ],
+      [
+        "e1",
+        "f2"
+      ]
+    ]
   },
   {
     "description": "Multiple queens pinned with restricted movement",
     "fen": "4Q3/1R5q/3Q1qk1/2QN3q/5Q1R/7N/7P/5K2 b  - 0 0",
     "check": [],
-    "moves": [["h7", "f7"]]
+    "moves": [
+      [
+        "h7",
+        "f7"
+      ]
+    ]
   },
   {
     "description": "Black king must capture or move to escape check.",
     "fen": "rn1q2nr/8/p1P5/5Rkp/P7/8/5P1P/4K2R b K - 0 0",
     "check": [],
-    "moves": [["g5", "f5"],
-      ["g5", "g6"],
-      ["g5", "h6"],
-      ["g5", "g4"],
-      ["g5", "h4"]]
+    "moves": [
+      [
+        "g5",
+        "f5"
+      ],
+      [
+        "g5",
+        "g6"
+      ],
+      [
+        "g5",
+        "h6"
+      ],
+      [
+        "g5",
+        "g4"
+      ],
+      [
+        "g5",
+        "h4"
+      ]
+    ]
   },
   {
     "description": "Capture a piece to prevent a check",
     "fen": "rnbqk1Rr/ppppbp1p/7Q/n7/5P2/2NBP3/PPPB2PP/5KNR b Qq - 0 0",
     "check": [],
-    "moves": [ ["h8", "g8"], ["e7", "f8"]]
+    "moves": [
+      [
+        "h8",
+        "g8"
+      ],
+      [
+        "e7",
+        "f8"
+      ]
+    ]
   },
   {
     "description": "Test multiple calls to is_check",
     "fen": "QQQQQQQQ/8/8/5K2/8/4k3/8/8 b  - 0 0",
-    "check": ["N"],
-    "moves": [["e3", "f2"]]
+    "check": [
+      "N"
+    ],
+    "moves": [
+      [
+        "e3",
+        "f2"
+      ]
+    ]
   },
   {
     "description": "Double check, L and SW, Rook",
     "fen": "rnb3kr/ppp1N3/8/6p1/2Q5/8/PPP1P2P/R1B1KBNR b Kk - 0 0",
-    "check": ["SW", "L"],
+    "check": [
+      "SW",
+      "L"
+    ],
     "moves": []
   },
   {
@@ -260,7 +567,12 @@
     "description": "En-passant Discovered Checkmate",
     "fen": "5B2/8/8/4RPpk/4pK1N/6P1/4qP2/8 w - g6 0 41",
     "check": [],
-    "moves": [["f5", "g6"]]
+    "moves": [
+      [
+        "f5",
+        "g6"
+      ]
+    ]
   },
   {
     "description": "Take piece to intercept",
