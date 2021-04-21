@@ -130,19 +130,16 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       search_pieces active_pieces
 
 
-(** [promote_pawn t sq'] is a Queen option after the player whose turn
+(** [promote_pawn t sq'] is a Queen after the player whose turn
   it is in game state [t] can move a pawn to the a square [sq'] on either the 
   8th rank (if white to move), or the 1st rank (if black to move). *)
 let promote_pawn t piece sq' = 
   let color = color_of_piece piece in
   let sq = square_of_piece piece in 
   let id = id_of_piece piece in 
-  let new_square_piece_opt = piece_of_square t sq' in
-  if id = Pawn && color = White && String.contains sq '7' 
-    && String.contains sq' '8' && new_square_piece_opt = None then 
+  if id = Pawn && color = White && String.contains sq' '8' then 
       {id=Queen; color=White; current_pos=Some sq}
-  else if id = Pawn && color = Black && String.contains sq '2' 
-    && String.contains sq' '1' && new_square_piece_opt = None then 
+  else if id = Pawn && color = Black && String.contains sq' '1' then 
       {id=Queen; color=Black; current_pos=Some sq}
 else {id; color; current_pos=Some sq}
 
