@@ -50,6 +50,45 @@ type t = {
   ep_piece : p option;
 }
 
+(** [rev_map lst] is association list [lst] with keys and values reversed. *)
+let rev_map lst =
+  let rec rev_map acc lst =
+    match lst with
+    | [] -> acc
+    | (a,b) :: t -> rev_map ((b,a) :: acc) t in
+  rev_map [] lst
+
+let color_map = [
+  ("White", White);
+  ("Black", Black);
+  ("w", White);
+  ("b", Black)
+]
+
+let color_of_string s = List.assoc s color_map
+
+let string_of_color c = List.assoc c (rev_map color_map)
+
+let piece_id_map = [
+  ("P", Pawn);
+  ("R", Rook);
+  ("B", Bishop);
+  ("N", Knight);
+  ("Q", Queen);
+  ("K", King)
+]
+
+let piece_id_of_string s = List.assoc s piece_id_map
+
+let string_of_piece_id p = List.assoc p (rev_map piece_id_map)
+
+let string_of_piece p =
+  match p with
+  | None -> "  "
+  | Some p ->
+    let p_color = String.uppercase_ascii (string_of_color p.color) in
+    p_color ^ (string_of_piece_id p.id)
+
 let color_to_move t = t.color_to_move
 
 let en_passant_sq t = t.en_passant
@@ -98,6 +137,13 @@ let capture_piece t piece =
 (** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
 
+let extract_piece p_option : p =
+  match p_option with None -> failwith "no piece" | Some p -> p
+
+(** [make_piece id t sq'] is a new piece of type [id] created at square [sq'] 
+    in game state [t]. *)
+    let make_piece id t sq' = {id; color=color_to_move t; current_pos=Some sq'}
+
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
@@ -126,8 +172,19 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-let extract_piece p_option : p =
-  match p_option with None -> failwith "no piece" | Some p -> p
+(** [promote_pawn t piece sq'] is a Queen after the player whose turn
+  it is in game state [t] can move the piece [piece] to the a square [sq'] 
+  on either the 8th rank (if white to move), or the 1st rank (if black to move). 
+  Requires: [piece] is a pawn.*)
+let promote_pawn t piece sq' =
+  let color = color_of_piece piece in
+  let sq = square_of_piece piece in
+  let id = id_of_piece piece in
+  if id = Pawn && color = White && String.contains sq' '8' then
+      make_piece Queen t sq
+  else if id = Pawn && color = Black && String.contains sq' '1' then
+      make_piece Queen t sq
+else make_piece id t sq
 
 let w_castle_ks_viable t piece =
   if t.w_castle_ks = false then false
@@ -190,7 +247,8 @@ let move_piece t piece sq' =
             else t)
   in
   let sq = square_of_piece piece in
-  let piece' = { piece with current_pos = Some sq' } in
+  let promoted = promote_pawn t piece sq' in
+  let piece' = { promoted with current_pos = Some sq' } in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
@@ -324,24 +382,6 @@ let iterator_from_sq square direction : square list =
   | L -> l_it_from_sq square
   | _ -> cardinal_it_from_sq square direction
 
-(** [piece_type_of_string s] is the piece type of the string id [s].
-    Requires: [s] is in {P, R, B, N, Q, K} *)
-let piece_type_of_string = function
-  | "P" -> Pawn
-  | "R" -> Rook
-  | "B" -> Bishop
-  | "N" -> Knight
-  | "Q" -> Queen
-  | "K" -> King
-  | _ -> failwith "Invalid piece ID."
-
-(** [color_of_string s] is the color of the string [s]. Requires: [s] is
-    in {White, Black} *)
-let color_of_string = function
-  | "White" -> White
-  | "Black" -> Black
-  | _ -> failwith "Invalid piece color."
-
 let rec remove_first_n lst n =
   match lst with
   | [] -> []
@@ -362,15 +402,7 @@ let rec gen_empty_squares rk fls acc =
 
 let gen_piece id rk fl : p =
   let color = if String.uppercase_ascii id = id then White else Black in
-  let p_id =
-    match String.lowercase_ascii id with
-    | "k" -> King
-    | "q" -> Queen
-    | "b" -> Bishop
-    | "n" -> Knight
-    | "r" -> Rook
-    | "p" -> Pawn
-    | x -> failwith x
+  let p_id = piece_id_of_string (String.uppercase_ascii id)
   in
   let sq = fl ^ rk in
   { id = p_id; color; current_pos = Some sq }
@@ -406,12 +438,6 @@ let extract_board board_str =
   in
   extract 0 []
 
-let parse_color_to_play ctp =
-  match ctp with
-  | "w" -> White
-  | "b" -> Black
-  | _ -> failwith "not implemented"
-
 let active_pieces_of_board b_assoc =
   let rec a_piece_aux board a_pieces =
     match board with
@@ -428,7 +454,7 @@ let init_from_fen fen =
   match state_info_list with
   | [ b; ctp; cast; ep; _; _ ] ->
       let en_passant = match ep with "-" -> None | x -> Some x in
-      let color_to_move = parse_color_to_play ctp in
+      let color_to_move = color_of_string ctp in
       let active_pieces = active_pieces_of_board (extract_board b) in
       {
         board = extract_board b;
@@ -444,31 +470,15 @@ let init_from_fen fen =
       }
   | _ -> failwith "impossible"
 
-(* TODO: Andy and Nalu to implement these
-   [https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation] *)
-
 (** [board_fen_string t] is the component of the FEN string representing
     the current pieces on the board [t.board]. *)
 let board_fen_string t =
   let piece_classifier sq =
     match piece_of_square t sq with
-    | Some h -> (
-        if color_of_piece h = White then
-          match id_of_piece h with
-          | Pawn -> "P"
-          | Knight -> "N"
-          | Bishop -> "B"
-          | Rook -> "R"
-          | Queen -> "Q"
-          | King -> "K"
-        else
-          match id_of_piece h with
-          | Pawn -> "p"
-          | Knight -> "n"
-          | Bishop -> "b"
-          | Rook -> "r"
-          | Queen -> "q"
-          | King -> "k")
+    | Some h ->
+        let p_id = string_of_piece_id (h.id) in
+        if h.color = White then String.uppercase_ascii p_id
+        else String.lowercase_ascii p_id
     | None -> "1"
   in
   let rec file_to_fen file =
@@ -588,26 +598,6 @@ let init_game () =
   init_from_fen
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-(* [print_piece p] is a string with the color and id of piece [p]. If
-   the piece is [None], it is a blank space. *)
-let print_piece p =
-  match p with
-  | None -> "  "
-  | Some p ->
-      let c_map = [ (White, "W"); (Black, "B") ] in
-      let id_map =
-        [
-          (Pawn, "P");
-          (Rook, "R");
-          (Bishop, "B");
-          (Knight, "N");
-          (Queen, "Q");
-          (King, "K");
-        ]
-      in
-      let c = List.assoc p.color c_map in
-      let id = List.assoc p.id id_map in
-      c ^ id
 
 (** [print_board t] prints a graphical representation of the chess board
     where each square is labeled with the piece (if any) that is
@@ -618,7 +608,7 @@ let print_board t =
   let row_str i =
     List.map (fun x -> x ^ i) files
     |> List.map (piece_of_square t)
-    |> List.map print_piece
+    |> List.map string_of_piece
     |> List.fold_left (fun x y -> x ^ " | " ^ y) ""
   in
   List.iter
@@ -628,7 +618,7 @@ let print_board t =
   print_string "    a    b    c    d    e    f    g    h\n"
 
 let partition_pieces_by_color lst =
-  let printer x = print_piece (Some x) in
+  let printer x = string_of_piece (Some x) in
   let white =
     List.filter (fun x -> x.color = White) lst |> List.map printer
   in

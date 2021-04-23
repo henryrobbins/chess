@@ -48,6 +48,24 @@ type b
     I.e. Current board state, active pieces, and captured pieces. *)
 type t
 
+(** [color_of_string s] is the color of the string [s].
+    Requires: [s] is in {w, b, White, Black}. *)
+val color_of_string : string -> color
+
+(** [string_of_color c] is the string representing color [c]. *)
+val string_of_color : color -> string
+
+(** [piece_id_of_string s] is the piece id of the string [s].
+    Requires: [s] is in {P, R, B, N, Q, K} *)
+val piece_id_of_string : string -> piece_type
+
+(** [string_of_piece_id id] is the string representing piece id [id] *)
+val string_of_piece_id : piece_type -> string
+
+(** [string_of_piece p] is a string with the color and id of piece [p]. If
+    the piece is [None], it is a blank space. *)
+val string_of_piece : p option -> string
+
 (** [color_to_move t] is the player that should move next in state [t]. *)
 val color_to_move : t -> color
 
@@ -124,6 +142,4 @@ val init_game : unit -> t
 val print_game_state : t -> unit
 
 (* TODO: Temporary or decide to keep *)
-val print_piece : p option -> string
-
 val partition_pieces_by_color : p list -> string list * string list

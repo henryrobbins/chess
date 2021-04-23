@@ -4,7 +4,6 @@ MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
 MAIN=main.byte
-GUI=gui.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind \
 	-plugin-tag 'package(bisect_ppx-ocamlbuild)'
 
@@ -20,11 +19,13 @@ test:
 bisect-test:
 	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
-play:
-	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
+command-line:
+	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && \
+	OCAMLRUNPARAM=b ./$(MAIN) command-line
 
-game:
-	$(OCAMLBUILD) -tag 'debug' -I gui $(GUI) && OCAMLRUNPARAM=b ./$(GUI)
+gui:
+	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && \
+	OCAMLRUNPARAM=b ./$(MAIN) gui
 
 bisect: clean bisect-test bisect-ppx-report html
 
