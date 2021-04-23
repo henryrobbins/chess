@@ -300,7 +300,7 @@ let castle_empty_spaces b side_id =
 
 let sq_not_attacked state dir_list sq =
   let rec attack_checker dir_list' =
-    match dir_list with
+    match dir_list' with
     | [] -> true
     | h :: t ->
         let squares = unblocked_squares state sq h in
