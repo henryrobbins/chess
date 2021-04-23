@@ -128,6 +128,8 @@ let gui_main () =
   black_captured#set_text "Black has Captured\n";
   let white_captured = GMisc.label ~packing:vbox#add () in
   white_captured#set_text "White has Captured\n";
+  let turn = GMisc.label ~packing:vbox#add () in
+  turn#set_text "White\n";
 
   (* construct button matrix *)
   let rec button_matrix rows cols i j btns =
@@ -146,14 +148,19 @@ let gui_main () =
   let buttons = button_matrix files ranks 1 0 [] in
 
   (* update labels *)
-  let update_captured b =
+  let update_labels b =
     let print_lists = partition_pieces_by_color (captured_pieces b) in
     match print_lists with
     | lst, lst' ->
         let black_txt = "Black has Captured\n"^(string_of_string_list lst) in
         black_captured#set_text black_txt;
         let white_txt = "White has Captured\n"^(string_of_string_list lst') in
-        white_captured#set_text white_txt; in
+        white_captured#set_text white_txt;
+        let turn_txt =
+          match color_to_move b with
+          | White -> "White"
+          | Black -> "Black" in
+        turn#set_text turn_txt; in
 
   (* update board *)
   let update_board b =
@@ -210,7 +217,7 @@ let gui_main () =
               else (
                 board := board';
                 update_board board';
-                update_captured board');
+                update_labels board');
           print_endline "==================TESTING==================";
           print_game_state board';
           print_checkmate_stalemate board';
