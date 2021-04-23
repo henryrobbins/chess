@@ -123,20 +123,11 @@ let gui_main () =
       labels (i + 1)) in
   labels 0;
 
-  (* captured pieces *)
+  (* construct captured pieces labels *)
   let black_captured = GMisc.label ~packing:vbox#add () in
   black_captured#set_text "Black has Captured\n";
   let white_captured = GMisc.label ~packing:vbox#add () in
   white_captured#set_text "White has Captured\n";
-
-  let update_captured b =
-    let print_lists = partition_pieces_by_color (captured_pieces b) in
-    match print_lists with
-    | lst, lst' ->
-        let black_txt = "Black has Captured\n"^(string_of_string_list lst) in
-        black_captured#set_text black_txt;
-        let white_txt = "White has Captured\n"^(string_of_string_list lst') in
-        white_captured#set_text white_txt; in
 
   (* construct button matrix *)
   let rec button_matrix rows cols i j btns =
@@ -152,8 +143,32 @@ let gui_main () =
         let button = GButton.button ~label:id ~packing:add () in
         let btns = (r^c, button) :: btns in
         button_matrix (r :: rt) ct i (j + 1) btns in
-
   let buttons = button_matrix files ranks 1 0 [] in
+
+  (* update labels *)
+  let update_captured b =
+    let print_lists = partition_pieces_by_color (captured_pieces b) in
+    match print_lists with
+    | lst, lst' ->
+        let black_txt = "Black has Captured\n"^(string_of_string_list lst) in
+        black_captured#set_text black_txt;
+        let white_txt = "White has Captured\n"^(string_of_string_list lst') in
+        white_captured#set_text white_txt; in
+
+  (* update board *)
+  let update_board b =
+    let rec update_board_aux rows cols =
+      match rows with
+      | [] -> ();
+      | r :: rt ->
+        match cols with
+        | [] -> if rt = [] then () else update_board_aux rt ranks
+        | c :: ct ->
+          let sq = r^c in
+          let button = List.assoc sq buttons in
+          button#set_label (string_of_piece (piece_of_square b sq));
+          update_board_aux (r :: rt) ct in
+    update_board_aux files ranks in
 
   (* go back and set all the button callbacks *)
   let rec set_callbacks rows cols =
@@ -183,8 +198,6 @@ let gui_main () =
               match !to_sq with
               | None -> failwith "no to square selected"
               | Some sq -> sq in
-            let from_btn = List.assoc a buttons in
-            let to_btn = List.assoc b buttons in
 
             (* update *)
             let p = piece_of_square !board a in
@@ -196,8 +209,7 @@ let gui_main () =
                 print_endline "invalid move."
               else (
                 board := board';
-                from_btn#set_label (string_of_piece (piece_of_square board' a));
-                to_btn#set_label (string_of_piece (piece_of_square board' b));
+                update_board board';
                 update_captured board');
           print_endline "==================TESTING==================";
           print_game_state board';
