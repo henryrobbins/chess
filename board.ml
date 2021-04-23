@@ -50,33 +50,32 @@ type t = {
   ep_piece : p option;
 }
 
-(** [rev_map lst] is association list [lst] with keys and values reversed. *)
+(** [rev_map lst] is association list [lst] with keys and values
+    reversed. *)
 let rev_map lst =
   let rec rev_map acc lst =
     match lst with
     | [] -> acc
-    | (a,b) :: t -> rev_map ((b,a) :: acc) t in
+    | (a, b) :: t -> rev_map ((b, a) :: acc) t
+  in
   rev_map [] lst
 
-let color_map = [
-  ("White", White);
-  ("Black", Black);
-  ("w", White);
-  ("b", Black)
-]
+let color_map =
+  [ ("White", White); ("Black", Black); ("w", White); ("b", Black) ]
 
 let color_of_string s = List.assoc s color_map
 
 let string_of_color c = List.assoc c (rev_map color_map)
 
-let piece_id_map = [
-  ("P", Pawn);
-  ("R", Rook);
-  ("B", Bishop);
-  ("N", Knight);
-  ("Q", Queen);
-  ("K", King)
-]
+let piece_id_map =
+  [
+    ("P", Pawn);
+    ("R", Rook);
+    ("B", Bishop);
+    ("N", Knight);
+    ("Q", Queen);
+    ("K", King);
+  ]
 
 let piece_id_of_string s = List.assoc s piece_id_map
 
@@ -86,8 +85,8 @@ let string_of_piece p =
   match p with
   | None -> "  "
   | Some p ->
-    let p_color = String.uppercase_ascii (string_of_color p.color) in
-    p_color ^ (string_of_piece_id p.id)
+      let p_color = String.uppercase_ascii (string_of_color p.color) in
+      p_color ^ string_of_piece_id p.id
 
 let color_to_move t = t.color_to_move
 
@@ -140,9 +139,10 @@ let switch_color = function White -> Black | Black -> White
 let extract_piece p_option : p =
   match p_option with None -> failwith "no piece" | Some p -> p
 
-(** [make_piece id t sq'] is a new piece of type [id] created at square [sq'] 
-    in game state [t]. *)
-    let make_piece id t sq' = {id; color=color_to_move t; current_pos=Some sq'}
+(** [make_piece id t sq'] is a new piece of type [id] created at square
+    [sq'] in game state [t]. *)
+let make_piece id t sq' =
+  { id; color = color_to_move t; current_pos = Some sq' }
 
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
@@ -172,19 +172,33 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-(** [promote_pawn t piece sq'] is a Queen after the player whose turn
-  it is in game state [t] can move the piece [piece] to the a square [sq'] 
-  on either the 8th rank (if white to move), or the 1st rank (if black to move). 
-  Requires: [piece] is a pawn.*)
+(** [promote_pawn t piece sq'] is a Queen after the player whose turn it
+    is in game state [t] can move the piece [piece] to the a square
+    [sq'] on either the 8th rank (if white to move), or the 1st rank (if
+    black to move). Requires: [piece] is a pawn.*)
 let promote_pawn t piece sq' =
   let color = color_of_piece piece in
   let sq = square_of_piece piece in
   let id = id_of_piece piece in
   if id = Pawn && color = White && String.contains sq' '8' then
-      make_piece Queen t sq
+    make_piece Queen t sq
   else if id = Pawn && color = Black && String.contains sq' '1' then
-      make_piece Queen t sq
-else make_piece id t sq
+    make_piece Queen t sq
+  else make_piece id t sq
+
+let castle_rook t piece sq' =
+  let color = color_of_piece piece in
+  let sq = square_of_piece piece in
+  let id = id_of_piece piece in
+  if id = King && color = White && sq = "e1" && sq' = "g1" then
+    make_piece Rook t "f1"
+  else if id = King && color = White && sq = "e1" && sq' = "c1" then
+    make_piece Rook t "d1"
+  else if id = King && color = Black && sq = "e8" && sq' = "g8" then
+    make_piece Rook t "f8"
+  else if id = King && color = Black && sq = "e8" && sq' = "c8" then
+    make_piece Rook t "d8"
+  else make_piece id t sq
 
 let w_castle_ks_viable t piece =
   if t.w_castle_ks = false then false
@@ -249,10 +263,28 @@ let move_piece t piece sq' =
   let sq = square_of_piece piece in
   let promoted = promote_pawn t piece sq' in
   let piece' = { promoted with current_pos = Some sq' } in
+  let new_rook = castle_rook t piece sq' in
+  let old_rook_option =
+    if id_of_piece new_rook = Rook then
+      match square_of_piece new_rook with
+      | "f1" -> piece_of_square t "h1"
+      | "d1" -> piece_of_square t "a1"
+      | "f8" -> piece_of_square t "h8"
+      | "d8" -> piece_of_square t "a8"
+      | _ -> Some new_rook
+    else Some new_rook
+  in
+  let old_rook =
+    match old_rook_option with
+    | Some p -> p
+    | None -> failwith "impossible"
+  in
+
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
-    |> List.cons piece'
+    |> List.filter (fun x -> x <> old_rook)
+    |> List.cons piece' |> List.cons new_rook
   in
   let board =
     state.board |> List.remove_assoc sq
@@ -402,8 +434,7 @@ let rec gen_empty_squares rk fls acc =
 
 let gen_piece id rk fl : p =
   let color = if String.uppercase_ascii id = id then White else Black in
-  let p_id = piece_id_of_string (String.uppercase_ascii id)
-  in
+  let p_id = piece_id_of_string (String.uppercase_ascii id) in
   let sq = fl ^ rk in
   { id = p_id; color; current_pos = Some sq }
 
@@ -476,7 +507,7 @@ let board_fen_string t =
   let piece_classifier sq =
     match piece_of_square t sq with
     | Some h ->
-        let p_id = string_of_piece_id (h.id) in
+        let p_id = string_of_piece_id h.id in
         if h.color = White then String.uppercase_ascii p_id
         else String.lowercase_ascii p_id
     | None -> "1"
@@ -598,7 +629,6 @@ let init_game () =
   init_from_fen
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-
 (** [print_board t] prints a graphical representation of the chess board
     where each square is labeled with the piece (if any) that is
     currently on that square. It also prints files and ranks along the
@@ -646,7 +676,3 @@ let print_captured t =
 let print_game_state t : unit =
   print_board t;
   print_captured t
-
-
-
-  
