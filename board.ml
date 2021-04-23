@@ -646,3 +646,7 @@ let print_captured t =
 let print_game_state t : unit =
   print_board t;
   print_captured t
+
+
+
+  
