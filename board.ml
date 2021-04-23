@@ -129,6 +129,54 @@ let get_ep_piece active_pieces color_to_move ep_sq =
 let extract_piece p_option : p =
   match p_option with None -> failwith "no piece" | Some p -> p
 
+let w_castle_ks_viable t piece =
+  if t.w_castle_ks = false then false
+  else if
+    id_of_piece piece = Rook
+    && color_of_piece piece = White
+    && square_of_piece piece = "h1"
+    || id_of_piece piece = King
+       && color_of_piece piece = White
+       && square_of_piece piece = "e1"
+  then false
+  else true
+
+let w_castle_qs_viable t piece =
+  if t.w_castle_qs = false then false
+  else if
+    id_of_piece piece = Rook
+    && color_of_piece piece = White
+    && square_of_piece piece = "a1"
+    || id_of_piece piece = King
+       && color_of_piece piece = White
+       && square_of_piece piece = "e1"
+  then false
+  else true
+
+let b_castle_ks_viable t piece =
+  if t.b_castle_ks = false then false
+  else if
+    id_of_piece piece = Rook
+    && color_of_piece piece = Black
+    && square_of_piece piece = "h8"
+    || id_of_piece piece = King
+       && color_of_piece piece = Black
+       && square_of_piece piece = "e8"
+  then false
+  else true
+
+let b_castle_qs_viable t piece =
+  if t.b_castle_qs = false then false
+  else if
+    id_of_piece piece = Rook
+    && color_of_piece piece = Black
+    && square_of_piece piece = "a8"
+    || id_of_piece piece = King
+       && color_of_piece piece = Black
+       && square_of_piece piece = "e8"
+  then false
+  else true
+
 let move_piece t piece sq' =
   let state =
     match piece_of_square t sq' with
@@ -165,6 +213,10 @@ let move_piece t piece sq' =
     board;
     active_pieces = active;
     color_to_move = switch_color (color_of_piece piece);
+    w_castle_ks = w_castle_ks_viable t piece;
+    w_castle_qs = w_castle_qs_viable t piece;
+    b_castle_ks = b_castle_ks_viable t piece;
+    b_castle_qs = b_castle_qs_viable t piece;
     en_passant;
     ep_piece;
   }

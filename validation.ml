@@ -30,7 +30,7 @@ let unblocked_squares state piece direction =
         | Some p' ->
             if color_of_piece piece <> color_of_piece p' then
               List.rev (sq' :: move_lst)
-            else List.rev move_lst )
+            else List.rev move_lst)
   in
   valid_moves potential_squares []
 
@@ -62,7 +62,7 @@ let attack_directions piece =
   | Pawn -> (
       match color_of_piece piece with
       | White -> [ NE; NW ]
-      | Black -> [ SE; SW ] )
+      | Black -> [ SE; SW ])
 
 let invert_direction dir =
   match dir with
@@ -93,7 +93,7 @@ let check_from_L color state =
               color_of_piece piece <> color
               && id_of_piece piece = Knight
             then true
-            else search_squares t )
+            else search_squares t)
   in
   search_squares check_sqs
 
@@ -129,7 +129,7 @@ let check_from_dir state dir =
                       && color_of_piece piece <> color
                 else
                   List.mem attack_dir (attack_directions piece)
-                  && color_of_piece piece <> color )
+                  && color_of_piece piece <> color)
       in
       is_attacked 1 check_sqs
 
@@ -262,15 +262,61 @@ let noncheck_king_move state piece move =
   let state'' = flip_turn state' in
   match is_check state'' with Check _ -> false | NotCheck -> true
 
+let w_castle_ks_sq b p =
+  if
+    color_of_piece p = White
+    && can_castle b White King
+    && piece_of_square b "f1" = None
+    && piece_of_square b "g1" = None
+    && is_check b = NotCheck
+  then [ ("e1", "g1") ]
+  else []
+
+let w_castle_qs_sq b p =
+  if
+    color_of_piece p = White
+    && can_castle b White Queen
+    && piece_of_square b "d1" = None
+    && piece_of_square b "c1" = None
+    && piece_of_square b "b1" = None
+    && is_check b = NotCheck
+  then [ ("e1", "c1") ]
+  else []
+
+let b_castle_ks_sq b p =
+  if
+    color_of_piece p = Black
+    && can_castle b Black King
+    && piece_of_square b "f8" = None
+    && piece_of_square b "g8" = None
+    && is_check b = NotCheck
+  then [ ("e8", "g8") ]
+  else []
+
+let b_castle_qs_sq b p =
+  if
+    color_of_piece p = Black
+    && can_castle b Black Queen
+    && piece_of_square b "d8" = None
+    && piece_of_square b "c8" = None
+    && piece_of_square b "b8" = None
+    && is_check b = NotCheck
+  then [ ("e8", "c8") ]
+  else []
+
 (** [valid_king_moves p b] is the list of all valid moves for piece [p]
     with board state [b]. Requires: piece [p] is of id [K] *)
+
 let valid_king_moves p b : move list =
   let head lst = match lst with [] -> [] | h :: t -> [ h ] in
   let directions = attack_directions p in
   let moves =
-    List.map (fun x -> head (unblocked_moves b p x)) directions
+    w_castle_ks_sq b p @ w_castle_qs_sq b p @ b_castle_ks_sq b p
+    @ b_castle_qs_sq b p
+    @ List.flatten
+        (List.map (fun x -> head (unblocked_moves b p x)) directions)
   in
-  List.flatten moves |> List.filter (noncheck_king_move b p)
+  List.filter (noncheck_king_move b p) moves
 
 (** [filter_moves move_lst sq_lst] is the list of moves in [move_lst]
     where the second square of the move is in [sq_list]. *)
@@ -325,8 +371,8 @@ let potential_piece_moves p b : move list =
                     else intercepts
               in
               filter_moves move_lst move_filter
-          | _ -> filter_moves move_lst intercepts )
-      | NotCheck -> move_lst )
+          | _ -> filter_moves move_lst intercepts)
+      | NotCheck -> move_lst)
 
 let directional_pins state color dir =
   let king_sq = square_of_king state color in
@@ -353,7 +399,7 @@ let directional_pins state color dir =
                       List.mem attack_dir (attack_directions piece)
                       && color_of_piece piece <> color
                     then Some (piece', dir)
-                    else None ) ) )
+                    else None)))
   in
   is_attacked None check_sqs
 
@@ -400,7 +446,7 @@ let is_valid_move move b : bool =
       | None -> false
       | Some p ->
           let valid = valid_moves b in
-          List.mem move valid )
+          List.mem move valid)
 
 let is_checkmate (b : Board.t) =
   match is_check b with
