@@ -335,51 +335,15 @@ let is_check_test name =
   assert_equal check_state test.check ~printer:check_printer
 
 let is_check_tests =
-  [
-    is_check_test "White has pinned piece and in check NW";
-    is_check_test "Black has pinned piece but is not in check";
-    is_check_test "White in check from NE";
-    is_check_test "White in check from N";
-    is_check_test "White in check from S";
-    is_check_test "White in check from SE";
-    is_check_test "White in check from W";
-    is_check_test "White in check from SW";
-    is_check_test "White in stalemate";
-    is_check_test "Black in checkmate";
-    is_check_test "Test multiple calls to is_check";
-    is_check_test "Move restricted by its own piece";
-    is_check_test "Prevent moves placing king under check by other king";
-    is_check_test "Black in check East";
-    is_check_test "Neither color in check";
-    is_check_test "Double check, L and SE, Queen";
-    is_check_test "Double check, L and S, Queen";
-    is_check_test "Double check, L and SW, Rook";
-  ]
+  let test_name t = match t with (name, _) -> name in
+  tests |> List.map test_name |> List.map is_check_test
 
-let validation_tests =
-  [ (* valid moves tests *)
-    valid_moves_test "White has pinned piece and in check NW";
-    valid_moves_test "Black in checkmate";
-    valid_moves_test "Pinned black piece takes white piece";
-    valid_moves_test "Black king must capture or move to escape check.";
-    valid_moves_test "Prevent moves placing king under check by other king";
-    valid_moves_test "Black in check East";
-    valid_moves_test "Capture a piece to prevent a check";
-    valid_moves_test "Various pieces can intercept";
-    valid_moves_test "Multiple queens pinned with restricted movement";
-    valid_moves_test "Pinned queen movement";
-    valid_moves_test "Full range of pawn attack";
-    valid_moves_test "Pawn attack and initial one or two space move";
-    valid_moves_test "Pawn intercept from start square moving up 2.";
-    valid_moves_test "Test king having a move during a check";
-    valid_moves_test "Checkmate, enemy king can check a king";
-    valid_moves_test "Test multiple calls to is_check";
-    valid_moves_test "Move restricted by its own piece";
-    valid_moves_test "Forced draw";
-    valid_moves_test "Neither color in check";
-    valid_moves_test "En-passant Discovered Checkmate";
+let valid_moves_tests =
+  let test_name t = match t with (name, _) -> name in
+  tests |> List.map test_name |> List.map valid_moves_test
 
-    (* valid piece moves tests *)
+let valid_piece_moves_tests =
+  [ (* valid piece moves tests *)
     valid_piece_moves_test "King can not deliver a pin" "e5"
       [ ("e5", "d4"); ("e5", "e4") ];
     valid_piece_moves_test "Pawn can not deliver a pin"
@@ -411,7 +375,8 @@ let suite =
          [
            List.flatten board_tests;
            command_tests;
-           validation_tests;
+           valid_moves_tests;
+           valid_piece_moves_tests;
            is_check_tests;
          ]
 
