@@ -8,8 +8,7 @@ open Validation
 let width = 300
 let height = 300
 
-(* TODO: Decide how to remove duplication of this code from main.ml *)
-
+(** [string_of_string_list lst] TODO *)
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
   let rec build_str str lst' =
@@ -17,30 +16,82 @@ let string_of_string_list lst =
   in
   build_str "" rev_lst
 
-let print_checkmate_stalemate board =
-  if is_checkmate board then print_string "CHECKMATE \n"
-  else if is_stalemate board then print_string "STALEMATE \n"
+(** [print_checkmate_stalemate b] prints "CHECKMATE" or "STALEMATE" and exits
+    the game iff the game state [b] is in the respective state. *)
+let print_checkmate_stalemate b =
+  if is_checkmate b then print_string "CHECKMATE \n"
+  else if is_stalemate b then print_string "STALEMATE \n"
   else ();
-  if is_checkmate board || is_stalemate board then exit 0 else ()
+  if is_checkmate b || is_stalemate b then exit 0 else ()
 
-let update_with_move_phrase board sq sq' =
+(** [prompt_for_move b] prints a prompt to the player whose turn it is in
+    the game state [b]. *)
+let prompt_for_move b =
+  let color =
+    match color_to_move b with
+    | White -> "White"
+    | Black -> "Black"
+  in
+  print_string ("\n" ^ color ^ " to move  > ")
+
+(** [print_invalid_move] prints an indication that a move was invalid. *)
+let print_invalid_move () =
+  print_string "The move was invalid. Try again. \n"
+
+(** [move_from_phrase phrase] is the move from the move phrase [phrase]. *)
+let move_from_phrase = function
+  | Quit -> exit 0
+  | Move [ id; sq; _; sq' ] -> (sq, sq')
+  | _ -> failwith "parse failed"
+
+(** [update_with_move b m] is the board [b] after executing move [m] if
+    move [m] is valid. Otherwise, returns board [b] unaltered. *)
+let update_with_move b m =
+  match m with (sq, sq') ->
     let p =
-      match piece_of_square board sq with
-      | None -> failwith "never will happen"
+      match piece_of_square b sq with
+      | None -> failwith "impossible"
       | Some p' -> p'
     in
-    if is_valid_move (sq, sq') board then move_piece board p sq'
-    else board
+    if is_valid_move (sq, sq') b then move_piece b p sq'
+    else b
+
+(** [command_line_turn] initiates a turn to be play chess via command line. *)
+let rec command_line_turn board =
+  print_game_state board;
+  print_checkmate_stalemate board;
+  prompt_for_move board;
+  match read_line () with
+  | exception End_of_file -> ()
+  | text -> (
+      try
+        let move = move_from_phrase (parse text board) in
+        let board' = update_with_move board move in
+        if board = board' then print_invalid_move () else ();
+        command_line_turn board'
+      with
+      | InconsistentPlacement ->
+          print_string "placement \n";
+          command_line_turn board;
+      | InvalidSquares ->
+          print_string "invalid sq \n";
+          command_line_turn board;
+      | Malformed ->
+          print_string "malformed \n";
+          command_line_turn board)
+
+(** [command_line_main ()] initiates the game in command line mode. *)
+let command_line_main () = command_line_turn (init_game ())
 
 (* Connect a signal handler, ignoring the resulting signal ID.
    This avoids having to use [|> ignore] everywhere.
    https://stackoverflow.com/questions/63106011 *)
-let (==>) (signal:(callback:_ -> GtkSignal.id)) callback =
+   let (==>) (signal:(callback:_ -> GtkSignal.id)) callback =
    ignore (signal ~callback)
 
-let locale = GtkMain.Main.init ()
-
-let main () =
+(** [gui_main ()] initiates the game in gui mode. *)
+let gui_main () =
+  (GtkMain.Main.init () |> ignore);
   let window = GWindow.window ~width:width ~height:height
                               ~position: `CENTER
                               ~resizable: true
@@ -96,7 +147,7 @@ let main () =
       | [] ->
         if rt = [] then btns else button_matrix rt ranks (i + 1) 0 btns
       | c :: ct ->
-        let id = print_piece (piece_of_square !board (r^c)) in
+        let id = string_of_piece (piece_of_square !board (r^c)) in
         let add x = board_table#attach i (7 - j) x in
         let button = GButton.button ~label:id ~packing:add () in
         let btns = (r^c, button) :: btns in
@@ -140,13 +191,13 @@ let main () =
             match p with
             | None -> print_endline "impossible"
             | Some p ->
-              let board' = update_with_move_phrase !board a b in
+              let board' = update_with_move !board (a,b) in
               if !board = board' then
                 print_endline "invalid move."
               else (
                 board := board';
-                from_btn#set_label (print_piece (piece_of_square board' a));
-                to_btn#set_label (print_piece (piece_of_square board' b));
+                from_btn#set_label (string_of_piece (piece_of_square board' a));
+                to_btn#set_label (string_of_piece (piece_of_square board' b));
                 update_captured board');
           print_endline "==================TESTING==================";
           print_game_state board';
@@ -160,4 +211,9 @@ let main () =
   window#show ();
   Main.main ()
 
-let () = main ()
+(* Read argument to see which version of game to launch. *)
+let () =
+  match Sys.argv.(1) with
+  | "command-line" -> command_line_main ();
+  | "gui" -> gui_main ();
+  | _ -> failwith "invalid game type"
