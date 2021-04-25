@@ -514,7 +514,7 @@ let board_fen_string t =
   in
   let rec file_to_fen file =
     match file with
-    | h :: t -> piece_classifier h ^ file_to_fen t
+    | h :: t -> (piece_classifier h) ^ (file_to_fen t)
     | [] -> ""
   in
   let rec space_counter (filestring : string list) (acc : int) =
@@ -623,7 +623,7 @@ let export_to_fen t =
   let castle_str = castle_fen_string t in
   let en_passant_str = en_passant_string t in
   board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str
-  ^ " 0 1"
+  ^ " 0 0"
 
 let init_game () =
   init_from_fen

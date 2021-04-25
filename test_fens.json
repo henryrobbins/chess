@@ -1,7 +1,7 @@
 [
   {
     "description": "Prevent moves placing king under check by other king",
-    "fen": "4R3/1k6/P7/1K6/8/8/5q2/8 b  - 0 0",
+    "fen": "4R3/1k6/P7/1K6/8/8/5q2/8 b - - 0 0",
     "check": [
       "SW"
     ],
@@ -534,7 +534,7 @@
   },
   {
     "description": "Test multiple calls to is_check",
-    "fen": "QQQQQQQQ/8/8/5K2/8/4k3/8/8 b  - 0 0",
+    "fen": "QQQQQQQQ/8/8/5K2/8/4k3/8/8 b - - 0 0",
     "check": [
       "N"
     ],
@@ -600,7 +600,7 @@
   },
   {
     "description": "Checkmate, enemy king can check a king",
-    "fen": "QQQQ1QQQ/7r/6K1/8/7k/8/8/8 b  - 0 0",
+    "fen": "QQQQ1QQQ/7r/6K1/8/7k/8/8/8 b - - 0 0",
     "check": ["NW"],
     "moves": []
   },
