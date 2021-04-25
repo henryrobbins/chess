@@ -504,72 +504,35 @@ let init_from_fen fen =
 
 (** [board_fen_string t] is the component of the FEN string representing
     the current pieces on the board [t.board]. *)
-let board_fen_string t =
-  let piece_classifier sq =
-    match piece_of_square t sq with
-    | Some h ->
-        let p_id = string_of_piece_id h.id in
-        if h.color = White then String.uppercase_ascii p_id
-        else String.lowercase_ascii p_id
-    | None -> "1"
+let board_fen_string b =
+  let piece_identifier p =
+    let p_id = string_of_piece_id p.id in
+    match p.color with
+    | White -> String.uppercase_ascii p_id
+    | Black -> String.lowercase_ascii p_id
   in
-  let rec file_to_fen file =
-    match file with
-    | h :: t -> piece_classifier h ^ file_to_fen t
-    | [] -> ""
+  let rank_to_fen rank =
+    let rec it_files files acc =
+      match files with
+      | [] -> ""
+      | h :: t -> 
+        match piece_of_square b (h ^ rank) with
+        | None -> it_files t (acc + 1)
+        | Some p ->
+          let id = piece_identifier p in
+          if acc > 0 then ((string_of_int acc) ^ id ^ (it_files t 0))
+          else id ^ (it_files t 0)
+    in
+    it_files files 0
   in
-  let rec space_counter (filestring : string list) (acc : int) =
-    match filestring with
-    | "" :: t -> space_counter t (acc + 1)
-    | h :: s :: t ->
-        if s != "" then string_of_int acc ^ h ^ "" ^ space_counter t 0
-        else string_of_int acc ^ h ^ space_counter t 0
-    | h :: t -> string_of_int acc ^ h ^ space_counter t 0
-    | [] -> ""
-  in
-  space_counter
-    (String.split_on_char '1'
-       (file_to_fen ("a1" :: iterator_from_sq "a1" E)))
-    0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a2" :: iterator_from_sq "a2" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a3" :: iterator_from_sq "a3" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a4" :: iterator_from_sq "a4" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a5" :: iterator_from_sq "a5" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a6" :: iterator_from_sq "a6" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a7" :: iterator_from_sq "a7" E)))
-      0
-  ^ "/"
-  ^ space_counter
-      (String.split_on_char '1'
-         (file_to_fen ("a8" :: iterator_from_sq "a8" E)))
-      0
+  ranks |> List.map rank_to_fen |> String.concat "/" 
 
 (** [next_to_move_string t] is the string representation of the player
     whose turn it is: "Black" or "White". *)
-let next_to_move_string t = if t.color_to_move = Black then "b" else "w"
+let next_to_move_string t = 
+  match t.color_to_move with
+  | Black -> "b"
+  | White -> "w"
 
 (** [char_to_castle lst] is the string representation of the list [lst]
     form of possible castles. *)
@@ -581,7 +544,7 @@ let char_to_castle lst =
       match lst with
       | [ h ] -> acc
       | h :: t -> concat lst (h ^ acc)
-      | _ -> failwith "imossible"
+      | _ -> failwith "impossible"
     in
     concat sorted ""
 
@@ -624,7 +587,7 @@ let export_to_fen t =
   let castle_str = castle_fen_string t in
   let en_passant_str = en_passant_string t in
   board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str
-  ^ " 0 1"
+  ^ " 0 0"
 
 let init_game () =
   init_from_fen
