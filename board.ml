@@ -247,7 +247,7 @@ let is_castling_move piece sq' =
 let extract_rook r_opt =
   match r_opt with Some p -> p | None -> failwith "impossible"
 
-let rec move_piece t piece sq' =
+let rec move_piece t piece sq' turn =
   let state =
     match piece_of_square t sq' with
     | Some p -> capture_piece t p
@@ -279,12 +279,16 @@ let rec move_piece t piece sq' =
   let ep_piece =
     match en_passant with None -> None | Some _ -> Some piece'
   in
+  let color_to_move =
+    if turn then switch_color (color_of_piece piece)
+    else color_of_piece piece
+  in
   let out_state =
     {
       state with
       board;
       active_pieces = active;
-      color_to_move = switch_color (color_of_piece piece);
+      color_to_move;
       w_castle_ks = w_castle_ks_viable t piece;
       w_castle_qs = w_castle_qs_viable t piece;
       b_castle_ks = b_castle_ks_viable t piece;
@@ -300,25 +304,22 @@ let rec move_piece t piece sq' =
         | "c8" ->
             move_piece out_state
               ("a8" |> piece_of_square out_state |> extract_rook)
-              "d8"
+              "d8" false
         | "g8" ->
             move_piece out_state
               ("h8" |> piece_of_square out_state |> extract_rook)
-              "f8"
+              "f8" false
         | "c1" ->
             move_piece out_state
               ("a1" |> piece_of_square out_state |> extract_rook)
-              "d1"
+              "d1" false
         | "g1" ->
             move_piece out_state
               ("h1" |> piece_of_square out_state |> extract_rook)
-              "f1"
+              "f1" false
         | _ -> failwith "impossible"
       else out_state
   | _ -> out_state
-
-let flip_turn t =
-  { t with color_to_move = switch_color (color_to_move t) }
 
 (** [merge_singleton_and_list s lst rev] is the list of elements of list
     [lst] with the singleton [s] appended on. If [rev] is true, [s] is

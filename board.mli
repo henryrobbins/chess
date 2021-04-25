@@ -48,22 +48,22 @@ type b
     I.e. Current board state, active pieces, and captured pieces. *)
 type t
 
-(** [color_of_string s] is the color of the string [s].
-    Requires: [s] is in {w, b, White, Black}. *)
+(** [color_of_string s] is the color of the string [s]. Requires: [s] is
+    in {w, b, White, Black}. *)
 val color_of_string : string -> color
 
 (** [string_of_color c] is the string representing color [c]. *)
 val string_of_color : color -> string
 
-(** [piece_id_of_string s] is the piece id of the string [s].
-    Requires: [s] is in {P, R, B, N, Q, K} *)
+(** [piece_id_of_string s] is the piece id of the string [s]. Requires:
+    [s] is in {P, R, B, N, Q, K} *)
 val piece_id_of_string : string -> piece_type
 
 (** [string_of_piece_id id] is the string representing piece id [id] *)
 val string_of_piece_id : piece_type -> string
 
-(** [string_of_piece p] is a string with the color and id of piece [p]. If
-    the piece is [None], it is a blank space. *)
+(** [string_of_piece p] is a string with the color and id of piece [p].
+    If the piece is [None], it is a blank space. *)
 val string_of_piece : p option -> string
 
 (** [color_to_move t] is the player that should move next in state [t]. *)
@@ -111,15 +111,12 @@ val square_of_king : t -> color -> square
     captured in game state [t]. *)
 val capture_piece : t -> p -> t
 
-(** [move_piece t p s] is the game state after piece [p] moves to square
-    [s] in state [t]. If a piece of the opposite color is already at
-    square [s] in state [t], it is captured. Requires: [s] is in
-    standard algebraic notation. *)
-val move_piece : t -> p -> square -> t
-
-(** [flip_turn t] is the game state [t], but it is now the opposite
-    color's turn to make a move. *)
-val flip_turn : t -> t
+(** [move_piece t p s turn] is the game state after piece [p] moves to
+    square [s] in state [t]. If a piece of the opposite color is already
+    at square [s] in state [t], it is captured. Changes the color to
+    play iff [turn] is [true]. Requires: [s] is in standard algebraic
+    notation. *)
+val move_piece : t -> p -> square -> bool -> t
 
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s]. Requires: [s] is
