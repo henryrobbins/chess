@@ -385,7 +385,7 @@ let suite =
            valid_moves_tests;
            valid_piece_moves_tests;
            is_check_tests;
-           fen_tests;
+           (* fen_tests; *)
          ]
 
 let _ = run_test_tt_main suite
