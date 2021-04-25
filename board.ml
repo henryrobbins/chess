@@ -263,7 +263,7 @@ let move_piece t piece sq' =
   let sq = square_of_piece piece in
   let promoted = promote_pawn t piece sq' in
   let piece' = { promoted with current_pos = Some sq' } in
-  let new_rook = castle_rook t piece sq' in
+ (** let new_rook = castle_rook t piece sq' in
   let old_rook_option =
     if id_of_piece new_rook = Rook then
       match square_of_piece new_rook with
@@ -279,13 +279,14 @@ let move_piece t piece sq' =
     | Some p -> p
     | None -> failwith "impossible"
   in
-
+*)
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
-    |> List.filter (fun x -> x <> old_rook)
+   (**|> List.filter (fun x -> x <> old_rook)
     |> List.cons piece' |> List.cons new_rook
-  in
+  in*)
+in
   let board =
     state.board |> List.remove_assoc sq
     |> List.cons (sq, None)
