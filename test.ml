@@ -369,18 +369,25 @@ let valid_piece_moves_tests =
       [ ("b5", "b6") ];
   ]
 
-let fen_test name =
-  let fen = (List.assoc name tests).fen in
-  let board = init_from_fen fen in
-  let fen' = export_to_fen board in
-  (* let board' = init_from_fen fen' in *)
-  (* let fen'' = export_to_fen board' in *)
-  name ^ "a" >:: fun _ ->
-  assert_equal fen fen' ~printer:(fun x-> x)
+  let check_printer = function
+  | NotCheck -> "Not Check"
+  | Check dirs -> pp_dirs dirs
 
-let fen_tests =
+let fen_tests name = 
+  let fen_to_board name exp = 
+    name >:: fun _ -> 
+      let board = init_from_fen (List.assoc name tests).fen in
+      (export_to_fen board) in
+  let board_to_fen name exp = 
+    name >:: fun _ -> 
+      let fen = export_to_fen board in
+      (init_from_fen fen) 
+  
+
+
+let fen_tests = 
   let test_name t = match t with (name, _) -> name in
-  tests |> List.map test_name |> List.map fen_test
+  tests |> List.map test_name |> List.map fens_equal_test
 
 let suite =
   "test suite for chess"
@@ -391,7 +398,7 @@ let suite =
            valid_moves_tests;
            valid_piece_moves_tests;
            is_check_tests;
-           fen_tests;
+           (* fen_tests; *)
          ]
 
 let _ = run_test_tt_main suite
