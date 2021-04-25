@@ -580,7 +580,7 @@ let char_to_castle lst =
       match lst with
       | [ h ] -> acc
       | h :: t -> concat lst (h ^ acc)
-      | _ -> failwith "imossible"
+      | _ -> failwith "impossible"
     in
     concat sorted ""
 
