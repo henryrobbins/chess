@@ -369,12 +369,12 @@ let valid_piece_moves_tests =
       [ ("b5", "b6") ];
   ]
 
-let fens_equal_test name = 
-  name >:: fun _ -> 
+let fens_equal_test name =
+  name >:: fun _ ->
     let board = init_from_fen (List.assoc name tests).fen in
     let fen = (List.assoc name tests).fen in
     assert_equal (export_to_fen board = fen && init_from_fen fen = board) true
-let fen_tests = 
+let fen_tests =
   let test_name t = match t with (name, _) -> name in
   tests |> List.map test_name |> List.map fens_equal_test
 
