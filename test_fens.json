@@ -1,7 +1,7 @@
 [
   {
     "description": "Prevent moves placing king under check by other king",
-    "fen": "4R3/1k6/P7/1K6/8/8/5q2/8 b  - 0 0",
+    "fen": "4R3/1k6/P7/1K6/8/8/5q2/8 b - - 0 0",
     "check": [
       "SW"
     ],
@@ -18,23 +18,30 @@
   },
   {
     "description": "Double check, L and S, Queen",
-    "fen": "2k5/8/PN6/8/8/1P2B1Q1/1P2P2R/2R1KBN1 b  - 0 0",
+    "fen": "2k5/8/PN6/8/8/1P2B1Q1/1P2P2R/2R1KBN1 b - - 0 0",
     "check": [
       "S",
       "L"
     ],
-    "moves": [["c8","d8"]]
+    "moves": [
+      [
+        "c8",
+        "d8"
+      ]
+    ]
   },
   {
     "description": "Forced draw",
-    "fen": "2B1R3/2B3R1/8/P7/8/8/2K5/7k b  - 0 0",
+    "fen": "2B1R3/2B3R1/8/P7/8/8/2K5/7k b - - 0 0",
     "check": [],
     "moves": []
   },
   {
     "description": "White in checkmate",
     "fen": "4kbnr/pp2pppp/2P5/8/8/7b/5q2/2K1r3 w Q - 0 0",
-    "check": ["E"],
+    "check": [
+      "E"
+    ],
     "moves": []
   },
   {
@@ -43,11 +50,20 @@
     "check": [
       "W"
     ],
-    "moves": [["d2","d3"],["d2","d1"]]
+    "moves": [
+      [
+        "d2",
+        "d3"
+      ],
+      [
+        "d2",
+        "d1"
+      ]
+    ]
   },
   {
     "description": "Neither color in check",
-    "fen": "6k1/3p4/2P1P3/3P2K1/8/8/8/8 b  - 0 0",
+    "fen": "6k1/3p4/2P1P3/3P2K1/8/8/8/8 b - - 0 0",
     "check": [],
     "moves": [
       [
@@ -173,7 +189,16 @@
     "check": [
       "NE"
     ],
-    "moves": [["c1","b1"],["c1","d2"]]
+    "moves": [
+      [
+        "c1",
+        "b1"
+      ],
+      [
+        "c1",
+        "d2"
+      ]
+    ]
   },
   {
     "description": "White in stalemate",
@@ -206,7 +231,20 @@
     "check": [
       "SE"
     ],
-    "moves": [["c2","b2"],["c2","c3"],["c2","d1"]]
+    "moves": [
+      [
+        "c2",
+        "b2"
+      ],
+      [
+        "c2",
+        "c3"
+      ],
+      [
+        "c2",
+        "d1"
+      ]
+    ]
   },
   {
     "description": "White in check from S",
@@ -214,12 +252,27 @@
     "check": [
       "S"
     ],
-    "moves": [["c2","c1"],["c2","b3"],["c2","d3"]]
+    "moves": [
+      [
+        "c2",
+        "c1"
+      ],
+      [
+        "c2",
+        "b3"
+      ],
+      [
+        "c2",
+        "d3"
+      ]
+    ]
   },
   {
     "description": "Test king having a move during a check",
-    "fen": "QQQQQQQQ/7r/2q3K1/8/8/8/8/7k w  - 0 0",
-    "check": ["W"],
+    "fen": "QQQQQQQQ/7r/2q3K1/8/8/8/8/7k w - - 0 0",
+    "check": [
+      "W"
+    ],
     "moves": [
       [
         "a8",
@@ -287,20 +340,111 @@
     "description": "Pawn can not deliver a pin",
     "fen": "rnbqkbnr/1ppppppp/p7/7P/8/8/PPPPPPP1/RNBQKBNR b KQkq - 0 0",
     "check": [],
-    "moves": [["h7","h6"],["g7","g6"],["g7","g5"],["f7","f6"],["f7","f5"],
-              ["e7","e6"],["e7","e5"],["d7","d6"],["d7","d5"],
-              ["c7","c6"],["c7","c5"],["b7","b6"],["b7","b5"],
-              ["a6","a5"],["a8","a7"],["b8","c6"],["g8","h6"],["g8","f6"]]
+    "moves": [
+      [
+        "h7",
+        "h6"
+      ],
+      [
+        "g7",
+        "g6"
+      ],
+      [
+        "g7",
+        "g5"
+      ],
+      [
+        "f7",
+        "f6"
+      ],
+      [
+        "f7",
+        "f5"
+      ],
+      [
+        "e7",
+        "e6"
+      ],
+      [
+        "e7",
+        "e5"
+      ],
+      [
+        "d7",
+        "d6"
+      ],
+      [
+        "d7",
+        "d5"
+      ],
+      [
+        "c7",
+        "c6"
+      ],
+      [
+        "c7",
+        "c5"
+      ],
+      [
+        "b7",
+        "b6"
+      ],
+      [
+        "b7",
+        "b5"
+      ],
+      [
+        "a6",
+        "a5"
+      ],
+      [
+        "a8",
+        "a7"
+      ],
+      [
+        "b8",
+        "c6"
+      ],
+      [
+        "g8",
+        "h6"
+      ],
+      [
+        "g8",
+        "f6"
+      ]
+    ]
   },
   {
     "description": "Black has pinned piece but is not in check",
     "fen": "2B5/2p5/1p3B1k/6N1/5Q2/8/PPP3PP/RN2K2R b Kk - 0 0",
     "check": [],
-    "moves": [["h6","h5"],["h6","g6"],["c7","c6"],["c7","c5"],["b6","b5"]]
+    "moves": [
+      [
+        "h6",
+        "h5"
+      ],
+      [
+        "h6",
+        "g6"
+      ],
+      [
+        "c7",
+        "c6"
+      ],
+      [
+        "c7",
+        "c5"
+      ],
+      [
+        "b6",
+        "b5"
+      ]
+    ]
   },
   {
     "description": "Black in check East",
-    "fen": "5K1q/8/5k2/8/8/8/8/8 w  - 0 0",
+    "fen": "5K1q/8/5k2/8/8/8/8/8 w - - 0 0",
     "check": [
       "E"
     ],
@@ -312,12 +456,27 @@
     "check": [
       "SW"
     ],
-    "moves": [["c2","b1"],["c2","c3"],["c2","d2"]]
+    "moves": [
+      [
+        "c2",
+        "b1"
+      ],
+      [
+        "c2",
+        "c3"
+      ],
+      [
+        "c2",
+        "d2"
+      ]
+    ]
   },
   {
     "description": "Various pieces can intercept",
     "fen": "rnbqkbnr/ppp3pp/1P2pp2/3p4/Q1P5/B2P4/P3PPPP/RN2KBNR b KQkq - 0 0",
-    "check": ["SW"],
+    "check": [
+      "SW"
+    ],
     "moves": [
       [
         "b8",
@@ -347,7 +506,7 @@
   },
   {
     "description": "Pawn attack and initial one or two space move",
-    "fen": "2k5/8/8/7p/8/2p1b3/3P4/7K w  - 0 0",
+    "fen": "2k5/8/8/7p/8/2p1b3/3P4/7K w - - 0 0",
     "check": [],
     "moves": [
       [
@@ -379,13 +538,26 @@
   {
     "description": "white_in_check_NW",
     "fen": "4kbnr/pp2pppp/2P1r3/8/8/7b/1q6/2K5 w Q - 0 0",
-    "check": ["NW"],
-    "moves": [["c1","b2"],["c1","d1"]]
+    "check": [
+      "NW"
+    ],
+    "moves": [
+      [
+        "c1",
+        "b2"
+      ],
+      [
+        "c1",
+        "d1"
+      ]
+    ]
   },
   {
     "description": "Pawn intercept from start square moving up 2.",
-    "fen": "2k5/8/5q2/8/8/4b3/2pP4/K7 w  - 0 0",
-    "check": ["NE"],
+    "fen": "2k5/8/5q2/8/8/4b3/2pP4/K7 w - - 0 0",
+    "check": [
+      "NE"
+    ],
     "moves": [
       [
         "d2",
@@ -412,7 +584,20 @@
       "SE",
       "L"
     ],
-    "moves": [["b8","c8"],["b8","a8"],["b8","b7"]]
+    "moves": [
+      [
+        "b8",
+        "c8"
+      ],
+      [
+        "b8",
+        "a8"
+      ],
+      [
+        "b8",
+        "b7"
+      ]
+    ]
   },
   {
     "description": "White in check from N",
@@ -420,7 +605,16 @@
     "check": [
       "N"
     ],
-    "moves": [["c1","b1"],["c1","d1"]]
+    "moves": [
+      [
+        "c1",
+        "b1"
+      ],
+      [
+        "c1",
+        "d1"
+      ]
+    ]
   },
   {
     "description": "Black in checkmate",
@@ -437,7 +631,7 @@
   },
   {
     "description": "Full range of pawn attack",
-    "fen": "8/8/3k4/4p1p1/4pP1p/8/1p3q2/7K w  - 0 0",
+    "fen": "8/8/3k4/4p1p1/4pP1p/8/1p3q2/7K w - - 0 0",
     "check": [],
     "moves": [
       [
@@ -456,7 +650,7 @@
   },
   {
     "description": "White has pinned piece and in check NW",
-    "fen": "8/1k6/8/q7/8/8/8/r1B1K3 w  - 0 0",
+    "fen": "8/1k6/8/q7/8/8/8/r1B1K3 w - - 0 0",
     "check": [
       "NW"
     ],
@@ -481,8 +675,10 @@
   },
   {
     "description": "Multiple queens pinned with restricted movement",
-    "fen": "4Q3/1R5q/3Q1qk1/2QN3q/5Q1R/7N/7P/5K2 b  - 0 0",
-    "check": ["NW"],
+    "fen": "4Q3/1R5q/3Q1qk1/2QN3q/5Q1R/7N/7P/5K2 b - - 0 0",
+    "check": [
+      "NW"
+    ],
     "moves": [
       [
         "h7",
@@ -493,7 +689,9 @@
   {
     "description": "Black king must capture or move to escape check.",
     "fen": "rn1q2nr/8/p1P5/5Rkp/P7/8/5P1P/4K2R b K - 0 0",
-    "check": ["W"],
+    "check": [
+      "W"
+    ],
     "moves": [
       [
         "g5",
@@ -520,7 +718,9 @@
   {
     "description": "Capture a piece to prevent a check",
     "fen": "rnbqk1Rr/ppppbp1p/7Q/n7/5P2/2NBP3/PPPB2PP/5KNR b Qq - 0 0",
-    "check": ["E"],
+    "check": [
+      "E"
+    ],
     "moves": [
       [
         "h8",
@@ -534,7 +734,7 @@
   },
   {
     "description": "Test multiple calls to is_check",
-    "fen": "QQQQQQQQ/8/8/5K2/8/4k3/8/8 b  - 0 0",
+    "fen": "QQQQQQQQ/8/8/5K2/8/4k3/8/8 b - - 0 0",
     "check": [
       "N"
     ],
@@ -552,62 +752,202 @@
       "SW",
       "L"
     ],
-    "moves": [["g8","h7"],["g8","g7"],["g8","f8"],["g8","h7"]]
+    "moves": [
+      [
+        "g8",
+        "h7"
+      ],
+      [
+        "g8",
+        "g7"
+      ],
+      [
+        "g8",
+        "f8"
+      ],
+      [
+        "g8",
+        "h7"
+      ]
+    ]
   },
   {
     "description": "King can not deliver a pin",
     "fen": "rnbqkbnr/ppp2ppp/8/3Pp3/3P4/8/PPP2PPP/RNBQKBNR b KQkq - 0 0",
     "check": [],
-    "moves": [["e5", "d4"],
-    ["e5", "e4"],
-    ["h7", "h5"],
-    ["h7", "h6"],
-    ["g7", "g5"],
-    ["g7", "g6"],
-    ["f7", "f5"],
-    ["f7", "f6"],
-    ["c7", "c5"],
-    ["c7", "c6"],
-    ["b7", "b5"],
-    ["b7", "b6"],
-    ["a7", "a5"],
-    ["a7", "a6"],
-    ["g8", "e7"],
-    ["g8", "f6"],
-    ["g8", "h6"],
-    ["f8", "a3"],
-    ["f8", "b4"],
-    ["f8", "c5"],
-    ["f8", "d6"],
-    ["f8", "e7"],
-    ["e8", "d7"],
-    ["e8", "e7"],
-    ["d8", "d5"],
-    ["d8", "d6"],
-    ["d8", "d7"],
-    ["d8", "h4"],
-    ["d8", "g5"],
-    ["d8", "f6"],
-    ["d8", "e7"],
-    ["c8", "h3"],
-    ["c8", "g4"],
-    ["c8", "f5"],
-    ["c8", "e6"],
-    ["c8", "d7"],
-    ["b8", "a6"],
-    ["b8", "c6"],
-    ["b8", "d7"]]
+    "moves": [
+      [
+        "e5",
+        "d4"
+      ],
+      [
+        "e5",
+        "e4"
+      ],
+      [
+        "h7",
+        "h5"
+      ],
+      [
+        "h7",
+        "h6"
+      ],
+      [
+        "g7",
+        "g5"
+      ],
+      [
+        "g7",
+        "g6"
+      ],
+      [
+        "f7",
+        "f5"
+      ],
+      [
+        "f7",
+        "f6"
+      ],
+      [
+        "c7",
+        "c5"
+      ],
+      [
+        "c7",
+        "c6"
+      ],
+      [
+        "b7",
+        "b5"
+      ],
+      [
+        "b7",
+        "b6"
+      ],
+      [
+        "a7",
+        "a5"
+      ],
+      [
+        "a7",
+        "a6"
+      ],
+      [
+        "g8",
+        "e7"
+      ],
+      [
+        "g8",
+        "f6"
+      ],
+      [
+        "g8",
+        "h6"
+      ],
+      [
+        "f8",
+        "a3"
+      ],
+      [
+        "f8",
+        "b4"
+      ],
+      [
+        "f8",
+        "c5"
+      ],
+      [
+        "f8",
+        "d6"
+      ],
+      [
+        "f8",
+        "e7"
+      ],
+      [
+        "e8",
+        "d7"
+      ],
+      [
+        "e8",
+        "e7"
+      ],
+      [
+        "d8",
+        "d5"
+      ],
+      [
+        "d8",
+        "d6"
+      ],
+      [
+        "d8",
+        "d7"
+      ],
+      [
+        "d8",
+        "h4"
+      ],
+      [
+        "d8",
+        "g5"
+      ],
+      [
+        "d8",
+        "f6"
+      ],
+      [
+        "d8",
+        "e7"
+      ],
+      [
+        "c8",
+        "h3"
+      ],
+      [
+        "c8",
+        "g4"
+      ],
+      [
+        "c8",
+        "f5"
+      ],
+      [
+        "c8",
+        "e6"
+      ],
+      [
+        "c8",
+        "d7"
+      ],
+      [
+        "b8",
+        "a6"
+      ],
+      [
+        "b8",
+        "c6"
+      ],
+      [
+        "b8",
+        "d7"
+      ]
+    ]
   },
   {
     "description": "Checkmate, enemy king can check a king",
-    "fen": "QQQQ1QQQ/7r/6K1/8/7k/8/8/8 b  - 0 0",
-    "check": ["NW"],
+    "fen": "QQQQ1QQQ/7r/6K1/8/7k/8/8/8 b - - 0 0",
+    "check": [
+      "NW"
+    ],
     "moves": []
   },
   {
     "description": "En-passant Discovered Checkmate",
-    "fen": "5B2/8/8/4RPpk/4pK1N/6P1/4qP2/8 w - g6 0 41",
-    "check": ["NE"],
+    "fen": "5B2/8/8/4RPpk/4pK1N/6P1/4qP2/8 w - g6 0 0",
+    "check": [
+      "NE"
+    ],
     "moves": [
       [
         "f5",
@@ -617,123 +957,566 @@
   },
   {
     "description": "Take piece to intercept",
-    "fen": "rnb1kbnr/ppp2ppp/4P3/8/4q3/3P4/PPP2PPP/RNBQKBNR w KQkq - 1 5",
-    "check": ["N"],
-    "moves": [["c1","e3"],["d1","e2"],["e1","d2"],
-              ["f1","e2"],["g1","e2"],["d3","e4"]]
+    "fen": "rnb1kbnr/ppp2ppp/4P3/8/4q3/3P4/PPP2PPP/RNBQKBNR w KQkq - 0 0",
+    "check": [
+      "N"
+    ],
+    "moves": [
+      [
+        "c1",
+        "e3"
+      ],
+      [
+        "d1",
+        "e2"
+      ],
+      [
+        "e1",
+        "d2"
+      ],
+      [
+        "f1",
+        "e2"
+      ],
+      [
+        "g1",
+        "e2"
+      ],
+      [
+        "d3",
+        "e4"
+      ]
+    ]
   },
   {
     "description": "En-passant white on black",
-    "fen": "8/8/7Q/1pP5/4k3/8/PP1P1PPP/RNB1KBNR w KQ b6 0 22",
+    "fen": "8/8/7Q/1pP5/4k3/8/PP1P1PPP/RNB1KBNR w KQ b6 0 0",
     "check": [],
-    "moves": [["g1", "f3"],
-    ["g1", "e2"],
-    ["g1", "h3"],
-    ["f1", "b5"],
-    ["f1", "c4"],
-    ["f1", "d3"],
-    ["f1", "e2"],
-    ["e1", "d1"],
-    ["e1", "e2"],
-    ["b1", "a3"],
-    ["b1", "c3"],
-    ["h2", "h4"],
-    ["h2", "h3"],
-    ["g2", "g4"],
-    ["g2", "g3"],
-    ["f2", "f4"],
-    ["f2", "f3"],
-    ["d2", "d4"],
-    ["d2", "d3"],
-    ["b2", "b4"],
-    ["b2", "b3"],
-    ["a2", "a4"],
-    ["a2", "a3"],
-    ["c5", "b6"],
-    ["c5", "c6"],
-    ["h6", "f8"],
-    ["h6", "g7"],
-    ["h6", "a6"],
-    ["h6", "b6"],
-    ["h6", "c6"],
-    ["h6", "d6"],
-    ["h6", "e6"],
-    ["h6", "f6"],
-    ["h6", "g6"],
-    ["h6", "e3"],
-    ["h6", "f4"],
-    ["h6", "g5"],
-    ["h6", "h3"],
-    ["h6", "h4"],
-    ["h6", "h5"],
-    ["h6", "h8"],
-    ["h6", "h7"]]
+    "moves": [
+      [
+        "g1",
+        "f3"
+      ],
+      [
+        "g1",
+        "e2"
+      ],
+      [
+        "g1",
+        "h3"
+      ],
+      [
+        "f1",
+        "b5"
+      ],
+      [
+        "f1",
+        "c4"
+      ],
+      [
+        "f1",
+        "d3"
+      ],
+      [
+        "f1",
+        "e2"
+      ],
+      [
+        "e1",
+        "d1"
+      ],
+      [
+        "e1",
+        "e2"
+      ],
+      [
+        "b1",
+        "a3"
+      ],
+      [
+        "b1",
+        "c3"
+      ],
+      [
+        "h2",
+        "h4"
+      ],
+      [
+        "h2",
+        "h3"
+      ],
+      [
+        "g2",
+        "g4"
+      ],
+      [
+        "g2",
+        "g3"
+      ],
+      [
+        "f2",
+        "f4"
+      ],
+      [
+        "f2",
+        "f3"
+      ],
+      [
+        "d2",
+        "d4"
+      ],
+      [
+        "d2",
+        "d3"
+      ],
+      [
+        "b2",
+        "b4"
+      ],
+      [
+        "b2",
+        "b3"
+      ],
+      [
+        "a2",
+        "a4"
+      ],
+      [
+        "a2",
+        "a3"
+      ],
+      [
+        "c5",
+        "b6"
+      ],
+      [
+        "c5",
+        "c6"
+      ],
+      [
+        "h6",
+        "f8"
+      ],
+      [
+        "h6",
+        "g7"
+      ],
+      [
+        "h6",
+        "a6"
+      ],
+      [
+        "h6",
+        "b6"
+      ],
+      [
+        "h6",
+        "c6"
+      ],
+      [
+        "h6",
+        "d6"
+      ],
+      [
+        "h6",
+        "e6"
+      ],
+      [
+        "h6",
+        "f6"
+      ],
+      [
+        "h6",
+        "g6"
+      ],
+      [
+        "h6",
+        "e3"
+      ],
+      [
+        "h6",
+        "f4"
+      ],
+      [
+        "h6",
+        "g5"
+      ],
+      [
+        "h6",
+        "h3"
+      ],
+      [
+        "h6",
+        "h4"
+      ],
+      [
+        "h6",
+        "h5"
+      ],
+      [
+        "h6",
+        "h8"
+      ],
+      [
+        "h6",
+        "h7"
+      ]
+    ]
   },
   {
     "description": "En-passant black on white",
-    "fen": "8/8/7Q/2P1k3/Pp6/3P4/1P2KPPP/RNB2BNR b - a3 0 24",
+    "fen": "8/8/7Q/2P1k3/Pp6/3P4/1P2KPPP/RNB2BNR b - a3 0 0",
     "check": [],
-    "moves": [["e5","f5"],["e5","d5"],["e5","d4"],["b4","b3"],["b4","a3"]]
+    "moves": [
+      [
+        "e5",
+        "f5"
+      ],
+      [
+        "e5",
+        "d5"
+      ],
+      [
+        "e5",
+        "d4"
+      ],
+      [
+        "b4",
+        "b3"
+      ],
+      [
+        "b4",
+        "a3"
+      ]
+    ]
   },
   {
     "description": "Not En-passant, but in the same position",
-    "fen": "8/8/7Q/2Pk4/Pp6/3P4/1P2KPPP/RNB2BNR b - - 0 25",
+    "fen": "8/8/7Q/2Pk4/Pp6/3P4/1P2KPPP/RNB2BNR b - - 0 0",
     "check": [],
-    "moves": [["d5","e5"],["d5","d4"],["d5","c5"],["b4","b3"]]
+    "moves": [
+      [
+        "d5",
+        "e5"
+      ],
+      [
+        "d5",
+        "d4"
+      ],
+      [
+        "d5",
+        "c5"
+      ],
+      [
+        "b4",
+        "b3"
+      ]
+    ]
   },
   {
     "description": "Overlooked En-passant left, new En-passant right",
-    "fen": "r7/3n4/6k1/pPp1p3/4P3/3Q4/P1PP1PPP/RNB1KBNR w KQ c6 0 18",
+    "fen": "r7/3n4/6k1/pPp1p3/4P3/3Q4/P1PP1PPP/RNB1KBNR w KQ c6 0 0",
     "check": [],
-    "moves": [["g1", "f3"],
-    ["g1", "e2"],
-    ["g1", "h3"],
-    ["f1", "e2"],
-    ["e1", "d1"],
-    ["e1", "e2"],
-    ["c1", "a3"],
-    ["c1", "b2"],
-    ["b1", "a3"],
-    ["b1", "c3"],
-    ["h2", "h4"],
-    ["h2", "h3"],
-    ["g2", "g4"],
-    ["g2", "g3"],
-    ["f2", "f4"],
-    ["f2", "f3"],
-    ["c2", "c4"],
-    ["c2", "c3"],
-    ["a2", "a4"],
-    ["a2", "a3"],
-    ["d3", "c4"],
-    ["d3", "a3"],
-    ["d3", "b3"],
-    ["d3", "c3"],
-    ["d3", "e2"],
-    ["d3", "h3"],
-    ["d3", "g3"],
-    ["d3", "f3"],
-    ["d3", "e3"],
-    ["d3", "d7"],
-    ["d3", "d6"],
-    ["d3", "d5"],
-    ["d3", "d4"],
-    ["b5", "c6"],
-    ["b5", "b6"]]
+    "moves": [
+      [
+        "g1",
+        "f3"
+      ],
+      [
+        "g1",
+        "e2"
+      ],
+      [
+        "g1",
+        "h3"
+      ],
+      [
+        "f1",
+        "e2"
+      ],
+      [
+        "e1",
+        "d1"
+      ],
+      [
+        "e1",
+        "e2"
+      ],
+      [
+        "c1",
+        "a3"
+      ],
+      [
+        "c1",
+        "b2"
+      ],
+      [
+        "b1",
+        "a3"
+      ],
+      [
+        "b1",
+        "c3"
+      ],
+      [
+        "h2",
+        "h4"
+      ],
+      [
+        "h2",
+        "h3"
+      ],
+      [
+        "g2",
+        "g4"
+      ],
+      [
+        "g2",
+        "g3"
+      ],
+      [
+        "f2",
+        "f4"
+      ],
+      [
+        "f2",
+        "f3"
+      ],
+      [
+        "c2",
+        "c4"
+      ],
+      [
+        "c2",
+        "c3"
+      ],
+      [
+        "a2",
+        "a4"
+      ],
+      [
+        "a2",
+        "a3"
+      ],
+      [
+        "d3",
+        "c4"
+      ],
+      [
+        "d3",
+        "a3"
+      ],
+      [
+        "d3",
+        "b3"
+      ],
+      [
+        "d3",
+        "c3"
+      ],
+      [
+        "d3",
+        "e2"
+      ],
+      [
+        "d3",
+        "h3"
+      ],
+      [
+        "d3",
+        "g3"
+      ],
+      [
+        "d3",
+        "f3"
+      ],
+      [
+        "d3",
+        "e3"
+      ],
+      [
+        "d3",
+        "d7"
+      ],
+      [
+        "d3",
+        "d6"
+      ],
+      [
+        "d3",
+        "d5"
+      ],
+      [
+        "d3",
+        "d4"
+      ],
+      [
+        "b5",
+        "c6"
+      ],
+      [
+        "b5",
+        "b6"
+      ]
+    ]
   },
   {
     "description": "Not En-passant, but in the same position on both sides",
-    "fen": "8/3r1k2/5n2/pPp1pP2/4P3/4Q3/P1PP2PP/RNB1KBNR w KQ - 1 22",
+    "fen": "8/3r1k2/5n2/pPp1pP2/4P3/4Q3/P1PP2PP/RNB1KBNR w KQ - 0 0",
     "check": [],
-    "moves": [["g1", "f3"], ["g1", "e2"], ["g1", "h3"], ["f1", "c4"],
-              ["f1", "d3"], ["f1", "e2"], ["e1", "d1"], ["e1", "f2"],
-              ["e1", "e2"], ["c1", "a3"], ["c1", "b2"], ["b1", "a3"],
-              ["b1", "c3"], ["h2", "h4"], ["h2", "h3"], ["g2", "g4"],
-              ["g2", "g3"], ["d2", "d4"], ["d2", "d3"], ["c2", "c4"],
-              ["c2", "c3"], ["a2", "a4"], ["a2", "a3"], ["e3", "c5"],
-              ["e3", "d4"], ["e3", "a3"], ["e3", "b3"], ["e3", "c3"],
-              ["e3", "d3"], ["e3", "e2"], ["e3", "f2"], ["e3", "h3"],
-              ["e3", "g3"], ["e3", "f3"], ["e3", "h6"], ["e3", "g5"],
-              ["e3", "f4"], ["b5", "b6"]]
+    "moves": [
+      [
+        "g1",
+        "f3"
+      ],
+      [
+        "g1",
+        "e2"
+      ],
+      [
+        "g1",
+        "h3"
+      ],
+      [
+        "f1",
+        "c4"
+      ],
+      [
+        "f1",
+        "d3"
+      ],
+      [
+        "f1",
+        "e2"
+      ],
+      [
+        "e1",
+        "d1"
+      ],
+      [
+        "e1",
+        "f2"
+      ],
+      [
+        "e1",
+        "e2"
+      ],
+      [
+        "c1",
+        "a3"
+      ],
+      [
+        "c1",
+        "b2"
+      ],
+      [
+        "b1",
+        "a3"
+      ],
+      [
+        "b1",
+        "c3"
+      ],
+      [
+        "h2",
+        "h4"
+      ],
+      [
+        "h2",
+        "h3"
+      ],
+      [
+        "g2",
+        "g4"
+      ],
+      [
+        "g2",
+        "g3"
+      ],
+      [
+        "d2",
+        "d4"
+      ],
+      [
+        "d2",
+        "d3"
+      ],
+      [
+        "c2",
+        "c4"
+      ],
+      [
+        "c2",
+        "c3"
+      ],
+      [
+        "a2",
+        "a4"
+      ],
+      [
+        "a2",
+        "a3"
+      ],
+      [
+        "e3",
+        "c5"
+      ],
+      [
+        "e3",
+        "d4"
+      ],
+      [
+        "e3",
+        "a3"
+      ],
+      [
+        "e3",
+        "b3"
+      ],
+      [
+        "e3",
+        "c3"
+      ],
+      [
+        "e3",
+        "d3"
+      ],
+      [
+        "e3",
+        "e2"
+      ],
+      [
+        "e3",
+        "f2"
+      ],
+      [
+        "e3",
+        "h3"
+      ],
+      [
+        "e3",
+        "g3"
+      ],
+      [
+        "e3",
+        "f3"
+      ],
+      [
+        "e3",
+        "h6"
+      ],
+      [
+        "e3",
+        "g5"
+      ],
+      [
+        "e3",
+        "f4"
+      ],
+      [
+        "b5",
+        "b6"
+      ]
+    ]
   }
 ]
