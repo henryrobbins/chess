@@ -362,6 +362,17 @@ let valid_piece_moves_tests =
       [ ("b5", "b6") ];
     valid_piece_moves_test "Knight move blocking castle" "e1"
       [ ("e1", "d2") ];
+    valid_piece_moves_test "Where the spot in between a king castle is under attack" "e1"
+      [ ("e1", "d1") ];
+    valid_piece_moves_test "Black King can castle to g8" "e8"
+      [ ("e8", "g8"); ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
+    valid_piece_moves_test "Black King cannot castle because rook has moved" "e8"
+    [ ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
+    valid_piece_moves_test "King cannot castle on either side because king has moved" "e1"
+      [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2")];
+    valid_piece_moves_test "Black king can’t castle; in check from rook" "e8"
+      [ ("e8", "e7"); ("e8", "f8") ];
+
   ]
 
 let fen_test name =
@@ -380,12 +391,12 @@ let suite =
   "test suite for chess"
   >::: List.flatten
          [
-           List.flatten board_tests;
+           (* List.flatten board_tests;
            command_tests;
-           valid_moves_tests;
+           valid_moves_tests; *)
            valid_piece_moves_tests;
-           is_check_tests;
-           (* fen_tests; *)
+           (* is_check_tests;
+           fen_tests; *)
          ]
 
 let _ = run_test_tt_main suite
