@@ -331,13 +331,25 @@ let is_check_test name =
   let check_state = is_check board in
   assert_equal check_state test.check ~printer:check_printer
 
+(* TODO: Finish writing these test cases in test_fens.json *)
+let in_progress =
+  [ "Knight move blocking castle";
+    "Where the spot in between a king castle is under attack";
+    "Black King can castle to g8";
+    "Black King cannot castle because rook has moved";
+    "King cannot castle on either side because king has moved";
+    "Black king can’t castle; in check from rook" ]
+
+let ready =
+  List.filter (fun x -> not (List.mem x in_progress))
+
 let is_check_tests =
   let test_name t = match t with name, _ -> name in
-  tests |> List.map test_name |> List.map is_check_test
+  tests |> List.map test_name |> ready |> List.map is_check_test
 
 let valid_moves_tests =
   let test_name t = match t with name, _ -> name in
-  tests |> List.map test_name |> List.map valid_moves_test
+  tests |> List.map test_name |> ready |> List.map valid_moves_test
 
 let valid_piece_moves_tests =
   [
@@ -391,12 +403,12 @@ let suite =
   "test suite for chess"
   >::: List.flatten
          [
-           (* List.flatten board_tests;
+           List.flatten board_tests;
            command_tests;
-           valid_moves_tests; *)
+           valid_moves_tests;
            valid_piece_moves_tests;
-           (* is_check_tests;
-           fen_tests; *)
+           is_check_tests;
+           fen_tests;
          ]
 
 let _ = run_test_tt_main suite

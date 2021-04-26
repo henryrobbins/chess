@@ -1368,31 +1368,31 @@
   },
   {
     "description": "Where the spot in between a king castle is under attack",
-    "fen": "rnb1kbnr/pp6/2ppp1pp/5pq1/2PP4/BPN3P1/P1Q1PP1P/R3KBNR w KQkq - 0 8",
+    "fen": "rnb1kbnr/pp6/2ppp1pp/5pq1/2PP4/BPN3P1/P1Q1PP1P/R3KBNR w KQkq - 0 0",
     "check": [],
     "moves": []
   },
   {
     "description": "Black King can castle to g8",
-    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ3/3PP3/3BB2N/PPP2PPP/RN2K2R b KQkq - 5 10",
+    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ3/3PP3/3BB2N/PPP2PPP/RN2K2R b KQkq - 0 0",
     "check": [],
     "moves": []
   },
   {
     "description": "Black King cannot castle because rook has moved",
-    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ2N/3PP3/3BB3/PPP2PPP/RN2K2R b KQq - 9 12",
+    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ2N/3PP3/3BB3/PPP2PPP/RN2K2R b KQq - 0 0",
     "check": [],
     "moves": []
   },
   {
     "description": "King cannot castle on either side because king has moved",
-    "fen": "r2k3r/p3p1b1/5n1p/1pp5/3nP3/3BB2N/PPP2PPP/RN2K2R w KQ - 0 18",
+    "fen": "r2k3r/p3p1b1/5n1p/1pp5/3nP3/3BB2N/PPP2PPP/RN2K2R w KQ - 0 0",
     "check": [],
     "moves": []
   },
   {
     "description": "Black king can’t castle; in check from rook",
-    "fen": "rnbqk2r/pppp2N1/5bPQ/3n4/4p3/3P4/PPP2PPP/RNB1KB1R b KQkq - 5 10",
+    "fen": "rnbqk2r/pppp2N1/5bPQ/3n4/4p3/3P4/PPP2PPP/RNB1KB1R b KQkq - 0 0",
     "check": [],
     "moves": []
   },
