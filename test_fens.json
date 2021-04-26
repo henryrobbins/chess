@@ -1397,6 +1397,12 @@
     "moves": []
   },
   {
+    "description": "Valid moves post castling",
+    "fen": "rnbq1rk1/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQ1RK1 w - - 0 0",
+    "check": [],
+    "moves": []
+  },
+  {
     "description": "Not En-passant, but in the same position on both sides",
     "fen": "8/3r1k2/5n2/pPp1pP2/4P3/4Q3/P1PP2PP/RNB1KBNR w KQ - 0 0",
     "check": [],

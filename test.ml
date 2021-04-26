@@ -338,7 +338,8 @@ let in_progress =
     "Black King can castle to g8";
     "Black King cannot castle because rook has moved";
     "King cannot castle on either side because king has moved";
-    "Black king can’t castle; in check from rook" ]
+    "Black king can’t castle; in check from rook";
+    "Valid moves post castling" ]
 
 let ready =
   List.filter (fun x -> not (List.mem x in_progress))
@@ -384,7 +385,8 @@ let valid_piece_moves_tests =
       [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2")];
     valid_piece_moves_test "Black king can’t castle; in check from rook" "e8"
       [ ("e8", "e7"); ("e8", "f8") ];
-
+    valid_piece_moves_test "Valid moves post castling" "g1"
+      [ ("g1", "h1") ];
   ]
 
 let fen_test name =

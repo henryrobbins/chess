@@ -53,7 +53,12 @@ let update_with_move b m =
         | None -> failwith "impossible"
         | Some p' -> p'
       in
-      if is_valid_move (sq, sq') b then move_piece b p sq' true else b
+      print_endline (sq ^ " " ^ sq');
+      print_game_state b;
+      print_endline (export_to_fen b);
+      print_endline ((active_pieces b) |> List.length |> string_of_int);
+      print_endline ((valid_moves b) |> List.length |> string_of_int);
+      if is_valid_move (sq, sq') b then (print_endline "true"; move_piece b p sq') true else (print_endline "false"; b)
 
 (** [command_line_turn] initiates a turn to be play chess via command
     line. *)
