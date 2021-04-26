@@ -361,7 +361,7 @@ let valid_piece_moves_tests =
       "Not En-passant, but in the same position on both sides" "b5"
       [ ("b5", "b6") ];
     valid_piece_moves_test "Knight move blocking castle" "e1"
-      [ ("e1", "d1") ];
+      [ ("e1", "d2") ];
     valid_piece_moves_test "Where the spot in between a king castle is under attack" "e1"
       [ ("e1", "d1") ];
     valid_piece_moves_test "Black King can castle to g8" "e8"
@@ -370,6 +370,8 @@ let valid_piece_moves_tests =
     [ ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
     valid_piece_moves_test "King cannot castle on either side because king has moved" "e1"
       [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2")];
+    valid_piece_moves_test "Black king can’t castle; in check from rook" "e8"
+      [ ("e8", "e7"); ("e8", "f8") ];
 
   ]
 

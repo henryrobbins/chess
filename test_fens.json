@@ -1391,6 +1391,12 @@
     "moves": []
   },
   {
+    "description": "Black king can’t castle; in check from rook",
+    "fen": "rnbqk2r/pppp2N1/5bPQ/3n4/4p3/3P4/PPP2PPP/RNB1KB1R b KQkq - 5 10",
+    "check": [],
+    "moves": []
+  },
+  {
     "description": "Not En-passant, but in the same position on both sides",
     "fen": "8/3r1k2/5n2/pPp1pP2/4P3/4Q3/P1PP2PP/RNB1KBNR w KQ - 0 0",
     "check": [],
