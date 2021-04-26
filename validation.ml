@@ -78,18 +78,17 @@ let invert_direction dir =
 (** [check_from_L color state] is a boolean indicating whether or not
     the player of [color] is in check from any knights during game state
     [state].*)
-let check_from_L color state =
-  let king_sq = square_of_king state color in
-  let check_sqs = iterator_from_sq king_sq L in
+let attack_from_L state sq =
+  let check_sqs = iterator_from_sq sq L in
   let rec search_squares sq_lst =
     match sq_lst with
     | [] -> false
-    | sq :: t -> (
-        match piece_of_square state sq with
+    | sq' :: t -> (
+        match piece_of_square state sq' with
         | None -> search_squares t
         | Some piece ->
             if
-              color_of_piece piece <> color
+              color_of_piece piece <> color_to_move state
               && id_of_piece piece = Knight
             then true
             else search_squares t )
@@ -121,7 +120,8 @@ let rec is_attacked_from_dir acc sq_lst state dir =
 let check_from_dir state dir =
   let color = color_to_move state in
   match dir with
-  | L -> check_from_L color state
+  | L ->
+      attack_from_L state (square_of_king state (color_to_move state))
   | _ ->
       let king_sq = square_of_king state color in
       let check_sqs = unblocked_squares state king_sq dir in
@@ -221,20 +221,19 @@ let valid_bishop_moves piece state : move list =
   in
   List.flatten moves
 
+let valid_knight_sq p b sq =
+  match piece_of_square b sq with
+  | None -> true
+  | Some p' -> color_of_piece p <> color_of_piece p'
+
 (** [valid_knight_moves p b] is the list of all valid moves (assuming no
     one is in check) for piece [p] with board state [b]. Requires: piece
     [p] is of id [N] *)
 let valid_knight_moves p b : move list =
   let sq = square_of_piece p in
-  let valid_knight_square sq' =
-    match piece_of_square b sq' with
-    | None -> true
-    | Some p' ->
-        if color_of_piece p <> color_of_piece p' then true else false
-  in
   let potential_squares = iterator_from_sq sq L in
   let valid_squares =
-    List.filter valid_knight_square potential_squares
+    List.filter (valid_knight_sq p b) potential_squares
   in
   List.map (fun x -> (sq, x)) valid_squares
 
@@ -303,17 +302,21 @@ let sq_not_attacked state dir_list sq =
   let rec attack_checker dir_list' =
     match dir_list' with
     | [] -> true
-    | h :: t ->
-        let squares = unblocked_squares state sq h in
-        if is_attacked_from_dir 1 squares state h then false
-        else attack_checker t
+    | h :: t -> (
+        match h with
+        | L ->
+            if attack_from_L state sq then false else attack_checker t
+        | _ ->
+            let squares = unblocked_squares state sq h in
+            if is_attacked_from_dir 1 squares state h then false
+            else attack_checker t )
   in
   attack_checker dir_list
 
 let cast_atk_dirs state =
   match color_to_move state with
-  | White -> [ N; NE; NW ]
-  | Black -> [ S; SE; SW ]
+  | White -> [ N; NE; NW; L ]
+  | Black -> [ S; SE; SW; L ]
 
 let castle_checked_spaces b side_id =
   let color = color_to_move b in
