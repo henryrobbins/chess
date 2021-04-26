@@ -120,8 +120,7 @@ let rec is_attacked_from_dir acc sq_lst state dir =
 let check_from_dir state dir =
   let color = color_to_move state in
   match dir with
-  | L ->
-      attack_from_L state (square_of_king state (color_to_move state))
+  | L -> attack_from_L state (square_of_king state color)
   | _ ->
       let king_sq = square_of_king state color in
       let check_sqs = unblocked_squares state king_sq dir in
