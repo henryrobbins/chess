@@ -281,7 +281,7 @@ let rec move_piece t piece sq' turn =
   in
   let color_to_move =
     if turn then switch_color (color_of_piece piece)
-    else color_of_piece piece
+    else t.color_to_move
   in
   let out_state =
     {
