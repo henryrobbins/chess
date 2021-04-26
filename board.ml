@@ -139,11 +139,6 @@ let switch_color = function White -> Black | Black -> White
 let extract_piece p_option : p =
   match p_option with None -> failwith "no piece" | Some p -> p
 
-(** [make_piece id t sq'] is a new piece of type [id] created at square
-    [sq'] in game state [t]. *)
-let make_piece id t sq' =
-  { id; color = color_to_move t; current_pos = Some sq' }
-
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
@@ -178,27 +173,12 @@ let get_ep_piece active_pieces color_to_move ep_sq =
     black to move). Requires: [piece] is a pawn.*)
 let promote_pawn t piece sq' =
   let color = color_of_piece piece in
-  let sq = square_of_piece piece in
   let id = id_of_piece piece in
   if id = Pawn && color = White && String.contains sq' '8' then
-    make_piece Queen t sq
+    { piece with id = Queen }
   else if id = Pawn && color = Black && String.contains sq' '1' then
-    make_piece Queen t sq
-  else make_piece id t sq
-
-let castle_rook t piece sq' =
-  let color = color_of_piece piece in
-  let sq = square_of_piece piece in
-  let id = id_of_piece piece in
-  if id = King && color = White && sq = "e1" && sq' = "g1" then
-    make_piece Rook t "f1"
-  else if id = King && color = White && sq = "e1" && sq' = "c1" then
-    make_piece Rook t "d1"
-  else if id = King && color = Black && sq = "e8" && sq' = "g8" then
-    make_piece Rook t "f8"
-  else if id = King && color = Black && sq = "e8" && sq' = "c8" then
-    make_piece Rook t "d8"
-  else make_piece id t sq
+    { piece with id = Queen }
+  else piece
 
 let w_castle_ks_viable t piece =
   if t.w_castle_ks = false then false
