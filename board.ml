@@ -88,6 +88,25 @@ let string_of_piece p =
       let p_color = String.uppercase_ascii (string_of_color p.color) in
       p_color ^ string_of_piece_id p.id
 
+let piece_value_map = 
+  [
+    (Pawn, 1);
+    (Knight, 3);
+    (Bishop, 3);
+    (Rook, 5);
+    (Queen, 9);
+  ]
+  
+(** [value_of_piece p] is the value of the piece [p] *)
+let value_of_piece p = List.assoc p.id piece_value_map
+let value_of_captured t color = 
+  let l = List.filter (fun x -> x.color = color) t.captured_pieces in 
+  let rec sum lst acc = 
+    match lst with 
+    | [] -> acc
+    | h :: tail -> sum tail (acc + value_of_piece h)
+  in sum l 0
+
 let color_to_move t = t.color_to_move
 
 let en_passant_sq t = t.en_passant

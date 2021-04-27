@@ -66,6 +66,10 @@ val string_of_piece_id : piece_type -> string
     If the piece is [None], it is a blank space. *)
 val string_of_piece : p option -> string
 
+(** [value_of_captured t] is the total value of all captured pieces
+    of [color] in game state [t]. *)
+val value_of_captured : t -> color -> int
+
 (** [color_to_move t] is the player that should move next in state [t]. *)
 val color_to_move : t -> color
 

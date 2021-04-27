@@ -172,6 +172,12 @@ let iterator_from_sq_test name s d expected : test =
   name >:: fun _ ->
   assert_equal expected (iterator_from_sq s d) ~printer:(pp_list Fun.id)
 
+let value_captured_test name color exp = 
+  name >:: fun _ -> 
+    let test = List.assoc name tests in
+    let board = init_from_fen test.fen in
+    assert_equal exp (value_of_captured board color)
+
 let board_tests =
   [
     (* move_pieces tests *)
@@ -214,6 +220,24 @@ let board_tests =
       iterator_from_sq_test "a1 -> L" "a1" L [ "b3"; "c2" ];
       iterator_from_sq_test "b5 -> L" "b5" L
         [ "c7"; "d6"; "d4"; "c3"; "a3"; "a7" ];
+      (* values_captured tests *)
+      (* TODO: implement captured pieces to be a non-empty list *)
+      value_captured_test "Black has pinned piece but is not in check"
+      Black 0;
+      value_captured_test "Black has pinned piece but is not in check"
+      White 0;
+      value_captured_test "Black in check East" Black 0;
+      value_captured_test "Black in check East" White 0;
+      value_captured_test "Various pieces can intercept" Black 0;
+      value_captured_test "Various pieces can intercept" White 0;
+      value_captured_test "Pawn attack and initial one or two space move" 
+      White 0;
+      value_captured_test "Pawn attack and initial one or two space move" 
+      Black 0;
+      value_captured_test "Double check, L and SE, Queen" Black 0;
+      value_captured_test "Double check, L and SE, Queen" White 0;
+      value_captured_test "Full range of pawn attack" Black 0;
+      value_captured_test "Full range of pawn attack" White 0;
     ];
   ]
 
