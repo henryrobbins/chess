@@ -172,8 +172,8 @@ let iterator_from_sq_test name s d expected : test =
   name >:: fun _ ->
   assert_equal expected (iterator_from_sq s d) ~printer:(pp_list Fun.id)
 
-let value_captured_test name color exp = 
-  name >:: fun _ -> 
+let value_captured_test name color exp =
+  name >:: fun _ ->
     let test = List.assoc name tests in
     let board = init_from_fen test.fen in
     assert_equal exp (value_of_captured board color)
@@ -230,9 +230,9 @@ let board_tests =
       value_captured_test "Black in check East" White 0;
       value_captured_test "Various pieces can intercept" Black 0;
       value_captured_test "Various pieces can intercept" White 0;
-      value_captured_test "Pawn attack and initial one or two space move" 
+      value_captured_test "Pawn attack and initial one or two space move"
       White 0;
-      value_captured_test "Pawn attack and initial one or two space move" 
+      value_captured_test "Pawn attack and initial one or two space move"
       Black 0;
       value_captured_test "Double check, L and SE, Queen" Black 0;
       value_captured_test "Double check, L and SE, Queen" White 0;
@@ -355,28 +355,13 @@ let is_check_test name =
   let check_state = is_check board in
   assert_equal check_state test.check ~printer:check_printer
 
-(* TODO: Finish writing these test cases in test_fens.json *)
-
-let in_progress =
-  [
-    "Knight move blocking castle";
-    "Where the spot in between a king castle is under attack";
-    "Black King can castle to g8";
-    "Black King cannot castle because rook has moved";
-    "King cannot castle on either side because king has moved";
-    "Black king can’t castle; in check from knight";
-    "Valid moves post castling for White";
-  ]
-
-let ready = List.filter (fun x -> not (List.mem x in_progress))
-
 let is_check_tests =
   let test_name t = match t with name, _ -> name in
-  tests |> List.map test_name |> ready |> List.map is_check_test
+  tests |> List.map test_name |> List.map is_check_test
 
 let valid_moves_tests =
   let test_name t = match t with name, _ -> name in
-  tests |> List.map test_name |> ready |> List.map valid_moves_test
+  tests |> List.map test_name |> List.map valid_moves_test
 
 let valid_piece_moves_tests =
   [
@@ -410,12 +395,12 @@ let valid_piece_moves_tests =
       "Black King cannot castle because rook has moved" "e8"
       [ ("e8", "f8"); ("e8", "d8") ];
     valid_piece_moves_test
-      "King cannot castle on either side because king has moved" "e1"
-      [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2") ];
+      "King cannot castle on either side because king has moved" "e8"
+      [ ("e8", "d8"); ("e8", "f8")];
     valid_piece_moves_test
-      "Black king can’t castle; in check from rook" "e8"
+      "Black king can’t castle; in check from knight" "e8"
       [ ("e8", "e7"); ("e8", "f8") ];
-    valid_piece_moves_test "Valid moves post castling" "g1"
+    valid_piece_moves_test "Valid moves post castling for White" "g1"
       [ ("g1", "h1") ];
   ]
 
