@@ -22,17 +22,5 @@ Robbins (hwr26), Anders Wikum (aew236).
     - calling state functions
     - offer draws
 
-# Installation Instructions (GUI)
-
-(OSX)
-- `brew install gtk+` 
-- `opam install lablgtk`
-
-(WSL):
-- `sudo apt update`
-- `sudo apt install libgtk2.0-dev` 
-- install an X-server like xming https://sourceforge.net/projects/xming/
-- launch xming
-- run `export DISPLAY=:0` in ubuntu to link the linux GUI to Xming
-
+## Helpful Links (GUI)
 First, check out the [Introduction to Gtk](https://ocaml.org/learn/tutorials/introduction_to_gtk.html) from OCaml. Next, there are two sources of relevant documentation: the [LablGTK API](https://garrigue.github.io/lablgtk/refdoc/index.html) and the [GTK+ 3 Reference Manual](https://developer.gnome.org/gtk3/).
