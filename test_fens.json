@@ -1961,5 +1961,22 @@
         "b6"
       ]
     ]
+  },
+  {
+    "description": "knight giving check must be captured",
+    "fen": "rnbqkbnr/ppppppp1/3N4/8/7p/8/PPPPPPPP/RNBQKB1R b KQkq - 0 0",
+    "check": [
+      "L"
+    ],
+    "moves": [
+      [
+        "c7",
+        "d6"
+      ],
+      [
+        "e7",
+        "d6"
+      ]
+    ]
   }
 ]
