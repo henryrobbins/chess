@@ -265,22 +265,23 @@ let rec move_piece t piece sq' turn =
       ep_piece;
     }
   in
-  move_rook_for_castle out_state piece sq
+  move_rook_for_castle out_state piece sq'
 
 (** [move_rook_for_castle t p s] is the state [t] where the rook has moved
     if the move of piece [p] to square [s] was a castle. Otherwise [t]. *)
-and move_rook_for_castle t piece sq =
+and move_rook_for_castle t piece sq' =
   match piece.id with
   | King ->
-      if is_castling_move piece sq then
-        let move_rook sq sq' =
-          move_piece t (sq |> piece_of_square t |> extract_piece) sq' false in
-        match sq with
+      if is_castling_move piece sq' then (
+        let move_rook r_sq r_sq' =
+          move_piece t (r_sq |> piece_of_square t |> extract_piece) r_sq' false
+        in
+        match sq' with
         | "c8" -> move_rook "a8" "d8"
         | "g8" -> move_rook "h8" "f8"
         | "c1" -> move_rook "a1" "d1"
         | "g1" -> move_rook "h1" "f1"
-        | _ -> failwith "impossible"
+        | _ -> failwith "impossible" )
       else t
   | _ -> t
 
