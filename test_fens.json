@@ -1364,43 +1364,448 @@
     "description": "Knight move blocking castle",
     "fen": "rnbqkb1r/pppppppp/8/8/8/2PP2nN/PP2PPBP/RNBQK2R w KQkq - 0 0",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "a2",
+        "a3"
+      ],
+      [
+        "a2",
+        "a4"
+      ],
+      [
+        "b2",
+        "b3"
+      ],
+      [
+        "b2",
+        "b4"
+      ],
+      [
+        "c3",
+        "c4"
+      ],
+      [
+        "d3",
+        "d4"
+      ],
+      [
+        "e2",
+        "e3"
+      ],
+      [
+        "e2",
+        "e4"
+      ],
+      [
+        "f2",
+        "f3"
+      ],
+      [
+        "f2",
+        "f4"
+      ],
+      [
+        "f2",
+        "g3"
+      ],
+      [
+        "b1",
+        "a3"
+      ],
+      [
+        "b1",
+        "d2"
+      ],
+      [
+        "c1",
+        "d2"
+      ],
+      [
+        "c1",
+        "e3"
+      ],
+      [
+        "c1",
+        "f4"
+      ],
+      [
+        "c1",
+        "g5"
+      ],
+      [
+        "c1",
+        "h6"
+      ],
+      [
+        "d1",
+        "d2"
+      ],
+      [
+        "d1",
+        "c2"
+      ],
+      [
+        "d1",
+        "b3"
+      ],
+      [
+        "d1",
+        "a4"
+      ],
+      [
+        "e1",
+        "d2"
+      ],
+      [
+        "g2",
+        "f1"
+      ],
+      [
+        "g2",
+        "f3"
+      ],
+      [
+        "g2",
+        "e4"
+      ],
+      [
+        "g2",
+        "d5"
+      ],
+      [
+        "g2",
+        "c6"
+      ],
+      [
+        "g2",
+        "b7"
+      ],
+      [
+        "h3",
+        "g1"
+      ],
+      [
+        "h3",
+        "f4"
+      ],
+      [
+        "h3",
+        "g5"
+      ],
+      [
+        "h2",
+        "g3"
+      ],
+      [
+        "h1",
+        "g1"
+      ],
+      [
+        "h1",
+        "f1"
+      ]
+    ]
   },
   {
     "description": "Where the spot in between a king castle is under attack",
-    "fen": "rnb1kbnr/pp6/2ppp1pp/5pq1/2PP4/BPN3P1/P1Q1PP1P/R3KBNR w KQkq - 0 0",
+    "fen": "r4bnr/1p1qk3/7p/4P1p1/8/8/8/R3K3 w Q - 1 21",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "e5",
+        "e6"
+      ],
+      [
+        "a1",
+        "a2"
+      ],
+      [
+        "a1",
+        "a3"
+      ],
+      [
+        "a1",
+        "a4"
+      ],
+      [
+        "a1",
+        "a5"
+      ],
+      [
+        "a1",
+        "a6"
+      ],
+      [
+        "a1",
+        "a7"
+      ],
+      [
+        "a1",
+        "a8"
+      ],
+      [
+        "a1",
+        "b1"
+      ],
+      [
+        "a1",
+        "c1"
+      ],
+      [
+        "a1",
+        "d1"
+      ],
+      [
+        "e1",
+        "e2"
+      ],
+      [
+        "e1",
+        "f2"
+      ],
+      [
+        "e1",
+        "f1"
+      ]
+    ]
   },
   {
     "description": "Black King can castle to g8",
-    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ3/3PP3/3BB2N/PPP2PPP/RN2K2R b KQkq - 0 0",
+    "fen": "4k2r/7R/4p3/8/8/8/2K5/8 b k - 1 26",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "h8",
+        "h7"
+      ],
+      [
+        "h8",
+        "g8"
+      ],
+      [
+        "h8",
+        "f8"
+      ],
+      [
+        "e6",
+        "e5"
+      ],
+      [
+        "e8",
+        "d8"
+      ],
+      [
+        "e8",
+        "f8"
+      ],
+      [
+        "e8",
+        "g8"
+      ]
+    ]
   },
   {
     "description": "Black King cannot castle because rook has moved",
-    "fen": "rnbqk2r/ppp1p1b1/5n1p/3pQ2N/3PP3/3BB3/PPP2PPP/RN2K2R b KQq - 0 0",
+    "fen": "4k2r/7R/8/8/8/8/8/2K5 b - - 6 31",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "h8",
+        "h7"
+      ],
+      [
+        "h8",
+        "g8"
+      ],
+      [
+        "h8",
+        "f8"
+      ],
+      [
+        "e6",
+        "e5"
+      ],
+      [
+        "e8",
+        "d8"
+      ],
+      [
+        "e8",
+        "f8"
+      ]
+    ]
   },
   {
     "description": "King cannot castle on either side because king has moved",
-    "fen": "r2k3r/p3p1b1/5n1p/1pp5/3nP3/3BB2N/PPP2PPP/RN2K2R w KQ - 0 0",
+    "fen": "r3k2r/R6R/8/8/8/5PP1/8/1K6 b - - 0 29",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "h8",
+        "h7"
+      ],
+      [
+        "h8",
+        "g8"
+      ],
+      [
+        "h8",
+        "f8"
+      ],
+      [
+        "e8",
+        "d8"
+      ],
+      [
+        "e8",
+        "f8"
+      ],
+      [
+        "a8",
+        "a7"
+      ],
+      [
+        "a8",
+        "b8"
+      ],
+      [
+        "a8",
+        "c8"
+      ],
+      [
+        "a8",
+        "d8"
+      ]
+    ]
   },
   {
-    "description": "Black king can’t castle; in check from rook",
+    "description": "Black king can’t castle; in check from knight",
     "fen": "rnbqk2r/pppp2N1/5bPQ/3n4/4p3/3P4/PPP2PPP/RNB1KB1R b KQkq - 0 0",
-    "check": [],
-    "moves": []
+    "check": [
+      "L"
+    ],
+    "moves": [
+      [
+        "f6",
+        "g7"
+      ],
+      [
+        "e8",
+        "f8"
+      ],
+      [
+        "e8",
+        "e7"
+      ]
+    ]
   },
   {
-    "description": "Valid moves post castling",
+    "description": "Valid moves post castling for White",
     "fen": "rnbq1rk1/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQ1RK1 w - - 0 0",
     "check": [],
-    "moves": []
+    "moves": [
+      [
+        "h2",
+        "h3"
+      ],
+      [
+        "h2",
+        "h4"
+      ],
+      [
+        "g3",
+        "g4"
+      ],
+      [
+        "e2",
+        "e3"
+      ],
+      [
+        "e2",
+        "e4"
+      ],
+      [
+        "d2",
+        "d3"
+      ],
+      [
+        "d2",
+        "d4"
+      ],
+      [
+        "c2",
+        "c3"
+      ],
+      [
+        "c2",
+        "c4"
+      ],
+      [
+        "b2",
+        "b3"
+      ],
+      [
+        "b2",
+        "b4"
+      ],
+      [
+        "a2",
+        "a3"
+      ],
+      [
+        "a2",
+        "a4"
+      ],
+      [
+        "g2",
+        "h1"
+      ],
+      [
+        "g2",
+        "h3"
+      ],
+      [
+        "f3",
+        "h4"
+      ],
+      [
+        "f3",
+        "g5"
+      ],
+      [
+        "f3",
+        "e5"
+      ],
+      [
+        "f3",
+        "d4"
+      ],
+      [
+        "f3",
+        "e1"
+      ],
+      [
+        "f1",
+        "e1"
+      ],
+      [
+        "g1",
+        "h1"
+      ],
+      [
+        "d1",
+        "e1"
+      ],
+      [
+        "b1",
+        "c3"
+      ],
+      [
+        "b1",
+        "a3"
+      ]
+    ]
   },
   {
     "description": "Not En-passant, but in the same position on both sides",

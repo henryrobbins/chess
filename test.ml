@@ -339,8 +339,8 @@ let in_progress =
     "Black King can castle to g8";
     "Black King cannot castle because rook has moved";
     "King cannot castle on either side because king has moved";
-    "Black king can’t castle; in check from rook";
-    "Valid moves post castling";
+    "Black king can’t castle; in check from knight";
+    "Valid moves post castling for White";
   ]
 
 let ready = List.filter (fun x -> not (List.mem x in_progress))
