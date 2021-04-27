@@ -33,6 +33,14 @@ let prompt_for_move b =
   in
   print_string ("\n" ^ color ^ " to move  > ")
 
+(** [prompt_for_promotion] returns the piece type a user specifies for pawn
+    promotion. *)
+let prompt_for_promotion () =
+  print_string ("\nEnter one of R, B, N, Q > ");
+  match read_line () with
+  | exception End_of_file -> failwith "no input"
+  | text -> piece_id_of_string text
+
 (** [print_invalid_move] prints an indication that a move was invalid. *)
 let print_invalid_move () =
   print_string "The move was invalid. Try again. \n"
@@ -53,12 +61,14 @@ let update_with_move b m =
         | None -> failwith "impossible"
         | Some p' -> p'
       in
-      print_endline (sq ^ " " ^ sq');
-      print_game_state b;
-      print_endline (export_to_fen b);
-      print_endline ((active_pieces b) |> List.length |> string_of_int);
-      print_endline ((valid_moves b) |> List.length |> string_of_int);
-      if is_valid_move (sq, sq') b then (print_endline "true"; move_piece b p sq') true else (print_endline "false"; b)
+      if is_valid_move (sq, sq') b then
+        let b' = (move_piece b p sq' true) in
+        if is_pawn_promotion b p sq' then
+          match piece_of_square b' sq' with
+          | None -> failwith "impossible"
+          | Some p' -> (promote_pawn b' p' (prompt_for_promotion ()))
+        else b'
+      else b
 
 (** [command_line_turn] initiates a turn to be play chess via command
     line. *)
@@ -83,7 +93,7 @@ let rec command_line_turn board =
           command_line_turn board
       | Malformed ->
           print_string "malformed \n";
-          command_line_turn board )
+          command_line_turn board)
 
 (** [command_line_main ()] initiates the game in command line mode. *)
 let command_line_main () = command_line_turn (init_game ())
@@ -126,7 +136,7 @@ let gui_main () =
       let r_text = GMisc.label ~packing:add_rank () in
       r_text#set_text (List.nth ranks i);
       r_text#set_justify `LEFT;
-      labels (i + 1) )
+      labels (i + 1))
   in
   labels 0;
 
@@ -152,7 +162,7 @@ let gui_main () =
             let add x = board_table#attach i (7 - j) x in
             let button = GButton.button ~label:id ~packing:add () in
             let btns = (r ^ c, button) :: btns in
-            button_matrix (r :: rt) ct i (j + 1) btns )
+            button_matrix (r :: rt) ct i (j + 1) btns)
   in
   let buttons = button_matrix files ranks 1 0 [] in
 
@@ -189,7 +199,7 @@ let gui_main () =
               let sq = r ^ c in
               let button = List.assoc sq buttons in
               button#set_label (string_of_piece (piece_of_square b sq));
-              update_board_aux (r :: rt) ct )
+              update_board_aux (r :: rt) ct)
     in
     update_board_aux files ranks
   in
@@ -207,7 +217,7 @@ let gui_main () =
             ( button#connect#pressed ==> fun () ->
               if !choose_from then (
                 from_sq := Some (r ^ c);
-                to_sq := None )
+                to_sq := None)
               else to_sq := Some (r ^ c);
 
               choose_from := not !choose_from;
@@ -236,14 +246,14 @@ let gui_main () =
                     else (
                       board := board';
                       update_board board';
-                      update_labels board' );
+                      update_labels board');
                     print_endline
                       "==================TESTING==================";
                     print_game_state board';
                     print_checkmate_stalemate board';
                     print_endline
                       "===========================================" );
-            set_callbacks (r :: rt) ct )
+            set_callbacks (r :: rt) ct)
   in
 
   set_callbacks files ranks;

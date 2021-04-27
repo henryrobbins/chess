@@ -29,7 +29,7 @@ let unblocked_squares state sq direction =
         | None -> valid_moves t (sq' :: move_lst)
         | Some p' ->
             if color <> color_of_piece p' then List.rev (sq' :: move_lst)
-            else List.rev move_lst )
+            else List.rev move_lst)
   in
   valid_moves potential_squares []
 
@@ -61,7 +61,7 @@ let attack_directions piece =
   | Pawn -> (
       match color_of_piece piece with
       | White -> [ NE; NW ]
-      | Black -> [ SE; SW ] )
+      | Black -> [ SE; SW ])
 
 let invert_direction dir =
   match dir with
@@ -91,7 +91,7 @@ let attack_from_L state sq =
               color_of_piece piece <> color_to_move state
               && id_of_piece piece = Knight
             then true
-            else search_squares t )
+            else search_squares t)
   in
   search_squares check_sqs
 
@@ -112,7 +112,7 @@ let rec is_attacked_from_dir acc sq_lst state dir =
                 && color_of_piece piece <> color_to_move state
           else
             List.mem (invert_direction dir) (attack_directions piece)
-            && color_of_piece piece <> color_to_move state )
+            && color_of_piece piece <> color_to_move state)
 
 (** [check_from_dir state dir] is a boolean indicating whether or not
     the current player is in check from direction [dir] during game
@@ -308,7 +308,7 @@ let sq_not_attacked state dir_list sq =
         | _ ->
             let squares = unblocked_squares state sq h in
             if is_attacked_from_dir 1 squares state h then false
-            else attack_checker t )
+            else attack_checker t)
   in
   attack_checker dir_list
 
@@ -326,7 +326,7 @@ let castle_checked_spaces b side_id =
     | Queen -> (
         match unblocked_squares b king_square W with
         | [ h1; h2; h3 ] -> [ h1; h2 ]
-        | _ -> failwith "impossible" )
+        | _ -> failwith "impossible")
     | _ -> failwith "impossible"
   in
   let dir_list = cast_atk_dirs b in
@@ -389,8 +389,8 @@ let potential_piece_moves p b : move list =
                     else intercepts
               in
               filter_moves move_lst move_filter
-          | _ -> filter_moves move_lst intercepts )
-      | NotCheck -> move_lst )
+          | _ -> filter_moves move_lst intercepts)
+      | NotCheck -> move_lst)
 
 let rec is_attacked same_color_piece sq_lst state color dir =
   match sq_lst with
@@ -414,7 +414,7 @@ let rec is_attacked same_color_piece sq_lst state color dir =
                       (attack_directions piece)
                     && color_of_piece piece <> color
                   then Some (piece', dir)
-                  else None ) ) )
+                  else None)))
 
 let directional_pins state color dir =
   let king_sq = square_of_king state color in
@@ -470,7 +470,7 @@ let is_valid_move move b : bool =
       | None -> false
       | Some p ->
           let valid = valid_moves b in
-          List.mem move valid )
+          List.mem move valid)
 
 let is_checkmate (b : Board.t) =
   match is_check b with
