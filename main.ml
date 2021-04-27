@@ -142,9 +142,9 @@ let gui_main () =
 
   (* construct captured pieces labels *)
   let black_captured = GMisc.label ~packing:vbox#add () in
-  black_captured#set_text "Black has Captured\n";
+  black_captured#set_text "Black has Captured (0):\n";
   let white_captured = GMisc.label ~packing:vbox#add () in
-  white_captured#set_text "White has Captured\n";
+  white_captured#set_text "White has Captured (0):\n";
   let turn = GMisc.label ~packing:vbox#add () in
   turn#set_text "White\n";
 
@@ -171,12 +171,14 @@ let gui_main () =
     let print_lists = partition_pieces_by_color (captured_pieces b) in
     match print_lists with
     | lst, lst' ->
+        let b_score = (value_of_captured b Black) |> string_of_int in
+        let w_score = (value_of_captured b White) |> string_of_int in
         let black_txt =
-          "Black has Captured\n" ^ string_of_string_list lst
+          "Black has Captured (" ^ w_score ^ "):\n" ^ string_of_string_list lst
         in
         black_captured#set_text black_txt;
         let white_txt =
-          "White has Captured\n" ^ string_of_string_list lst'
+          "White has Captured (" ^ b_score ^ "):\n" ^ string_of_string_list lst'
         in
         white_captured#set_text white_txt;
         let turn_txt =
