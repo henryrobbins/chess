@@ -1509,7 +1509,7 @@
   },
   {
     "description": "Where the spot in between a king castle is under attack",
-    "fen": "r4bnr/1p1qk3/7p/4P1p1/8/8/8/R3K3 w Q - 1 21",
+    "fen": "r4bnr/1p1qk3/7p/4P1p1/8/8/8/R3K3 w Q - 0 0",
     "check": [],
     "moves": [
       [
@@ -1572,7 +1572,7 @@
   },
   {
     "description": "Black King can castle to g8",
-    "fen": "4k2r/7R/4p3/8/8/8/2K5/8 b k - 1 26",
+    "fen": "4k2r/7R/4p3/8/8/8/2K5/8 b k - 0 0",
     "check": [],
     "moves": [
       [
@@ -1607,7 +1607,7 @@
   },
   {
     "description": "Black King cannot castle because rook has moved",
-    "fen": "4k2r/7R/8/8/8/8/8/2K5 b - - 6 31",
+    "fen": "4k2r/7R/8/8/8/8/8/2K5 b - - 0 0",
     "check": [],
     "moves": [
       [
@@ -1638,7 +1638,7 @@
   },
   {
     "description": "King cannot castle on either side because king has moved",
-    "fen": "r3k2r/R6R/8/8/8/5PP1/8/1K6 b - - 0 29",
+    "fen": "r3k2r/R6R/8/8/8/5PP1/8/1K6 b - - 0 0",
     "check": [],
     "moves": [
       [
