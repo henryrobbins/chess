@@ -22,8 +22,8 @@ val is_check : Board.t -> check_state
 (* TODO: consider getting rid of the check_state input (just make it
    NotCheck)*)
 
-(** [valid_piece_moves b p] is the list of all valid moves for
-    piece [p] give the current board state [b]. *)
+(** [valid_piece_moves b p] is the list of all valid moves for piece [p]
+    give the current board state [b]. *)
 val valid_piece_moves : Board.t -> Board.p -> move list
 
 (** [valid_moves color board] is the list of all valid moves in the

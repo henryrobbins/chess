@@ -333,16 +333,17 @@ let is_check_test name =
 
 (* TODO: Finish writing these test cases in test_fens.json *)
 let in_progress =
-  [ "Knight move blocking castle";
+  [
+    "Knight move blocking castle";
     "Where the spot in between a king castle is under attack";
     "Black King can castle to g8";
     "Black King cannot castle because rook has moved";
     "King cannot castle on either side because king has moved";
     "Black king can’t castle; in check from rook";
-    "Valid moves post castling" ]
+    "Valid moves post castling";
+  ]
 
-let ready =
-  List.filter (fun x -> not (List.mem x in_progress))
+let ready = List.filter (fun x -> not (List.mem x in_progress))
 
 let is_check_tests =
   let test_name t = match t with name, _ -> name in
@@ -375,15 +376,19 @@ let valid_piece_moves_tests =
       [ ("b5", "b6") ];
     valid_piece_moves_test "Knight move blocking castle" "e1"
       [ ("e1", "d2") ];
-    valid_piece_moves_test "Where the spot in between a king castle is under attack" "e1"
+    valid_piece_moves_test
+      "Where the spot in between a king castle is under attack" "e1"
       [ ("e1", "d1") ];
     valid_piece_moves_test "Black King can castle to g8" "e8"
       [ ("e8", "g8"); ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
-    valid_piece_moves_test "Black King cannot castle because rook has moved" "e8"
-    [ ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
-    valid_piece_moves_test "King cannot castle on either side because king has moved" "e1"
-      [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2")];
-    valid_piece_moves_test "Black king can’t castle; in check from rook" "e8"
+    valid_piece_moves_test
+      "Black King cannot castle because rook has moved" "e8"
+      [ ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
+    valid_piece_moves_test
+      "King cannot castle on either side because king has moved" "e1"
+      [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2") ];
+    valid_piece_moves_test
+      "Black king can’t castle; in check from rook" "e8"
       [ ("e8", "e7"); ("e8", "f8") ];
     valid_piece_moves_test "Valid moves post castling" "g1"
       [ ("g1", "h1") ];

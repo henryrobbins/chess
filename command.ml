@@ -60,4 +60,4 @@ let parse str board =
           is_valid_move_phrase t board;
           Move t
       | "quit" -> if t <> [] then raise Malformed else Quit
-      | _ -> raise Malformed )
+      | _ -> raise Malformed)
