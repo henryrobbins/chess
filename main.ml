@@ -33,6 +33,14 @@ let prompt_for_move b =
   in
   print_string ("\n" ^ color ^ " to move  > ")
 
+(** [prompt_for_promotion] returns the piece type a user specifies for pawn
+    promotion. *)
+let prompt_for_promotion () =
+  print_string ("\nEnter one of R, B, N, Q > ");
+  match read_line () with
+  | exception End_of_file -> failwith "no input"
+  | text -> piece_id_of_string text
+
 (** [print_invalid_move] prints an indication that a move was invalid. *)
 let print_invalid_move () =
   print_string "The move was invalid. Try again. \n"
@@ -54,8 +62,12 @@ let update_with_move b m =
         | Some p' -> p'
       in
       if is_valid_move (sq, sq') b then
-        (move_piece b p sq')
-          true
+        let b' = (move_piece b p sq' true) in
+        if is_pawn_promotion b p sq' then
+          match piece_of_square b' sq' with
+          | None -> failwith "impossible"
+          | Some p' -> (promote_pawn b' p' (prompt_for_promotion ()))
+        else b'
       else b
 
 (** [command_line_turn] initiates a turn to be play chess via command
