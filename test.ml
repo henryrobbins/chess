@@ -332,6 +332,7 @@ let is_check_test name =
   assert_equal check_state test.check ~printer:check_printer
 
 (* TODO: Finish writing these test cases in test_fens.json *)
+
 let in_progress =
   [
     "Knight move blocking castle";
@@ -378,12 +379,12 @@ let valid_piece_moves_tests =
       [ ("e1", "d2") ];
     valid_piece_moves_test
       "Where the spot in between a king castle is under attack" "e1"
-      [ ("e1", "d1") ];
+      [ ("e1", "e2"); ("e1", "f2"); ("e1", "f1") ];
     valid_piece_moves_test "Black King can castle to g8" "e8"
-      [ ("e8", "g8"); ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
+      [ ("e8", "d8"); ("e8", "f8"); ("e8", "g8") ];
     valid_piece_moves_test
       "Black King cannot castle because rook has moved" "e8"
-      [ ("e8", "f8"); ("e8", "f7"); ("e8", "d7") ];
+      [ ("e8", "f8"); ("e8", "d8") ];
     valid_piece_moves_test
       "King cannot castle on either side because king has moved" "e1"
       [ ("e1", "d1"); ("e1", "f1"); ("e1", "g1"); ("e1", "d2") ];
