@@ -136,9 +136,13 @@ let capture_piece t piece =
 (** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
 
-let extract_piece p_option : p =
-  match p_option with None -> failwith "no piece" | Some p -> p
+(** [extract_piece p_opt] returns [p] where [p_opt] is [Some p].
+    Requires: [p_opt] is not [None]. *)
+let extract_piece p_opt : p =
+  match p_opt with None -> failwith "no piece" | Some p -> p
 
+(** [get_en_passant sq sq'] returns [Some square] if the move from [sq] to
+    [sq'] creates an en passant square. Otherwise, returns [None]. *)
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
@@ -147,6 +151,7 @@ let get_en_passant sq sq' =
     Some (file ^ string_of_int ((rank + rank') / 2))
   else None
 
+(* TODO: There could be multiple en passant pieces though.. *)
 let get_ep_piece active_pieces color_to_move ep_sq =
   match ep_sq with
   | None -> None
@@ -167,81 +172,64 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-(** [promote_pawn t piece sq'] is a Queen after the player whose turn it
-    is in game state [t] can move the piece [piece] to the a square
-    [sq'] on either the 8th rank (if white to move), or the 1st rank (if
-    black to move). Requires: [piece] is a pawn.*)
-let promote_pawn t piece sq' =
-  let color = color_of_piece piece in
-  let id = id_of_piece piece in
-  if id = Pawn && color = White && String.contains sq' '8' then
-    { piece with id = Queen }
-  else if id = Pawn && color = Black && String.contains sq' '1' then
-    { piece with id = Queen }
-  else piece
+(** [castle_still_viable t p c side] is true iff the player of color [c] can
+    castle in the direction of [side] in game state [t] after the most recent
+    move involving piece [piece]. *)
+let castle_still_viable t piece color side =
+  match can_castle t color side with
+  | false -> false
+  | true ->
+    match id_of_piece piece with
+    | King -> not (color_of_piece piece = color)
+    | Rook -> (
+      if not (color_of_piece piece = color) then true
+      else
+        match (color, side) with
+        | White, King -> not (square_of_piece piece = "h1")
+        | White, Queen -> not (square_of_piece piece = "a1")
+        | Black, King -> not (square_of_piece piece = "h8")
+        | Black, Queen -> not (square_of_piece piece = "a8")
+        | _ -> failwith "impossible" )
+    | _ -> true
 
-let w_castle_ks_viable t piece =
-  if t.w_castle_ks = false then false
-  else if
-    id_of_piece piece = Rook
-    && color_of_piece piece = White
-    && square_of_piece piece = "h1"
-    || (id_of_piece piece = King && color_of_piece piece = White)
-  then false
-  else true
-
-let w_castle_qs_viable t piece =
-  if t.w_castle_qs = false then false
-  else if
-    id_of_piece piece = Rook
-    && color_of_piece piece = White
-    && square_of_piece piece = "a1"
-    || (id_of_piece piece = King && color_of_piece piece = White)
-  then false
-  else true
-
-let b_castle_ks_viable t piece =
-  if t.b_castle_ks = false then false
-  else if
-    id_of_piece piece = Rook
-    && color_of_piece piece = Black
-    && square_of_piece piece = "h8"
-    || (id_of_piece piece = King && color_of_piece piece = Black)
-  then false
-  else true
-
-let b_castle_qs_viable t piece =
-  if t.b_castle_qs = false then false
-  else if
-    id_of_piece piece = Rook
-    && color_of_piece piece = Black
-    && square_of_piece piece = "a8"
-    || (id_of_piece piece = King && color_of_piece piece = Black)
-  then false
-  else true
-
+(** [is_castling_move piece sq'] returns true iff moving piece [piece] to
+    square [sq'] is a castling move. *)
 let is_castling_move piece sq' =
   let sq = square_of_piece piece in
   abs (int_of_char sq'.[0] - int_of_char sq.[0]) = 2
 
-let extract_rook r_opt =
-  match r_opt with Some p -> p | None -> failwith "impossible"
+(** [capture_en_passant t p s] is the state [t] after piece [p] moves to
+    square [s] in which a piece captured via en passant is now captured and
+    no longer active. *)
+let capture_en_passant t piece sq' =
+  match t.en_passant with
+    | None -> t
+    | Some ep_sq ->
+        if piece.id = Pawn && sq' = ep_sq then
+          capture_piece t (t.ep_piece |> extract_piece)
+        else t
+
+(** [move_and_promote t p s] is [p] with current position now [s] and piece
+    type updated to Queen in the case it was a pawn reaching the other side
+    of the board. *)
+let move_and_promote t p sq' =
+  let p' =
+    match (p.color, p.id) with
+    | (White, Pawn) ->
+      if String.contains sq' '8' then { p with id = Queen } else p
+    | (Black, Pawn) ->
+      if String.contains sq' '1' then { p with id = Queen } else p
+    | _ -> p in
+  { p' with current_pos = Some sq' }
 
 let rec move_piece t piece sq' turn =
   let state =
     match piece_of_square t sq' with
     | Some p -> capture_piece t p
-    | None -> (
-        match t.en_passant with
-        | None -> t
-        | Some ep_sq ->
-            if piece.id = Pawn && sq' = ep_sq then
-              capture_piece t (t.ep_piece |> extract_piece)
-            else t )
+    | None -> capture_en_passant t piece sq'
   in
   let sq = square_of_piece piece in
-  let promoted = promote_pawn t piece sq' in
-  let piece' = { promoted with current_pos = Some sq' } in
+  let piece' = move_and_promote t piece sq' in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
@@ -269,37 +257,32 @@ let rec move_piece t piece sq' turn =
       board;
       active_pieces = active;
       color_to_move;
-      w_castle_ks = w_castle_ks_viable t piece;
-      w_castle_qs = w_castle_qs_viable t piece;
-      b_castle_ks = b_castle_ks_viable t piece;
-      b_castle_qs = b_castle_qs_viable t piece;
+      w_castle_ks = castle_still_viable t piece White King;
+      w_castle_qs = castle_still_viable t piece White Queen;
+      b_castle_ks = castle_still_viable t piece Black King;
+      b_castle_qs = castle_still_viable t piece Black Queen;
       en_passant;
       ep_piece;
     }
   in
+  move_rook_for_castle out_state piece sq
+
+(** [move_rook_for_castle t p s] is the state [t] where the rook has moved
+    if the move of piece [p] to square [s] was a castle. Otherwise [t]. *)
+and move_rook_for_castle t piece sq =
   match piece.id with
   | King ->
-      if is_castling_move piece sq' then
-        match sq' with
-        | "c8" ->
-            move_piece out_state
-              ("a8" |> piece_of_square out_state |> extract_rook)
-              "d8" false
-        | "g8" ->
-            move_piece out_state
-              ("h8" |> piece_of_square out_state |> extract_rook)
-              "f8" false
-        | "c1" ->
-            move_piece out_state
-              ("a1" |> piece_of_square out_state |> extract_rook)
-              "d1" false
-        | "g1" ->
-            move_piece out_state
-              ("h1" |> piece_of_square out_state |> extract_rook)
-              "f1" false
+      if is_castling_move piece sq then
+        let move_rook sq sq' =
+          move_piece t (sq |> piece_of_square t |> extract_piece) sq' false in
+        match sq with
+        | "c8" -> move_rook "a8" "d8"
+        | "g8" -> move_rook "h8" "f8"
+        | "c1" -> move_rook "a1" "d1"
+        | "g1" -> move_rook "h1" "f1"
         | _ -> failwith "impossible"
-      else out_state
-  | _ -> out_state
+      else t
+  | _ -> t
 
 (** [merge_singleton_and_list s lst rev] is the list of elements of list
     [lst] with the singleton [s] appended on. If [rev] is true, [s] is
