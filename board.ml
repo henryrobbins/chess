@@ -209,18 +209,27 @@ let capture_en_passant t piece sq' =
           capture_piece t (t.ep_piece |> extract_piece)
         else t
 
-(** [move_and_promote t p s] is [p] with current position now [s] and piece
-    type updated to Queen in the case it was a pawn reaching the other side
-    of the board. *)
-let move_and_promote t p sq' =
-  let p' =
+let promote_pawn t p id =
+  let p' = { p with id} in
+  let active =
+    active_pieces t
+    |> List.filter (fun x -> x <> p)
+    |> List.cons p'
+  in
+  let board =
+    match p.current_pos with
+    | None -> t.board
+    | Some sq -> t.board
+        |> List.remove_assoc sq
+        |> List.cons (sq, Some p')
+  in
+  {t with active_pieces=active; board}
+
+let is_pawn_promotion t p sq' =
     match (p.color, p.id) with
-    | (White, Pawn) ->
-      if String.contains sq' '8' then { p with id = Queen } else p
-    | (Black, Pawn) ->
-      if String.contains sq' '1' then { p with id = Queen } else p
-    | _ -> p in
-  { p' with current_pos = Some sq' }
+    | (White, Pawn) ->  sq'.[1] = '8'
+    | (Black, Pawn) ->  sq'.[1] = '1'
+    | _ -> false
 
 let rec move_piece t piece sq' turn =
   let state =
@@ -229,7 +238,11 @@ let rec move_piece t piece sq' turn =
     | None -> capture_en_passant t piece sq'
   in
   let sq = square_of_piece piece in
-  let piece' = move_and_promote t piece sq' in
+  let piece' =
+    if is_pawn_promotion t piece sq' then
+      { piece with id = Queen; current_pos = Some sq' }
+    else
+      { piece with current_pos = Some sq' } in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)

@@ -118,6 +118,15 @@ val capture_piece : t -> p -> t
     notation. *)
 val move_piece : t -> p -> square -> bool -> t
 
+(** [promote_pawn t p id] is the state [t] where the piece [p] is promoted to
+    piece type [id].
+    Requires: [id] is one of Rook, Bishop, Knight, or Queen. *)
+val promote_pawn : t -> p -> piece_type -> t
+
+(** [is_pawn_promotion t p s] is true if piece [p] is a pawn where square [s]
+    is on the other side of the board. *)
+val is_pawn_promotion : t -> p -> square -> bool
+
 (** [iterator_from_sq s d] is the list of the squares that can be
     reached by moving in direction [d] from square [s]. Requires: [s] is
     in standard algebraic notation. *)
