@@ -27,7 +27,8 @@ gui:
 	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && \
 	OCAMLRUNPARAM=b ./$(MAIN) gui
 
-bisect: clean bisect-test bisect-ppx-report html
+bisect: clean bisect-test
+		bisect-ppx-report html
 
 zip:
 	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md Makefile
