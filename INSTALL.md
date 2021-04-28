@@ -1,6 +1,7 @@
 ## Installation Instructions (GUI)
 
 (OSX)
+- Install [Homebrew](https://brew.sh/)
 - `brew install gtk+`
 - `opam install lablgtk`
 
