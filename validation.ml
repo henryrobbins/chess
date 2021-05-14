@@ -479,12 +479,6 @@ let valid_moves b : move list =
   in
   List.map (valid_piece_moves b) pieces |> List.flatten
 
-let valid_color_moves c b : move list =
-  let pieces =
-    active_pieces b |> List.filter (fun x -> color_of_piece x = c)
-  in
-  List.map (valid_piece_moves b) pieces |> List.flatten
-
 let is_valid_move move b : bool =
   match move with
   | sq, sq' -> (

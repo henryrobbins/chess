@@ -3,6 +3,7 @@ open GdkKeysyms
 open Board
 open Command
 open Validation
+open Unix
 
 (* Static parameters for the GUI *)
 let width = 300
@@ -33,10 +34,10 @@ let prompt_for_move b =
   in
   print_string ("\n" ^ color ^ " to move  > ")
 
-(** [prompt_for_promotion] returns the piece type a user specifies for pawn
-    promotion. *)
+(** [prompt_for_promotion] returns the piece type a user specifies for
+    pawn promotion. *)
 let prompt_for_promotion () =
-  print_string ("\nEnter one of R, B, N, Q > ");
+  print_string "\nEnter one of R, B, N, Q > ";
   match read_line () with
   | exception End_of_file -> failwith "no input"
   | text -> piece_id_of_string text
@@ -62,11 +63,11 @@ let update_with_move b m =
         | Some p' -> p'
       in
       if is_valid_move (sq, sq') b then
-        let b' = (move_piece b p sq' true) in
+        let b' = move_piece b p sq' true in
         if is_pawn_promotion b p sq' then
           match piece_of_square b' sq' with
           | None -> failwith "impossible"
-          | Some p' -> (promote_pawn b' p' (prompt_for_promotion ()))
+          | Some p' -> promote_pawn b' p' (prompt_for_promotion ())
         else b'
       else b
 
@@ -93,7 +94,7 @@ let rec command_line_turn board =
           command_line_turn board
       | Malformed ->
           print_string "malformed \n";
-          command_line_turn board)
+          command_line_turn board )
 
 (** [command_line_main ()] initiates the game in command line mode. *)
 let command_line_main () = command_line_turn (init_game ())
@@ -136,7 +137,7 @@ let gui_main () =
       let r_text = GMisc.label ~packing:add_rank () in
       r_text#set_text (List.nth ranks i);
       r_text#set_justify `LEFT;
-      labels (i + 1))
+      labels (i + 1) )
   in
   labels 0;
 
@@ -162,7 +163,7 @@ let gui_main () =
             let add x = board_table#attach i (7 - j) x in
             let button = GButton.button ~label:id ~packing:add () in
             let btns = (r ^ c, button) :: btns in
-            button_matrix (r :: rt) ct i (j + 1) btns)
+            button_matrix (r :: rt) ct i (j + 1) btns )
   in
   let buttons = button_matrix files ranks 1 0 [] in
 
@@ -171,14 +172,16 @@ let gui_main () =
     let print_lists = partition_pieces_by_color (captured_pieces b) in
     match print_lists with
     | lst, lst' ->
-        let b_score = (value_of_captured b Black) |> string_of_int in
-        let w_score = (value_of_captured b White) |> string_of_int in
+        let b_score = value_of_captured b Black |> string_of_int in
+        let w_score = value_of_captured b White |> string_of_int in
         let black_txt =
-          "Black has Captured (" ^ w_score ^ "):\n" ^ string_of_string_list lst
+          "Black has Captured (" ^ w_score ^ "):\n"
+          ^ string_of_string_list lst
         in
         black_captured#set_text black_txt;
         let white_txt =
-          "White has Captured (" ^ b_score ^ "):\n" ^ string_of_string_list lst'
+          "White has Captured (" ^ b_score ^ "):\n"
+          ^ string_of_string_list lst'
         in
         white_captured#set_text white_txt;
         let turn_txt =
@@ -201,7 +204,7 @@ let gui_main () =
               let sq = r ^ c in
               let button = List.assoc sq buttons in
               button#set_label (string_of_piece (piece_of_square b sq));
-              update_board_aux (r :: rt) ct)
+              update_board_aux (r :: rt) ct )
     in
     update_board_aux files ranks
   in
@@ -219,7 +222,7 @@ let gui_main () =
             ( button#connect#pressed ==> fun () ->
               if !choose_from then (
                 from_sq := Some (r ^ c);
-                to_sq := None)
+                to_sq := None )
               else to_sq := Some (r ^ c);
 
               choose_from := not !choose_from;
@@ -248,14 +251,14 @@ let gui_main () =
                     else (
                       board := board';
                       update_board board';
-                      update_labels board');
+                      update_labels board' );
                     print_endline
                       "==================TESTING==================";
                     print_game_state board';
                     print_checkmate_stalemate board';
                     print_endline
                       "===========================================" );
-            set_callbacks (r :: rt) ct)
+            set_callbacks (r :: rt) ct )
   in
 
   set_callbacks files ranks;
@@ -268,4 +271,4 @@ let () =
   match Sys.argv.(1) with
   | "command-line" -> command_line_main ()
   | "gui" -> gui_main ()
-  | _ -> failwith "invalid game type"
+  | _ -> failwith "TODO"

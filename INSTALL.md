@@ -13,6 +13,9 @@
 - launch xming
 - run `export DISPLAY=:0` in ubuntu to link the linux GUI to Xming
 
+(WORK IN PROGRESS)
+- `sudo apt-get install expect`
+
 ## OCaml Chess
 
 Welcome to Chess! To start, run `make build` to build the game from the source

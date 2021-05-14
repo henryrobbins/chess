@@ -48,6 +48,8 @@ type t = {
   b_castle_qs : bool;
   en_passant : square option;
   ep_piece : p option;
+  half_turns : int;
+  full_turns : int;
 }
 
 (** [rev_map lst] is association list [lst] with keys and values
@@ -89,23 +91,19 @@ let string_of_piece p =
       p_color ^ string_of_piece_id p.id
 
 let piece_value_map =
-  [
-    (Pawn, 1);
-    (Knight, 3);
-    (Bishop, 3);
-    (Rook, 5);
-    (Queen, 9);
-  ]
+  [ (Pawn, 1); (Knight, 3); (Bishop, 3); (Rook, 5); (Queen, 9) ]
 
 (** [value_of_piece p] is the value of the piece [p] *)
 let value_of_piece p = List.assoc p.id piece_value_map
+
 let value_of_captured t color =
   let l = List.filter (fun x -> x.color = color) t.captured_pieces in
   let rec sum lst acc =
     match lst with
     | [] -> acc
     | h :: tail -> sum tail (acc + value_of_piece h)
-  in sum l 0
+  in
+  sum l 0
 
 let color_to_move t = t.color_to_move
 
@@ -160,8 +158,8 @@ let switch_color = function White -> Black | Black -> White
 let extract_piece p_opt : p =
   match p_opt with None -> failwith "no piece" | Some p -> p
 
-(** [get_en_passant sq sq'] returns [Some square] if the move from [sq] to
-    [sq'] creates an en passant square. Otherwise, returns [None]. *)
+(** [get_en_passant sq sq'] returns [Some square] if the move from [sq]
+    to [sq'] creates an en passant square. Otherwise, returns [None]. *)
 let get_en_passant sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
@@ -191,64 +189,61 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-(** [castle_still_viable t p c side] is true iff the player of color [c] can
-    castle in the direction of [side] in game state [t] after the most recent
-    move involving piece [piece]. *)
+(** [castle_still_viable t p c side] is true iff the player of color [c]
+    can castle in the direction of [side] in game state [t] after the
+    most recent move involving piece [piece]. *)
 let castle_still_viable t piece color side =
   match can_castle t color side with
   | false -> false
-  | true ->
-    match id_of_piece piece with
-    | King -> not (color_of_piece piece = color)
-    | Rook -> (
-      if not (color_of_piece piece = color) then true
-      else
-        match (color, side) with
-        | White, King -> not (square_of_piece piece = "h1")
-        | White, Queen -> not (square_of_piece piece = "a1")
-        | Black, King -> not (square_of_piece piece = "h8")
-        | Black, Queen -> not (square_of_piece piece = "a8")
-        | _ -> failwith "impossible" )
-    | _ -> true
+  | true -> (
+      match id_of_piece piece with
+      | King -> not (color_of_piece piece = color)
+      | Rook -> (
+          if not (color_of_piece piece = color) then true
+          else
+            match (color, side) with
+            | White, King -> not (square_of_piece piece = "h1")
+            | White, Queen -> not (square_of_piece piece = "a1")
+            | Black, King -> not (square_of_piece piece = "h8")
+            | Black, Queen -> not (square_of_piece piece = "a8")
+            | _ -> failwith "impossible" )
+      | _ -> true )
 
-(** [is_castling_move piece sq'] returns true iff moving piece [piece] to
-    square [sq'] is a castling move. *)
+(** [is_castling_move piece sq'] returns true iff moving piece [piece]
+    to square [sq'] is a castling move. *)
 let is_castling_move piece sq' =
   let sq = square_of_piece piece in
   abs (int_of_char sq'.[0] - int_of_char sq.[0]) = 2
 
 (** [capture_en_passant t p s] is the state [t] after piece [p] moves to
-    square [s] in which a piece captured via en passant is now captured and
-    no longer active. *)
+    square [s] in which a piece captured via en passant is now captured
+    and no longer active. *)
 let capture_en_passant t piece sq' =
   match t.en_passant with
-    | None -> t
-    | Some ep_sq ->
-        if piece.id = Pawn && sq' = ep_sq then
-          capture_piece t (t.ep_piece |> extract_piece)
-        else t
+  | None -> t
+  | Some ep_sq ->
+      if piece.id = Pawn && sq' = ep_sq then
+        capture_piece t (t.ep_piece |> extract_piece)
+      else t
 
 let promote_pawn t p id =
-  let p' = { p with id} in
+  let p' = { p with id } in
   let active =
-    active_pieces t
-    |> List.filter (fun x -> x <> p)
-    |> List.cons p'
+    active_pieces t |> List.filter (fun x -> x <> p) |> List.cons p'
   in
   let board =
     match p.current_pos with
     | None -> t.board
-    | Some sq -> t.board
-        |> List.remove_assoc sq
-        |> List.cons (sq, Some p')
+    | Some sq ->
+        t.board |> List.remove_assoc sq |> List.cons (sq, Some p')
   in
-  {t with active_pieces=active; board}
+  { t with active_pieces = active; board }
 
 let is_pawn_promotion t p sq' =
-    match (p.color, p.id) with
-    | (White, Pawn) ->  sq'.[1] = '8'
-    | (Black, Pawn) ->  sq'.[1] = '1'
-    | _ -> false
+  match (p.color, p.id) with
+  | White, Pawn -> sq'.[1] = '8'
+  | Black, Pawn -> sq'.[1] = '1'
+  | _ -> false
 
 let rec move_piece t piece sq' turn =
   let state =
@@ -260,8 +255,8 @@ let rec move_piece t piece sq' turn =
   let piece' =
     if is_pawn_promotion t piece sq' then
       { piece with id = Queen; current_pos = Some sq' }
-    else
-      { piece with current_pos = Some sq' } in
+    else { piece with current_pos = Some sq' }
+  in
   let active =
     active_pieces state
     |> List.filter (fun x -> x <> piece)
@@ -283,6 +278,7 @@ let rec move_piece t piece sq' turn =
     if turn then switch_color (color_of_piece piece)
     else t.color_to_move
   in
+  let half_turns = if turn then t.half_turns + 1 else t.half_turns in
   let out_state =
     {
       state with
@@ -295,25 +291,30 @@ let rec move_piece t piece sq' turn =
       b_castle_qs = castle_still_viable t piece Black Queen;
       en_passant;
       ep_piece;
+      half_turns;
+      full_turns = t.full_turns + (half_turns / 2);
     }
   in
   move_rook_for_castle out_state piece sq'
 
-(** [move_rook_for_castle t p s] is the state [t] where the rook has moved
-    if the move of piece [p] to square [s] was a castle. Otherwise [t]. *)
+(** [move_rook_for_castle t p s] is the state [t] where the rook has
+    moved if the move of piece [p] to square [s] was a castle. Otherwise
+    [t]. *)
 and move_rook_for_castle t piece sq' =
   match piece.id with
   | King ->
-      if is_castling_move piece sq' then (
+      if is_castling_move piece sq' then
         let move_rook r_sq r_sq' =
-          move_piece t (r_sq |> piece_of_square t |> extract_piece) r_sq' false
+          move_piece t
+            (r_sq |> piece_of_square t |> extract_piece)
+            r_sq' false
         in
         match sq' with
         | "c8" -> move_rook "a8" "d8"
         | "g8" -> move_rook "h8" "f8"
         | "c1" -> move_rook "a1" "d1"
         | "g1" -> move_rook "h1" "f1"
-        | _ -> failwith "impossible" )
+        | _ -> failwith "impossible"
       else t
   | _ -> t
 
@@ -335,7 +336,7 @@ let zip_lists lst1 lst2 =
     | h :: t -> (
         match lst2 with
         | [] -> List.rev acc
-        | h' :: t' -> zip t t' ((h ^ h') :: acc))
+        | h' :: t' -> zip t t' ((h ^ h') :: acc) )
   in
   zip lst1 lst2 []
 
@@ -406,7 +407,7 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc)))
+            | Some s' -> gen_l_moves square t (s' :: acc) ) )
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
@@ -456,7 +457,7 @@ let extract_rank rank_str rk : (square * p option) list =
                 (acc @ gen_empty_squares rk skip_fls [])
             with exn ->
               let piece = gen_piece (Char.escaped x) rk h in
-              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc)))
+              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc) ) )
   in
   extract_aux 0 files []
 
@@ -479,14 +480,14 @@ let active_pieces_of_board b_assoc =
     | (sq, p) :: t -> (
         match p with
         | None -> a_piece_aux t a_pieces
-        | Some p' -> a_piece_aux t (p' :: a_pieces))
+        | Some p' -> a_piece_aux t (p' :: a_pieces) )
   in
   a_piece_aux b_assoc []
 
 let init_from_fen fen =
   let state_info_list = String.split_on_char ' ' fen in
   match state_info_list with
-  | [ b; ctp; cast; ep; _; _ ] ->
+  | [ b; ctp; cast; ep; ht; ft ] ->
       let en_passant = match ep with "-" -> None | x -> Some x in
       let color_to_move = color_of_string ctp in
       let active_pieces = active_pieces_of_board (extract_board b) in
@@ -501,6 +502,8 @@ let init_from_fen fen =
         b_castle_qs = String.contains cast 'q';
         en_passant;
         ep_piece = get_ep_piece active_pieces color_to_move en_passant;
+        half_turns = int_of_string ht;
+        full_turns = int_of_string ft;
       }
   | _ -> failwith "impossible"
 
@@ -523,7 +526,7 @@ let board_fen_string b =
           | Some p ->
               let id = piece_identifier p in
               if acc > 0 then string_of_int acc ^ id ^ it_files t 0
-              else id ^ it_files t 0)
+              else id ^ it_files t 0 )
     in
     it_files files 0
   in
@@ -568,7 +571,10 @@ let export_to_fen t =
   let castle_str = castle_fen_string t in
   let en_passant_str = en_passant_string t in
   board_str ^ " " ^ turn_str ^ " " ^ castle_str ^ " " ^ en_passant_str
-  ^ " 0 0"
+  ^ " "
+  ^ string_of_int t.half_turns
+  ^ " "
+  ^ string_of_int t.full_turns
 
 let init_game () =
   init_from_fen
@@ -613,8 +619,8 @@ let print_captured t =
   let print_lists = partition_pieces_by_color t.captured_pieces in
   match print_lists with
   | lst, lst' ->
-      let b_score = (value_of_captured t Black) |> string_of_int in
-      let w_score = (value_of_captured t White) |> string_of_int in
+      let b_score = value_of_captured t Black |> string_of_int in
+      let w_score = value_of_captured t White |> string_of_int in
       print_string ("White has Captured (" ^ b_score ^ "): ");
       print_string (string_of_string_list lst' ^ "\n");
       print_string ("\n" ^ "Black has Captured (" ^ w_score ^ "): ");
