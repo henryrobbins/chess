@@ -4,6 +4,7 @@
 - Install [Homebrew](https://brew.sh/)
 - `brew install gtk+`
 - `opam install lablgtk`
+- `brew inttall stockfish`
 
 (WSL):
 - `sudo apt update`
