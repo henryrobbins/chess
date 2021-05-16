@@ -6,3 +6,4 @@
 #load "board.cmo";;
 #load "command.cmo";;
 #load "validation.cmo";;
+#load "engine.cmo";;
