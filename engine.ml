@@ -1,4 +1,5 @@
 let parse_engine_response s =
+  print_endline s;
   let strs = String.split_on_char ' ' s in
   match strs with
   | [ "bestmove"; move; "ponder"; next_move ] -> move
@@ -20,7 +21,9 @@ let best_move fen =
   in
   let bash_fen = "'" ^ fen ^ "'" in
   let stdout, stdin, stderr =
-    Unix.open_process_full ("sh ./test_uci_linux.sh " ^ bash_fen) [||]
+    Unix.open_process_full ("sh ./query_stockfish.sh " ^ bash_fen) [||]
   in
   close_out stdin;
   recover_output stdout |> parse_engine_response |> extract_engine_move
+
+(* bestmove e7d6 ponder c2c4 *)
