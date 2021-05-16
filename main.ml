@@ -4,6 +4,7 @@ open Board
 open Command
 open Validation
 open Unix
+open Engine
 
 (* Static parameters for the GUI *)
 let width = 300
@@ -106,7 +107,7 @@ let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
   ignore (signal ~callback)
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main () =
+let gui_main comp_col =
   GtkMain.Main.init () |> ignore;
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -231,7 +232,7 @@ let gui_main () =
                 (* get current from/to square and buttons *)
                 let a =
                   match !from_sq with
-                  | None -> failwith "no from sqaure selected"
+                  | None -> failwith "no from square selected"
                   | Some sq -> sq
                 in
                 let b =
@@ -245,7 +246,12 @@ let gui_main () =
                 match p with
                 | None -> print_endline "impossible"
                 | Some p ->
-                    let board' = update_with_move !board (a, b) in
+                    let move =
+                      if color_to_move !board = comp_col then
+                        best_move (export_to_fen !board)
+                      else (a, b)
+                    in
+                    let board' = update_with_move !board move in
                     if !board = board' then
                       print_endline "invalid move."
                     else (
@@ -260,7 +266,6 @@ let gui_main () =
                       "===========================================" );
             set_callbacks (r :: rt) ct )
   in
-
   set_callbacks files ranks;
 
   window#show ();
@@ -270,5 +275,5 @@ let gui_main () =
 let () =
   match Sys.argv.(1) with
   | "command-line" -> command_line_main ()
-  | "gui" -> gui_main ()
+  | "gui" -> gui_main Black
   | _ -> failwith "TODO"
