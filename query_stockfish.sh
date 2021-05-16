@@ -4,10 +4,10 @@
 # NOTE: only supports linux and OSX (darwin)
 OS=`uname`
 
-if [ $OS = "Linux" ]; then
-    path="./stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2"
+if [ $OS = "Darwin" ]; then
+    path="/usr/local/Cellar/stockfish/13/bin/stockfish"   
 else
-    path="/usr/local/Cellar/stockfish/13/bin/stockfish"
+    path="./stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2"
 fi
 
 expect << EOF
