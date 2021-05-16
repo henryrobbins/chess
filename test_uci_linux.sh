@@ -14,7 +14,7 @@
 
     send "go depth 15 \r"
 
-    expect -timeout 2  readyok
+    expect -timeout 3  readyok
 EOF
 
 
