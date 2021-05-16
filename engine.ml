@@ -20,7 +20,7 @@ let best_move fen =
   in
   let bash_fen = "'" ^ fen ^ "'" in
   let stdout, stdin, stderr =
-    Unix.open_process_full ("sh ./test_uci_mac.sh " ^ bash_fen) [||]
+    Unix.open_process_full ("sh ./test_uci_linux.sh " ^ bash_fen) [||]
   in
   close_out stdin;
   print_endline (recover_output stdout);
