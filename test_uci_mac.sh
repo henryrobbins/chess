@@ -1,6 +1,5 @@
 #!/bin/bash
-echo $1
-    expect << EOF
+/usr/bin/expect << EOF
     spawn stockfish
 
     expect -timeout 1  Linscott

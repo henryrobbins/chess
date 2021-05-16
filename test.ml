@@ -412,7 +412,7 @@ let fen_test name =
   (* let fen'' = export_to_fen board' in *)
   name ^ "a" >:: fun _ -> assert_equal fen fen' ~printer:(fun x -> x)
 
-let fen_tests =
+let fen_tests=
   let test_name t = match t with name, _ -> name in
   tests |> List.map test_name |> List.map fen_test
 
