@@ -16,14 +16,22 @@ let best_move fen =
     in
     match loop [] with
     | [] -> failwith "stockfish init failure"
-    | h :: t -> h
+    | h :: t -> h :: t
   in
   let bash_fen = "'" ^ fen ^ "'" in
   let stdout, stdin, stderr =
-    Unix.open_process_full ("sh ./test_uci_linux.sh " ^ bash_fen) [||]
+    Unix.open_process_full ("sh ./test_uci_mac.sh " ^ bash_fen) [||]
   in
   close_out stdin;
-  print_endline (recover_output stdout);
-  recover_output stdout |> parse_engine_response |> extract_engine_move
+
+  let rec print_list lst =
+    match lst with
+    | [] -> ()
+    | h :: t -> print_endline h; print_list t; in
+
+  print_list (recover_output stdout);
+  print_endline (string_of_int (List.length (recover_output stdout)));
+
+  (* recover_output stdout |> parse_engine_response |> extract_engine_move *)
 
 (* bestmove e7d6 ponder c2c4 *)
