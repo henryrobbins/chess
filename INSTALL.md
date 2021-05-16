@@ -5,6 +5,9 @@
 - `brew install gtk+`
 - `opam install lablgtk`
 - `brew install stockfish`
+- TODO: Verify that the install location is `/usr/local/Cellar/stockfish/13`
+  with `brew info stockfish`. The location of the stocckfish executable is
+  `/usr/local/Cellar/stockfish/13/bin/stockfish`.
 
 (WSL):
 - `sudo apt update`
@@ -13,8 +16,6 @@
 - install an X-server like xming https://sourceforge.net/projects/xming/
 - launch xming
 - run `export DISPLAY=:0` in ubuntu to link the linux GUI to Xming
-
-(WORK IN PROGRESS)
 - `sudo apt-get install expect`
 
 ## OCaml Chess

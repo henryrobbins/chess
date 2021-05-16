@@ -1,6 +1,6 @@
 #!/bin/bash
-/usr/bin/expect << EOF
-    spawn stockfish
+expect << EOF
+    spawn /usr/local/Cellar/stockfish/13/bin/stockfish
 
     expect -timeout 1  Linscott
 
@@ -14,7 +14,5 @@
 
     send "go depth 15 \r"
 
-    expect -timeout 3  readyok
+    expect -timeout 2 readyok
 EOF
-
-
