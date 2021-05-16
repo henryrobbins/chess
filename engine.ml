@@ -21,9 +21,10 @@ let best_move fen =
   in
   let bash_fen = "'" ^ fen ^ "'" in
   let stdout, stdin, stderr =
-    Unix.open_process_full ("sh ./test_uci_mac.sh " ^ bash_fen) [||]
+    Unix.open_process_full ("sh ./test_uci_linux.sh " ^ bash_fen) [||]
   in
   close_out stdin;
+  print_endline (recover_output stdout);
   recover_output stdout |> parse_engine_response |> extract_engine_move
 
 (* bestmove e7d6 ponder c2c4 *)
