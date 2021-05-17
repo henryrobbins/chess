@@ -50,8 +50,7 @@ type t = {
   ep_piece : p option;
   half_turns : int;
   full_turns : int;
-
-  puzzle_history: bool list;
+  puzzle_history : bool list;
 }
 
 (** [rev_map lst] is association list [lst] with keys and values
@@ -155,18 +154,19 @@ let puzzle_streak t =
   let rec helper p acc =
     match p with
     | [] -> acc
-    | h :: t -> if h then helper t (acc + 1) else helper t acc in
+    | h :: t -> if h then helper t (acc + 1) else helper t acc
+  in
   helper ph 0
 
 (** [failed_count t] is the number of failed puzzles (i.e. the number of
     "strikes") that the player has in state t. *)
 let failed_count t = (puzzle_history t |> List.length) - puzzle_streak t
 
-(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given that
-    the user moved piece [p] to square [m]. If [m] was the optimal square to
-    move to, [puz] advances to its next state, if there is one. If [puz] does
-      not have a next state, [puzzle_step] is true. If [m] was not the optimal
-    square, then [puzzle_step] is false. *)
+(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
+    that the user moved piece [p] to square [m]. If [m] was the optimal
+    square to move to, [puz] advances to its next state, if there is
+    one. If [puz] does not have a next state, [puzzle_step] is true. If
+    [m] was not the optimal square, then [puzzle_step] is false. *)
 let rec puzzle_move puz p m = failwith "Unimplemented"
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
@@ -323,7 +323,7 @@ let rec move_piece t piece sq' turn =
       en_passant;
       ep_piece;
       half_turns;
-      full_turns = t.full_turns + (half_turns / 2);
+      full_turns = 1 + (half_turns / 2);
     }
   in
   move_rook_for_castle out_state piece sq'
@@ -608,13 +608,12 @@ let export_to_fen t =
   ^ " "
   ^ string_of_int t.full_turns
 
-
-(** [compare_move cur opt] is a boolean representing whether or not the current
-    player who's turn it is to move made the best possible move. *)
+(** [compare_move cur opt] is a boolean representing whether or not the
+    current player who's turn it is to move made the best possible move. *)
 let compare_move cur opt = failwith "Unimplemented"
 
-(** [init_puzzle p] is the game state initialized from puzzle [p]. Requires:
-    [p] is an FEN string. *)
+(** [init_puzzle p] is the game state initialized from puzzle [p].
+    Requires: [p] is an FEN string. *)
 let init_puzzle p = init_from_fen p
 
 let init_game () =
