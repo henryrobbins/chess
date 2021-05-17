@@ -1,4 +1,5 @@
 open GMain
+open Gdk
 open GdkKeysyms
 open Board
 open Command
@@ -7,9 +8,8 @@ open Unix
 open Engine
 
 (* Static parameters for the GUI *)
-let width = 300
-
-let height = 300
+let width = 600
+let height = 650
 
 (** [string_of_string_list lst] TODO *)
 let string_of_string_list lst =
@@ -97,6 +97,22 @@ let rec command_line_turn board =
           print_string "malformed \n";
           command_line_turn board )
 
+(** [sprite_pixbuf dim id] is the pixbuf containing the image of the sprite for
+    the piece identifier [id] scaled to [dim]. *)
+let sprite_pixbuf dim id =
+  let pixbuf = GdkPixbuf.from_file ("assets/" ^ id ^ ".png") in
+  let pixbuf' = GdkPixbuf.create ~width:dim ~height:dim ~has_alpha:true () in
+  GdkPixbuf.scale ~dest:pixbuf' ~width:dim ~height:dim pixbuf;
+  pixbuf'
+
+(** [update_button_image btn id] updates the button [btn] with the correct
+    chess piece sprite for the given identifier [id]. *)
+let update_button_image button id =
+  if id = "  " then button#unset_image ()
+  else
+    GMisc.image ~pixbuf:(sprite_pixbuf 45 id)
+                ~packing:button#set_image () |> ignore
+
 (** [command_line_main ()] initiates the game in command line mode. *)
 let command_line_main () = command_line_turn (init_game ())
 
@@ -119,7 +135,8 @@ let gui_main comp_col =
   let board_table =
     GPack.table ~packing:(add 0 0) () ~homogeneous:true
   in
-  let vbox = GPack.vbox ~packing:(add 0 1) () in
+  let captured_table = GPack.table ~packing:(add 0 1) () ~homogeneous:true in
+  let turn = GMisc.label~packing:(add 0 2) () in
 
   (* state variables *)
   let board = ref (init_game ()) in
@@ -143,11 +160,12 @@ let gui_main comp_col =
   labels 0;
 
   (* construct captured pieces labels *)
-  let black_captured = GMisc.label ~packing:vbox#add () in
-  black_captured#set_text "Black has Captured (0):\n";
-  let white_captured = GMisc.label ~packing:vbox#add () in
-  white_captured#set_text "White has Captured (0):\n";
-  let turn = GMisc.label ~packing:vbox#add () in
+  let black_captured = GMisc.label
+    ~packing:(fun(x) -> captured_table#attach 0 0 x) () in
+  black_captured#set_text "0";
+  let white_captured = GMisc.label
+    ~packing:(fun(x) -> captured_table#attach 0 1 x) () in
+  white_captured#set_text "0";
   turn#set_text "White\n";
 
   (* construct button matrix *)
@@ -162,7 +180,20 @@ let gui_main comp_col =
         | c :: ct ->
             let id = string_of_piece (piece_of_square !board (r ^ c)) in
             let add x = board_table#attach i (7 - j) x in
-            let button = GButton.button ~label:id ~packing:add () in
+            let button = GButton.button ~packing:add () in
+
+            let pixbuf =
+              if (i + j) mod 2 = 1 then GdkPixbuf.from_file ("assets/dark_sq.png")
+              else GdkPixbuf.from_file ("assets/light_sq.png") in
+            let pixbuf' = GdkPixbuf.create ~width:60 ~height:60 ~has_alpha:true () in
+            GdkPixbuf.scale ~dest:pixbuf' ~width:60 ~height:60 pixbuf;
+            GMisc.image ~pixbuf:pixbuf' ~packing:add () |> ignore;
+            update_button_image button id;
+
+            button#set_border_width 0;
+            button#set_focus_on_click false;
+            button#set_relief `NONE;
+
             let btns = (r ^ c, button) :: btns in
             button_matrix (r :: rt) ct i (j + 1) btns )
   in
@@ -173,24 +204,26 @@ let gui_main comp_col =
     let print_lists = partition_pieces_by_color (captured_pieces b) in
     match print_lists with
     | lst, lst' ->
-        let b_score = value_of_captured b Black |> string_of_int in
-        let w_score = value_of_captured b White |> string_of_int in
-        let black_txt =
-          "Black has Captured (" ^ w_score ^ "):\n"
-          ^ string_of_string_list lst
-        in
-        black_captured#set_text black_txt;
-        let white_txt =
-          "White has Captured (" ^ b_score ^ "):\n"
-          ^ string_of_string_list lst'
-        in
-        white_captured#set_text white_txt;
-        let turn_txt =
-          match color_to_move b with
-          | White -> "White"
-          | Black -> "Black"
-        in
-        turn#set_text turn_txt
+      black_captured#set_text (value_of_captured b White |> string_of_int);
+      white_captured#set_text (value_of_captured b Black |> string_of_int);
+
+      let rec add_captured_pieces i j pieces =
+        match pieces with
+        | [] -> ()
+        | h :: t ->
+          GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
+                      ~packing:(fun(x) -> captured_table#attach j i x) ()
+                      |> ignore;
+          add_captured_pieces i (j+1) t; in
+      add_captured_pieces 0 1 (List.rev lst);
+      add_captured_pieces 1 1 (List.rev lst');
+
+      let turn_txt =
+        match color_to_move b with
+        | White -> "White"
+        | Black -> "Black"
+      in
+      turn#set_text turn_txt
   in
 
   (* update board *)
@@ -204,7 +237,8 @@ let gui_main comp_col =
           | c :: ct ->
               let sq = r ^ c in
               let button = List.assoc sq buttons in
-              button#set_label (string_of_piece (piece_of_square b sq));
+              let id = (string_of_piece (piece_of_square b sq)) in
+              update_button_image button id;
               update_board_aux (r :: rt) ct )
     in
     update_board_aux files ranks
@@ -246,12 +280,12 @@ let gui_main comp_col =
                 match p with
                 | None -> print_endline "impossible"
                 | Some p ->
-                    let move =
-                      if color_to_move !board = comp_col then
+                    let move = ((a, b), None)
+                      (* if color_to_move !board = comp_col then
                         best_move (export_to_fen !board)
-                      else (a, b)
+                      else ((a, b), None) *)
                     in
-                    let board' = update_with_move !board move in
+                    let board' = update_with_move !board (fst move) in
                     if !board = board' then
                       print_endline "invalid move."
                     else (
