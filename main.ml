@@ -9,6 +9,7 @@ open Engine
 
 (* Static parameters for the GUI *)
 let width = 600
+
 let height = 650
 
 (** [string_of_string_list lst] TODO *)
@@ -97,21 +98,24 @@ let rec command_line_turn board =
           print_string "malformed \n";
           command_line_turn board )
 
-(** [sprite_pixbuf dim id] is the pixbuf containing the image of the sprite for
-    the piece identifier [id] scaled to [dim]. *)
+(** [sprite_pixbuf dim id] is the pixbuf containing the image of the
+    sprite for the piece identifier [id] scaled to [dim]. *)
 let sprite_pixbuf dim id =
   let pixbuf = GdkPixbuf.from_file ("assets/" ^ id ^ ".png") in
-  let pixbuf' = GdkPixbuf.create ~width:dim ~height:dim ~has_alpha:true () in
+  let pixbuf' =
+    GdkPixbuf.create ~width:dim ~height:dim ~has_alpha:true ()
+  in
   GdkPixbuf.scale ~dest:pixbuf' ~width:dim ~height:dim pixbuf;
   pixbuf'
 
-(** [update_button_image btn id] updates the button [btn] with the correct
-    chess piece sprite for the given identifier [id]. *)
+(** [update_button_image btn id] updates the button [btn] with the
+    correct chess piece sprite for the given identifier [id]. *)
 let update_button_image button id =
   if id = "  " then button#unset_image ()
   else
-    GMisc.image ~pixbuf:(sprite_pixbuf 45 id)
-                ~packing:button#set_image () |> ignore
+    GMisc.image ~pixbuf:(sprite_pixbuf 45 id) ~packing:button#set_image
+      ()
+    |> ignore
 
 (** [command_line_main ()] initiates the game in command line mode. *)
 let command_line_main () = command_line_turn (init_game ())
@@ -135,13 +139,17 @@ let gui_main computer fen =
   let board_table =
     GPack.table ~packing:(add 0 0) () ~homogeneous:true
   in
-  let captured_table = GPack.table ~packing:(add 0 1) () ~homogeneous:true in
-  let turn = GMisc.label~packing:(add 0 2) () in
-  let export_fen = GEdit.entry~packing:(add 0 3) () in
+  let captured_table =
+    GPack.table ~packing:(add 0 1) () ~homogeneous:true
+  in
+  let turn = GMisc.label ~packing:(add 0 2) () in
+  let export_fen = GEdit.entry ~packing:(add 0 3) () in
   export_fen#set_editable false;
 
   (* state variables *)
-  let board = ref (try init_from_fen fen with | Failure _ -> init_game ()) in
+  let board =
+    ref (try init_from_fen fen with Failure _ -> init_game ())
+  in
   let choose_from = ref true in
   let from_sq = ref None in
   let to_sq = ref None in
@@ -162,11 +170,13 @@ let gui_main computer fen =
   labels 0;
 
   (* construct captured pieces labels *)
-  let black_captured = GMisc.label
-    ~packing:(fun(x) -> captured_table#attach 0 0 x) () in
+  let black_captured =
+    GMisc.label ~packing:(fun x -> captured_table#attach 0 0 x) ()
+  in
   black_captured#set_text "0";
-  let white_captured = GMisc.label
-    ~packing:(fun(x) -> captured_table#attach 0 1 x) () in
+  let white_captured =
+    GMisc.label ~packing:(fun x -> captured_table#attach 0 1 x) ()
+  in
   white_captured#set_text "0";
   (* TODO: Remove this eventually *)
   turn#set_text (string_of_color (color_to_move !board));
@@ -187,9 +197,13 @@ let gui_main computer fen =
             let button = GButton.button ~packing:add () in
 
             let pixbuf =
-              if (i + j) mod 2 = 1 then GdkPixbuf.from_file ("assets/dark_sq.png")
-              else GdkPixbuf.from_file ("assets/light_sq.png") in
-            let pixbuf' = GdkPixbuf.create ~width:60 ~height:60 ~has_alpha:true () in
+              if (i + j) mod 2 = 1 then
+                GdkPixbuf.from_file "assets/dark_sq.png"
+              else GdkPixbuf.from_file "assets/light_sq.png"
+            in
+            let pixbuf' =
+              GdkPixbuf.create ~width:60 ~height:60 ~has_alpha:true ()
+            in
             GdkPixbuf.scale ~dest:pixbuf' ~width:60 ~height:60 pixbuf;
             GMisc.image ~pixbuf:pixbuf' ~packing:add () |> ignore;
             update_button_image button id;
@@ -208,22 +222,26 @@ let gui_main computer fen =
     let print_lists = partition_pieces_by_color (captured_pieces b) in
     match print_lists with
     | lst, lst' ->
-      black_captured#set_text (value_of_captured b White |> string_of_int);
-      white_captured#set_text (value_of_captured b Black |> string_of_int);
+        black_captured#set_text
+          (value_of_captured b White |> string_of_int);
+        white_captured#set_text
+          (value_of_captured b Black |> string_of_int);
 
-      let rec add_captured_pieces i j pieces =
-        match pieces with
-        | [] -> ()
-        | h :: t ->
-          GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
-                      ~packing:(fun(x) -> captured_table#attach j i x) ()
-                      |> ignore;
-          add_captured_pieces i (j+1) t; in
-      add_captured_pieces 0 1 (List.rev lst);
-      add_captured_pieces 1 1 (List.rev lst');
-      (* TODO: Remove this eventually *)
-      turn#set_text (string_of_color (color_to_move b));
-      export_fen#set_text (export_to_fen !board);
+        let rec add_captured_pieces i j pieces =
+          match pieces with
+          | [] -> ()
+          | h :: t ->
+              GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
+                ~packing:(fun x -> captured_table#attach j i x)
+                ()
+              |> ignore;
+              add_captured_pieces i (j + 1) t
+        in
+        add_captured_pieces 0 1 (List.rev lst);
+        add_captured_pieces 1 1 (List.rev lst');
+        (* TODO: Remove this eventually *)
+        turn#set_text (string_of_color (color_to_move b));
+        export_fen#set_text (export_to_fen !board)
   in
 
   (* update board *)
@@ -237,7 +255,7 @@ let gui_main computer fen =
           | c :: ct ->
               let sq = r ^ c in
               let button = List.assoc sq buttons in
-              let id = (string_of_piece (piece_of_square b sq)) in
+              let id = string_of_piece (piece_of_square b sq) in
               update_button_image button id;
               update_board_aux (r :: rt) ct )
     in
@@ -253,8 +271,8 @@ let gui_main computer fen =
         | [] -> if rt = [] then () else set_callbacks rt ranks
         | c :: ct ->
             let button = List.assoc (r ^ c) buttons in
-            ( button#connect#enter ==> (fun () ->
-              if computer && (color_to_move !board = Black) then (
+            ( button#connect#enter ==> fun () ->
+              if computer && color_to_move !board = Black then (
                 let move = best_move (export_to_fen !board) in
                 let board' = update_with_move !board (fst move) in
                 board := board';
@@ -265,8 +283,8 @@ let gui_main computer fen =
                 print_game_state board';
                 print_checkmate_stalemate board';
                 print_endline
-                  "===========================================";)
-              else ()));
+                  "===========================================" )
+              else () );
 
             ( button#connect#pressed ==> fun () ->
               if !choose_from then (
@@ -294,9 +312,9 @@ let gui_main computer fen =
                 match p with
                 | None -> print_endline "impossible"
                 | Some p ->
-                    let move = ((a, b), None)
-                    in
+                    let move = ((a, b), None) in
                     let board' = update_with_move !board (fst move) in
+                    print_game_state board';
                     if !board = board' then
                       print_endline "invalid move."
                     else (
@@ -308,7 +326,7 @@ let gui_main computer fen =
                     print_game_state board';
                     print_checkmate_stalemate board';
                     print_endline
-                      "===========================================";);
+                      "===========================================" );
 
             set_callbacks (r :: rt) ct )
   in
@@ -321,11 +339,13 @@ let gui_main computer fen =
 let start_gui_main =
   GtkMain.Main.init () |> ignore;
   let window =
-    GWindow.window ~width:250 ~height:100 ~position:`CENTER ~resizable:true
-      ~title:"OCaml Chess" ()
+    GWindow.window ~width:250 ~height:100 ~position:`CENTER
+      ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  let table = GPack.table ~width:250 ~height:100 ~packing:window#add () in
+  let table =
+    GPack.table ~width:250 ~height:100 ~packing:window#add ()
+  in
   let add i j x = table#attach i j x in
   let one_player_button = GButton.button ~packing:(add 0 0) () in
   one_player_button#set_label "One Player";
@@ -334,8 +354,10 @@ let start_gui_main =
   let fen = GEdit.entry ~packing:(add 0 2) () in
   fen#set_text "Paste an FEN here!";
 
-  one_player_button#connect#pressed ==> (fun () -> gui_main true fen#text);
-  two_player_button#connect#pressed ==> (fun () -> gui_main false fen#text);
+  ( one_player_button#connect#pressed ==> fun () ->
+    gui_main true fen#text );
+  ( two_player_button#connect#pressed ==> fun () ->
+    gui_main false fen#text );
 
   window#show ();
   Main.main ()
