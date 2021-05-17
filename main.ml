@@ -123,7 +123,7 @@ let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
   ignore (signal ~callback)
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main comp_col =
+let gui_main computer =
   GtkMain.Main.init () |> ignore;
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -253,7 +253,21 @@ let gui_main comp_col =
         | [] -> if rt = [] then () else set_callbacks rt ranks
         | c :: ct ->
             let button = List.assoc (r ^ c) buttons in
-            (* button#connect#enter ==> (fun () -> prerr_endline (r^c)); *)
+            ( button#connect#enter ==> (fun () ->
+              if computer && (color_to_move !board = Black) then (
+                let move = best_move (export_to_fen !board) in
+                let board' = update_with_move !board (fst move) in
+                board := board';
+                update_board board';
+                update_labels board';
+                print_endline
+                  "==================TESTING==================";
+                print_game_state board';
+                print_checkmate_stalemate board';
+                print_endline
+                  "===========================================";)
+              else ()));
+
             ( button#connect#pressed ==> fun () ->
               if !choose_from then (
                 from_sq := Some (r ^ c);
@@ -281,9 +295,6 @@ let gui_main comp_col =
                 | None -> print_endline "impossible"
                 | Some p ->
                     let move = ((a, b), None)
-                      (* if color_to_move !board = comp_col then
-                        best_move (export_to_fen !board)
-                      else ((a, b), None) *)
                     in
                     let board' = update_with_move !board (fst move) in
                     if !board = board' then
@@ -297,7 +308,8 @@ let gui_main comp_col =
                     print_game_state board';
                     print_checkmate_stalemate board';
                     print_endline
-                      "===========================================" );
+                      "===========================================";);
+
             set_callbacks (r :: rt) ct )
   in
   set_callbacks files ranks;
@@ -305,9 +317,29 @@ let gui_main comp_col =
   window#show ();
   Main.main ()
 
+(** [start_gui_main ()] initiates the game in gui mode. *)
+let start_gui_main =
+  GtkMain.Main.init () |> ignore;
+  let window =
+    GWindow.window ~width:200 ~height:50 ~position:`CENTER ~resizable:true
+      ~title:"OCaml Chess" ()
+  in
+  window#connect#destroy ==> Main.quit;
+  let table = GPack.table ~packing:window#add () in
+  let add i j x = table#attach i j x in
+  let one_player_button = GButton.button ~packing:(add 0 0) () in
+  one_player_button#connect#pressed ==> (fun () -> gui_main true);
+  one_player_button#set_label "One Player";
+  let two_player_button = GButton.button ~packing:(add 0 1) () in
+  two_player_button#connect#pressed ==> (fun () -> gui_main false;);
+  two_player_button#set_label "Two Player";
+  window#show ();
+  Main.main ()
+
+
 (* Read argument to see which version of game to launch. *)
 let () =
   match Sys.argv.(1) with
   | "command-line" -> command_line_main ()
-  | "gui" -> gui_main Black
+  | "gui" -> start_gui_main
   | _ -> failwith "TODO"
