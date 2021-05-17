@@ -30,5 +30,3 @@ let best_move fen =
   in
   close_out stdin;
   recover_output stdout |> parse_engine_response |> extract_engine_move
-
-(* bestmove e7d6 ponder c2c4 *)
