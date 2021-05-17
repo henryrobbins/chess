@@ -123,7 +123,7 @@ let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
   ignore (signal ~callback)
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main computer =
+let gui_main computer fen =
   GtkMain.Main.init () |> ignore;
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -137,9 +137,11 @@ let gui_main computer =
   in
   let captured_table = GPack.table ~packing:(add 0 1) () ~homogeneous:true in
   let turn = GMisc.label~packing:(add 0 2) () in
+  let export_fen = GEdit.entry~packing:(add 0 3) () in
+  export_fen#set_editable false;
 
   (* state variables *)
-  let board = ref (init_game ()) in
+  let board = ref (try init_from_fen fen with | Failure _ -> init_game ()) in
   let choose_from = ref true in
   let from_sq = ref None in
   let to_sq = ref None in
@@ -166,7 +168,9 @@ let gui_main computer =
   let white_captured = GMisc.label
     ~packing:(fun(x) -> captured_table#attach 0 1 x) () in
   white_captured#set_text "0";
-  turn#set_text "White\n";
+  (* TODO: Remove this eventually *)
+  turn#set_text (string_of_color (color_to_move !board));
+  export_fen#set_text (export_to_fen !board);
 
   (* construct button matrix *)
   let rec button_matrix rows cols i j btns =
@@ -217,13 +221,9 @@ let gui_main computer =
           add_captured_pieces i (j+1) t; in
       add_captured_pieces 0 1 (List.rev lst);
       add_captured_pieces 1 1 (List.rev lst');
-
-      let turn_txt =
-        match color_to_move b with
-        | White -> "White"
-        | Black -> "Black"
-      in
-      turn#set_text turn_txt
+      (* TODO: Remove this eventually *)
+      turn#set_text (string_of_color (color_to_move b));
+      export_fen#set_text (export_to_fen !board);
   in
 
   (* update board *)
@@ -321,21 +321,24 @@ let gui_main computer =
 let start_gui_main =
   GtkMain.Main.init () |> ignore;
   let window =
-    GWindow.window ~width:200 ~height:50 ~position:`CENTER ~resizable:true
+    GWindow.window ~width:250 ~height:100 ~position:`CENTER ~resizable:true
       ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  let table = GPack.table ~packing:window#add () in
+  let table = GPack.table ~width:250 ~height:100 ~packing:window#add () in
   let add i j x = table#attach i j x in
   let one_player_button = GButton.button ~packing:(add 0 0) () in
-  one_player_button#connect#pressed ==> (fun () -> gui_main true);
   one_player_button#set_label "One Player";
   let two_player_button = GButton.button ~packing:(add 0 1) () in
-  two_player_button#connect#pressed ==> (fun () -> gui_main false;);
   two_player_button#set_label "Two Player";
+  let fen = GEdit.entry ~packing:(add 0 2) () in
+  fen#set_text "Paste an FEN here!";
+
+  one_player_button#connect#pressed ==> (fun () -> gui_main true fen#text);
+  two_player_button#connect#pressed ==> (fun () -> gui_main false fen#text);
+
   window#show ();
   Main.main ()
-
 
 (* Read argument to see which version of game to launch. *)
 let () =
