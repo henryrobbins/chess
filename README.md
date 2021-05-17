@@ -24,3 +24,5 @@ Robbins (hwr26), Anders Wikum (aew236).
 
 ## Helpful Links (GUI)
 First, check out the [Introduction to Gtk](https://ocaml.org/learn/tutorials/introduction_to_gtk.html) from OCaml. Next, there are two sources of relevant documentation: the [LablGTK API](https://garrigue.github.io/lablgtk/refdoc/index.html) and the [GTK+ 3 Reference Manual](https://developer.gnome.org/gtk3/).
+
+Game Assets from [John Pablok](https://opengameart.org/content/chess-pieces-and-board-squares)

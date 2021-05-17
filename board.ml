@@ -148,21 +148,21 @@ let square_of_king t c =
     the user has correctly answered. *)
 let puzzle_history t = t.puzzle_history
 
-(** [puzzle_streak t] is the number of puzzles the user has answered 
+(** [puzzle_streak t] is the number of puzzles the user has answered
     correctly in the puzzle state t. *)
-let puzzle_streak t = 
-  let ph = puzzle_history t in 
-  let rec helper p acc = 
-    match p with 
+let puzzle_streak t =
+  let ph = puzzle_history t in
+  let rec helper p acc =
+    match p with
     | [] -> acc
     | h :: t -> if h then helper t (acc + 1) else helper t acc in
   helper ph 0
 
-(** [failed_count t] is the number of failed puzzles (i.e. the number of 
+(** [failed_count t] is the number of failed puzzles (i.e. the number of
     "strikes") that the player has in state t. *)
-let failed_count t = (puzzle_history t |> List.length) - puzzle_streak t 
+let failed_count t = (puzzle_history t |> List.length) - puzzle_streak t
 
-(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given that 
+(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given that
     the user moved piece [p] to square [m]. If [m] was the optimal square to
     move to, [puz] advances to its next state, if there is one. If [puz] does
       not have a next state, [puzzle_step] is true. If [m] was not the optimal

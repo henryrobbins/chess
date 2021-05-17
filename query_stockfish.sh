@@ -5,7 +5,7 @@
 OS=`uname`
 
 if [ $OS = "Darwin" ]; then
-    path="/usr/local/Cellar/stockfish/13/bin/stockfish"   
+    path="/usr/local/Cellar/stockfish/13/bin/stockfish"
 else
     path="./stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2"
 fi
