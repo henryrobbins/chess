@@ -7,3 +7,5 @@
 #load "command.cmo";;
 #load "validation.cmo";;
 #load "engine.cmo";;
+#load "game_text.cmo";;
+#load "game_gui.cmo";;

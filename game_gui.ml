@@ -9,94 +9,19 @@ open Engine
 
 (* Static parameters for the GUI *)
 let width = 600
-
 let height = 650
 
-(** [string_of_string_list lst] TODO *)
-let string_of_string_list lst =
-  let rev_lst = List.rev lst in
-  let rec build_str str lst' =
-    match lst' with [] -> str | h :: t -> build_str (str ^ h ^ ", ") t
-  in
-  build_str "" rev_lst
+(* state variables *)
+let board = ref (init_game ())
+let choose_from = ref true
+let from_sq = ref None
+let to_sq = ref None
 
-(** [print_checkmate_stalemate b] prints "CHECKMATE" or "STALEMATE" and
-    exits the game iff the game state [b] is in the respective state. *)
-let print_checkmate_stalemate b =
-  if is_checkmate b then print_string "CHECKMATE \n"
-  else if is_stalemate b then print_string "STALEMATE \n"
-  else ();
-  if is_checkmate b || is_stalemate b then exit 0 else ()
-
-(** [prompt_for_move b] prints a prompt to the player whose turn it is
-    in the game state [b]. *)
-let prompt_for_move b =
-  let color =
-    match color_to_move b with White -> "White" | Black -> "Black"
-  in
-  print_string ("\n" ^ color ^ " to move  > ")
-
-(** [prompt_for_promotion] returns the piece type a user specifies for
-    pawn promotion. *)
-let prompt_for_promotion () =
-  print_string "\nEnter one of R, B, N, Q > ";
-  match read_line () with
-  | exception End_of_file -> failwith "no input"
-  | text -> piece_id_of_string text
-
-(** [print_invalid_move] prints an indication that a move was invalid. *)
-let print_invalid_move () =
-  print_string "The move was invalid. Try again. \n"
-
-(** [move_from_phrase phrase] is the move from the move phrase [phrase]. *)
-let move_from_phrase = function
-  | Quit -> exit 0
-  | Move [ id; sq; _; sq' ] -> (sq, sq')
-  | _ -> failwith "parse failed"
-
-(** [update_with_move b m] is the board [b] after executing move [m] if
-    move [m] is valid. Otherwise, returns board [b] unaltered. *)
-let update_with_move b m =
-  match m with
-  | sq, sq' ->
-      let p =
-        match piece_of_square b sq with
-        | None -> failwith "impossible"
-        | Some p' -> p'
-      in
-      if is_valid_move (sq, sq') b then
-        let b' = move_piece b p sq' true in
-        if is_pawn_promotion b p sq' then
-          match piece_of_square b' sq' with
-          | None -> failwith "impossible"
-          | Some p' -> promote_pawn b' p' (prompt_for_promotion ())
-        else b'
-      else b
-
-(** [command_line_turn] initiates a turn to be play chess via command
-    line. *)
-let rec command_line_turn board =
-  print_game_state board;
-  print_checkmate_stalemate board;
-  prompt_for_move board;
-  match read_line () with
-  | exception End_of_file -> ()
-  | text -> (
-      try
-        let move = move_from_phrase (parse text board) in
-        let board' = update_with_move board move in
-        if board = board' then print_invalid_move () else ();
-        command_line_turn board'
-      with
-      | InconsistentPlacement ->
-          print_string "placement \n";
-          command_line_turn board
-      | InvalidSquares ->
-          print_string "invalid sq \n";
-          command_line_turn board
-      | Malformed ->
-          print_string "malformed \n";
-          command_line_turn board )
+(* Connect a signal handler, ignoring the resulting signal ID. This
+   avoids having to use [|> ignore] everywhere.
+   https://stackoverflow.com/questions/63106011 *)
+   let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
+   ignore (signal ~callback)
 
 (** [sprite_pixbuf dim id] is the pixbuf containing the image of the
     sprite for the piece identifier [id] scaled to [dim]. *)
@@ -117,14 +42,62 @@ let update_button_image button id =
       ()
     |> ignore
 
-(** [command_line_main ()] initiates the game in command line mode. *)
-let command_line_main () = command_line_turn (init_game ())
+(** [pawn_promotion_window c] opens a window allowing player [c] to choose
+    a piece to use in a pawn promotion. *)
+let pawn_promotion_window color =
+  GtkMain.Main.init () |> ignore;
+  let d = 75 in
+  let window =
+    GWindow.window ~width:(d * 2) ~height:(d * 2) ~position:`CENTER
+      ~resizable:true ~title:"Pawn Promotion" ()
+  in
+  window#connect#destroy ==> Main.quit;
 
-(* Connect a signal handler, ignoring the resulting signal ID. This
-   avoids having to use [|> ignore] everywhere.
-   https://stackoverflow.com/questions/63106011 *)
-let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
-  ignore (signal ~callback)
+  let c = String.uppercase_ascii (string_of_color color) in
+  let table =
+    GPack.table ~width:(d * 2) ~height:(d * 2) ~packing:window#add () in
+  let add i j x = table#attach i j x in
+
+  let btns = [("R", 0, 0); ("B", 1, 0); ("N", 0, 1); ("Q", 1, 1)] in
+  let rec create_buttons btns =
+    match btns with
+    | [] -> ()
+    | (pt, i, j) :: t ->
+      let button = GButton.button ~packing:(add i j) () in
+      GMisc.image ~pixbuf:(sprite_pixbuf (d - 10) (c ^ pt))
+        ~packing:button#set_image () |> ignore;
+      button#connect#pressed ==> fun () -> (
+        print_endline pt;
+        Main.quit ();
+      );
+      create_buttons t; in
+  create_buttons btns;
+
+  print_endline "done";
+
+  window#show ();
+  Main.main ()
+
+(** [update_with_move b m] is the board [b] after executing move [m] if
+    move [m] is valid. Otherwise, returns board [b] unaltered. *)
+let update_with_move b m cmd =
+  match m with
+  | sq, sq' ->
+      let p =
+        match piece_of_square b sq with
+        | None -> failwith "impossible"
+        | Some p' -> p'
+      in
+      if is_valid_move (sq, sq') b then
+        let b' = move_piece b p sq' true in
+        if is_pawn_promotion b p sq' then
+          match piece_of_square b' sq' with
+          | None -> failwith "impossible"
+          | Some p' ->
+            pawn_promotion_window (color_to_move b);
+            promote_pawn b' p' Queen
+        else b'
+      else b
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main computer fen =
@@ -147,12 +120,7 @@ let gui_main computer fen =
   export_fen#set_editable false;
 
   (* state variables *)
-  let board =
-    ref (try init_from_fen fen with Failure _ -> init_game ())
-  in
-  let choose_from = ref true in
-  let from_sq = ref None in
-  let to_sq = ref None in
+  board := (try init_from_fen fen with Failure _ -> init_game ());
 
   (* add file and rank labels *)
   let rec labels i =
@@ -274,14 +242,13 @@ let gui_main computer fen =
             ( button#connect#enter ==> fun () ->
               if computer && color_to_move !board = Black then (
                 let move = best_move (export_to_fen !board) in
-                let board' = update_with_move !board (fst move) in
+                let board' = update_with_move !board (fst move) false in
                 board := board';
                 update_board board';
                 update_labels board';
                 print_endline
                   "==================TESTING==================";
                 print_game_state board';
-                print_checkmate_stalemate board';
                 print_endline
                   "===========================================" )
               else () );
@@ -313,7 +280,7 @@ let gui_main computer fen =
                 | None -> print_endline "impossible"
                 | Some p ->
                     let move = ((a, b), None) in
-                    let board' = update_with_move !board (fst move) in
+                    let board' = update_with_move !board (fst move) false in
                     print_game_state board';
                     if !board = board' then
                       print_endline "invalid move."
@@ -324,7 +291,6 @@ let gui_main computer fen =
                     print_endline
                       "==================TESTING==================";
                     print_game_state board';
-                    print_checkmate_stalemate board';
                     print_endline
                       "===========================================" );
 
@@ -335,8 +301,8 @@ let gui_main computer fen =
   window#show ();
   Main.main ()
 
-(** [start_gui_main ()] initiates the game in gui mode. *)
-let start_gui_main =
+(** [main ()] initiates the game in gui mode. *)
+let main =
   GtkMain.Main.init () |> ignore;
   let window =
     GWindow.window ~width:250 ~height:100 ~position:`CENTER
@@ -354,6 +320,8 @@ let start_gui_main =
   let fen = GEdit.entry ~packing:(add 0 2) () in
   fen#set_text "Paste an FEN here!";
 
+  (* GEdit.combo_box ~packing:(add 0 3) () |> ignore; *)
+
   ( one_player_button#connect#pressed ==> fun () ->
     gui_main true fen#text );
   ( two_player_button#connect#pressed ==> fun () ->
@@ -362,9 +330,4 @@ let start_gui_main =
   window#show ();
   Main.main ()
 
-(* Read argument to see which version of game to launch. *)
-let () =
-  match Sys.argv.(1) with
-  | "command-line" -> command_line_main ()
-  | "gui" -> start_gui_main
-  | _ -> failwith "TODO"
+let () = main
