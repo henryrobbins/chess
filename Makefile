@@ -1,9 +1,10 @@
-MODULES=board command validation engine
+MODULES=board command validation engine game_text game_gui
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
-MAIN=main.byte
+TEXT_MAIN=game_text.byte
+GUI_MAIN=game_gui.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind \
 	-plugin-tag 'package(bisect_ppx-ocamlbuild)'
 
@@ -20,12 +21,12 @@ bisect-test:
 	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
 command-line:
-	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && \
-	OCAMLRUNPARAM=b ./$(MAIN) command-line
+	$(OCAMLBUILD) -tag 'debug' -I game_text $(TEXT_MAIN) && \
+	OCAMLRUNPARAM=b ./$(TEXT_MAIN)
 
 gui:
-	$(OCAMLBUILD) -tag 'debug' -I main $(MAIN) && \
-	OCAMLRUNPARAM=b ./$(MAIN) gui
+	$(OCAMLBUILD) -tag 'debug' -I game_gui $(GUI_MAIN) && \
+	OCAMLRUNPARAM=b ./$(GUI_MAIN)
 
 bisect: clean bisect-test
 		bisect-ppx-report html
