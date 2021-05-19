@@ -2,6 +2,7 @@ open OUnit2
 open Board
 open Command
 open Validation
+open Puzzle
 open Yojson.Basic.Util
 
 let board = init_game ()
@@ -403,6 +404,14 @@ let valid_piece_moves_tests =
     valid_piece_moves_test "Valid moves post castling for White" "g1"
       [ ("g1", "h1") ];
   ]
+
+let puzzle_move_test name puz p m exp = 
+  name >:: fun _ -> 
+    assert_equal (puzzle_move puz p m) exp 
+
+let puzzle_tests = [
+  
+]
 
 let fen_test name =
   let fen = (List.assoc name tests).fen in
