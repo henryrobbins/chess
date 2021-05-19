@@ -11,26 +11,22 @@ open Engine
 let width = 600
 let height = 650
 
-(* state variables *)
-let board = ref (init_game ())
-let choose_from = ref true
-let from_sq = ref None
-let to_sq = ref None
+let locale = GtkMain.Main.init ()
 
 (* Connect a signal handler, ignoring the resulting signal ID. This
    avoids having to use [|> ignore] everywhere.
    https://stackoverflow.com/questions/63106011 *)
-   let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
-   ignore (signal ~callback)
+let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
+  ignore (signal ~callback)
 
-(** [sprite_pixbuf dim id] is the pixbuf containing the image of the
-    sprite for the piece identifier [id] scaled to [dim]. *)
-let sprite_pixbuf dim id =
+(** [sprite_pixbuf d id] is the pixbuf containing the image of the
+    sprite for the piece identifier [id] scaled to dimension [d]. *)
+let sprite_pixbuf d id =
   let pixbuf = GdkPixbuf.from_file ("assets/" ^ id ^ ".png") in
   let pixbuf' =
-    GdkPixbuf.create ~width:dim ~height:dim ~has_alpha:true ()
+    GdkPixbuf.create ~width:d ~height:d ~has_alpha:true ()
   in
-  GdkPixbuf.scale ~dest:pixbuf' ~width:dim ~height:dim pixbuf;
+  GdkPixbuf.scale ~dest:pixbuf' ~width:d ~height:d pixbuf;
   pixbuf'
 
 (** [update_button_image btn id] updates the button [btn] with the
@@ -45,7 +41,6 @@ let update_button_image button id =
 (** [pawn_promotion_window c] opens a window allowing player [c] to choose
     a piece to use in a pawn promotion. *)
 let pawn_promotion_window color =
-  GtkMain.Main.init () |> ignore;
   let d = 75 in
   let window =
     GWindow.window ~width:(d * 2) ~height:(d * 2) ~position:`CENTER
@@ -73,8 +68,6 @@ let pawn_promotion_window color =
       create_buttons t; in
   create_buttons btns;
 
-  print_endline "done";
-
   window#show ();
   Main.main ()
 
@@ -99,211 +92,230 @@ let update_with_move b m cmd =
         else b'
       else b
 
+(** [add_file_rank_labels t] adds file and rank labels to a game board [t]. *)
+let add_file_rank_labels (table : GPack.table) =
+  let add i j x = table#attach i j x in
+  let rec labels_aux i =
+    if i < 8 then (
+      let f_text = GMisc.label ~packing:(add (i + 1) 8) () in
+      f_text#set_text (List.nth files i);
+      f_text#set_justify `CENTER;
+      let r_text = GMisc.label ~packing:(add 0 (7 - i)) () in
+      r_text#set_text (List.nth ranks i);
+      r_text#set_justify `CENTER;
+      labels_aux (i + 1) )
+  in
+  labels_aux 0; ()
+
+(** [square_image b] returns a dark square if [b] else a light square. *)
+let square_image b =
+  let d = 60 in
+  let pixbuf =
+    if b then GdkPixbuf.from_file "assets/dark_sq.png"
+    else GdkPixbuf.from_file "assets/light_sq.png"
+  in
+  let pixbuf' = GdkPixbuf.create ~width:d ~height:d ~has_alpha:true () in
+  GdkPixbuf.scale ~dest:pixbuf' ~width:d ~height:d pixbuf;
+  pixbuf'
+
+(** [add_board_squares b t] adds buttons for board squares to game board [t]
+    representing the board state [b]. *)
+let add_board_squares board (table : GPack.table) =
+  let rec squares_aux rows cols i j btns =
+    match rows with
+    | [] -> btns
+    | r :: rt -> (
+      match cols with
+      | [] ->
+        if rt = [] then btns
+        else squares_aux rt ranks (i + 1) 0 btns
+      | c :: ct ->
+          let id = string_of_piece (piece_of_square !board (r ^ c)) in
+          let add x = table#attach i (7 - j) x in
+          let button = GButton.button ~packing:add () in
+          let img = square_image ((i + j) mod 2 = 1) in
+          GMisc.image ~pixbuf:img ~packing:add () |> ignore;
+          update_button_image button id;
+          button#set_border_width 0;
+          button#set_focus_on_click false;
+          button#set_relief `NONE;
+          let btns = (r ^ c, button) :: btns in
+          squares_aux (r :: rt) ct i (j + 1) btns )
+  in
+  squares_aux files ranks 1 0 []
+
+(** [init_captured_table] returns a table widget for captured pieces and the
+    labels for updating point values. *)
+let init_captured_table packing =
+  let table = GPack.table ~packing:packing ~homogeneous:true () in
+  let add i j x = table#attach i j x in
+  let black_captured = GMisc.label ~packing:(add 0 0) () in
+  black_captured#set_text "0";
+  let white_captured = GMisc.label ~packing:(add 0 1) () in
+  white_captured#set_text "0";
+  (table, black_captured, white_captured)
+
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main computer fen =
-  GtkMain.Main.init () |> ignore;
+let rec gui_main computer fen =
+  (* main game window *)
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
       ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  let table = GPack.table ~packing:window#add () in
-  let add i j x = table#attach i j x in
-  let board_table =
-    GPack.table ~packing:(add 0 0) () ~homogeneous:true
-  in
-  let captured_table =
-    GPack.table ~packing:(add 0 1) () ~homogeneous:true
-  in
-  let turn = GMisc.label ~packing:(add 0 2) () in
-  let export_fen = GEdit.entry ~packing:(add 0 3) () in
-  export_fen#set_editable false;
 
   (* state variables *)
-  board := (try init_from_fen fen with Failure _ -> init_game ());
+  let board = ref (try init_from_fen fen with Failure _ -> init_game ()) in
+  let choose_from = ref true in
+  let from_sq = ref None in
+  let to_sq = ref None in
 
-  (* add file and rank labels *)
-  let rec labels i =
-    if i < 8 then (
-      let add_file x = board_table#attach (i + 1) 8 x in
-      let f_text = GMisc.label ~packing:add_file () in
-      f_text#set_text (List.nth files i);
-      f_text#set_justify `LEFT;
-      let add_rank x = board_table#attach 0 (7 - i) x in
-      let r_text = GMisc.label ~packing:add_rank () in
-      r_text#set_text (List.nth ranks i);
-      r_text#set_justify `LEFT;
-      labels (i + 1) )
-  in
-  labels 0;
+  (* container for all widgets *)
+  let table = GPack.table ~packing:window#add () in
+  let add i j x = table#attach i j x in
 
-  (* construct captured pieces labels *)
-  let black_captured =
-    GMisc.label ~packing:(fun x -> captured_table#attach 0 0 x) ()
-  in
-  black_captured#set_text "0";
-  let white_captured =
-    GMisc.label ~packing:(fun x -> captured_table#attach 0 1 x) ()
-  in
-  white_captured#set_text "0";
-  (* TODO: Remove this eventually *)
+  (* widgets to add to main container *)
+
+  let board_table = GPack.table ~packing:(add 0 0) ~homogeneous:true () in
+  let buttons = add_board_squares board board_table in
+  add_file_rank_labels board_table;
+
+  let captured_table = init_captured_table (add 0 1) in
+
+  let turn = GMisc.label ~packing:(add 0 2) () in
   turn#set_text (string_of_color (color_to_move !board));
+
+  let export_fen = GEdit.entry ~packing:(add 0 3) () in
   export_fen#set_text (export_to_fen !board);
-
-  (* construct button matrix *)
-  let rec button_matrix rows cols i j btns =
-    match rows with
-    | [] -> btns
-    | r :: rt -> (
-        match cols with
-        | [] ->
-            if rt = [] then btns
-            else button_matrix rt ranks (i + 1) 0 btns
-        | c :: ct ->
-            let id = string_of_piece (piece_of_square !board (r ^ c)) in
-            let add x = board_table#attach i (7 - j) x in
-            let button = GButton.button ~packing:add () in
-
-            let pixbuf =
-              if (i + j) mod 2 = 1 then
-                GdkPixbuf.from_file "assets/dark_sq.png"
-              else GdkPixbuf.from_file "assets/light_sq.png"
-            in
-            let pixbuf' =
-              GdkPixbuf.create ~width:60 ~height:60 ~has_alpha:true ()
-            in
-            GdkPixbuf.scale ~dest:pixbuf' ~width:60 ~height:60 pixbuf;
-            GMisc.image ~pixbuf:pixbuf' ~packing:add () |> ignore;
-            update_button_image button id;
-
-            button#set_border_width 0;
-            button#set_focus_on_click false;
-            button#set_relief `NONE;
-
-            let btns = (r ^ c, button) :: btns in
-            button_matrix (r :: rt) ct i (j + 1) btns )
-  in
-  let buttons = button_matrix files ranks 1 0 [] in
-
-  (* update labels *)
-  let update_labels b =
-    let print_lists = partition_pieces_by_color (captured_pieces b) in
-    match print_lists with
-    | lst, lst' ->
-        black_captured#set_text
-          (value_of_captured b White |> string_of_int);
-        white_captured#set_text
-          (value_of_captured b Black |> string_of_int);
-
-        let rec add_captured_pieces i j pieces =
-          match pieces with
-          | [] -> ()
-          | h :: t ->
-              GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
-                ~packing:(fun x -> captured_table#attach j i x)
-                ()
-              |> ignore;
-              add_captured_pieces i (j + 1) t
-        in
-        add_captured_pieces 0 1 (List.rev lst);
-        add_captured_pieces 1 1 (List.rev lst');
-        (* TODO: Remove this eventually *)
-        turn#set_text (string_of_color (color_to_move b));
-        export_fen#set_text (export_to_fen !board)
-  in
-
-  (* update board *)
-  let update_board b =
-    let rec update_board_aux rows cols =
-      match rows with
-      | [] -> ()
-      | r :: rt -> (
-          match cols with
-          | [] -> if rt = [] then () else update_board_aux rt ranks
-          | c :: ct ->
-              let sq = r ^ c in
-              let button = List.assoc sq buttons in
-              let id = string_of_piece (piece_of_square b sq) in
-              update_button_image button id;
-              update_board_aux (r :: rt) ct )
-    in
-    update_board_aux files ranks
-  in
+  export_fen#set_editable false;
 
   (* go back and set all the button callbacks *)
   let rec set_callbacks rows cols =
     match rows with
     | [] -> ()
-    | r :: rt -> (
-        match cols with
-        | [] -> if rt = [] then () else set_callbacks rt ranks
-        | c :: ct ->
-            let button = List.assoc (r ^ c) buttons in
-            ( button#connect#enter ==> fun () ->
-              if computer && color_to_move !board = Black then (
-                let move = best_move (export_to_fen !board) in
+    | r :: rt ->
+      match cols with
+      | [] -> if rt = [] then () else set_callbacks rt ranks
+      | c :: ct -> (
+        let button = List.assoc (r ^ c) buttons in
+
+        (button#connect#enter ==> fun () -> (
+          if computer && color_to_move !board = Black then (
+            let move = best_move (export_to_fen !board) in
+            let board' = update_with_move !board (fst move) false in
+            board := board';
+
+            update_window !board captured_table buttons turn export_fen;
+            print_endline
+            "==================TESTING==================";
+            print_game_state board';
+            print_endline
+            "===========================================" )
+          else ()
+        ));
+
+        (button#connect#pressed ==> fun () -> (
+          if !choose_from then (
+            from_sq := Some (r ^ c);
+            to_sq := None )
+          else to_sq := Some (r ^ c);
+
+          choose_from := not !choose_from;
+
+          if !choose_from then (
+            (* get current from/to square and buttons *)
+            let a =
+              match !from_sq with
+              | None -> failwith "no from square selected"
+              | Some sq -> sq
+            in
+            let b =
+              match !to_sq with
+              | None -> failwith "no to square selected"
+              | Some sq -> sq
+            in
+
+            (* update *)
+            let p = piece_of_square !board a in
+            match p with
+            | None -> print_endline "impossible"
+            | Some p ->
+                let move = ((a, b), None) in
                 let board' = update_with_move !board (fst move) false in
-                board := board';
-                update_board board';
-                update_labels board';
-                print_endline
-                  "==================TESTING==================";
                 print_game_state board';
-                print_endline
-                  "===========================================" )
-              else () );
+                if !board = board' then
+                  print_endline "invalid move."
+                else (
+                  board := board';
+                  update_window !board captured_table buttons turn export_fen;
+                  print_endline
+                  "==================TESTING==================";
+                  print_game_state board';
+                  print_endline
+                  "===========================================" );
+          );
+        ););
 
-            ( button#connect#pressed ==> fun () ->
-              if !choose_from then (
-                from_sq := Some (r ^ c);
-                to_sq := None )
-              else to_sq := Some (r ^ c);
-
-              choose_from := not !choose_from;
-
-              if !choose_from then
-                (* get current from/to square and buttons *)
-                let a =
-                  match !from_sq with
-                  | None -> failwith "no from square selected"
-                  | Some sq -> sq
-                in
-                let b =
-                  match !to_sq with
-                  | None -> failwith "no to square selected"
-                  | Some sq -> sq
-                in
-
-                (* update *)
-                let p = piece_of_square !board a in
-                match p with
-                | None -> print_endline "impossible"
-                | Some p ->
-                    let move = ((a, b), None) in
-                    let board' = update_with_move !board (fst move) false in
-                    print_game_state board';
-                    if !board = board' then
-                      print_endline "invalid move."
-                    else (
-                      board := board';
-                      update_board board';
-                      update_labels board' );
-                    print_endline
-                      "==================TESTING==================";
-                    print_game_state board';
-                    print_endline
-                      "===========================================" );
-
-            set_callbacks (r :: rt) ct )
+        set_callbacks (r :: rt) ct;
+        );
   in
   set_callbacks files ranks;
 
   window#show ();
   Main.main ()
 
+(** [update_board b buttons] updates the playing board [buttons] with the
+    current board state [b]. *)
+and update_board b buttons : unit =
+  let rec update_board_aux rows cols =
+    match rows with
+    | [] -> ()
+    | r :: rt -> (
+      match cols with
+      | [] -> if rt = [] then () else update_board_aux rt ranks
+      | c :: ct ->
+        let sq = r ^ c in
+        let button = List.assoc sq buttons in
+        let id = string_of_piece (piece_of_square b sq) in
+        update_button_image button id;
+        update_board_aux (r :: rt) ct )
+  in
+  update_board_aux files ranks
+
+(** [update_captured b t black white] updates the table of captured pieces [t],
+    black captured point value [black], and white captured point value [white]
+    for the given board state [b]. *)
+and update_captured b (table : GPack.table) black_captured white_captured =
+  let print_lists = partition_pieces_by_color (captured_pieces b) in
+  match print_lists with
+  | lst, lst' ->
+    black_captured#set_text (value_of_captured b White |> string_of_int);
+    white_captured#set_text (value_of_captured b Black |> string_of_int);
+    let rec add_captured_pieces i j pieces =
+      match pieces with
+      | [] -> ()
+      | h :: t ->
+        GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
+          ~packing:(fun x -> table#attach j i x)
+          ()
+        |> ignore;
+        add_captured_pieces i (j + 1) t
+    in
+    add_captured_pieces 0 1 (List.rev lst);
+    add_captured_pieces 1 1 (List.rev lst');
+
+(** [update_window b ...] updates all the widgets on the window for the given
+    board state [b]. *)
+and update_window b captured_table buttons turn export_fen  =
+  let table, black_captured, white_captured = captured_table in
+  update_captured b table black_captured white_captured;
+  update_board b buttons;
+  turn#set_text (string_of_color (color_to_move b));
+  export_fen#set_text (export_to_fen b); ()
+
 (** [main ()] initiates the game in gui mode. *)
 let main =
-  GtkMain.Main.init () |> ignore;
+  (* GtkMain.Main.init () |> ignore; *)
   let window =
     GWindow.window ~width:250 ~height:100 ~position:`CENTER
       ~resizable:true ~title:"OCaml Chess" ()
