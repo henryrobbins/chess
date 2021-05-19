@@ -405,12 +405,29 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
-let puzzle_move_test name puz p m exp = 
-  name >:: fun _ -> 
-    assert_equal (puzzle_move puz p m) exp 
+let puzzle_move_test name sq sq' num_moves expected =
+  "puzzle_move_test" ^ name >:: fun _ ->
+  let fen = (List.assoc name tests).fen in
+  let board = init_from_fen fen in
+  let p =
+    match piece_of_square board sq with
+    | None -> failwith "bad test"
+    | Some p' -> p'
+  in 
+  let puz = make_puz fen num_moves in
+  let player_move_board = puzzle_move puz p sq' in
+  match get_computer_moves puz with 
+  | h :: t -> 
+    assert_equal (get_puz_current_board player_move_board) (expected)
+  | [] -> failwith "Impossible" 
 
 let puzzle_tests = [
-  
+  puzzle_move_test 
+  "Prevent moves placing king under check by other king"
+  "b7" "c7"
+  1
+  ""
+  ; 
 ]
 
 let fen_test name =
@@ -435,6 +452,7 @@ let suite =
            valid_piece_moves_tests;
            is_check_tests;
            fen_tests;
+           puzzle_tests;
          ]
 
 let _ = run_test_tt_main suite

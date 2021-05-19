@@ -8,7 +8,7 @@ type puz
 type rush
 
 (** The abstract type of values representing an fen. *)
-type fen
+type fen = string
 
 val get_puz_current_board : puz -> fen
 
@@ -34,6 +34,8 @@ val wrong_rush : rush -> int
 val puzzle_move : puz -> Board.p -> Board.square -> puz
 
 val next_puz_from_rush : rush -> puz -> rush
+
+val make_puz: fen -> int -> puz
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
     puzzle state. *)
