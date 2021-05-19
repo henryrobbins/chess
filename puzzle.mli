@@ -3,26 +3,9 @@ open Board
 
 (** The abstract type of values representing a puzzle. *)
 type puz
-
-(** [puzzle_history puz] is a list of booleans representing which puzzles
-    the user has correctly answered. *)
-val puzzle_history: puz -> bool list
-
-(** [puzzle_streak t] is the number of puzzles the user has answered
-    correctly in the puzzle state puz. *)
-val puzzle_streak: t -> int
-
-(** [failed_count t] is the number of failed puzzles (i.e. the number of
-    "strikes") that the player has in state t. *)
-val failed_count: t -> int
-
 (** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
     that the user moved piece [p] to square [m]. If [m] was the optimal
     square to move to, [puz] advances to its next state, if there is
     one. If [puz] does not have a next state, [puzzle_step] is true. If
     [m] was not the optimal square, then [puzzle_step] is false. *)
-val puzzle_move: t -> p -> puz
-
-(** [play_puzzles] is the current puzzle state, given that we begin in a
-    puzzle state. *)
-val play_puzzles: unit
+val puzzle_move: puz -> p -> square -> puz
