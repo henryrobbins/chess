@@ -207,6 +207,17 @@ let update_window w =
   w.turn_lbl#set_text (string_of_color (color_to_move board));
   w.export_fen#set_text (export_to_fen board); ()
 
+(** [terminal_output b] sends output to teminal representing the state [b]. *)
+let terminal_output b =
+    print_endline
+    "===========================================";
+    print_game_state b;
+    print_endline
+    "===========================================";
+    if is_checkmate b then print_string "CHECKMATE \n"
+    else if is_stalemate b then print_string "STALEMATE \n"
+    else (); ()
+
 (** [enter_square_callback w] is the callback function for window [w] called
     when the mouse enters a square. *)
 let enter_square_callback w = fun () -> (
@@ -216,11 +227,7 @@ let enter_square_callback w = fun () -> (
     let board' = update_with_move board (fst move) false in
     w.board := board';
     update_window w;
-    print_endline
-    "==================TESTING==================";
-    print_game_state board';
-    print_endline
-    "===========================================" )
+    terminal_output board' )
   else ()
 )
 
@@ -266,7 +273,6 @@ let pressed_square_callback w sq = fun () -> (
       | None -> failwith "impossible"
       | Some sq -> sq in
     let board' = update_with_move !(w.board) (sq, sq') false in
-    print_game_state board';
     if !(w.board) = board' then
       print_endline "invalid move."
     else (
@@ -275,12 +281,7 @@ let pressed_square_callback w sq = fun () -> (
       w.to_square := None;
       w.board := board';
       update_window w;
-      print_endline
-      "==================TESTING==================";
-      print_game_state board';
-      print_endline
-      "===========================================" );
-
+      terminal_output board');
   );)
 
 (** [gui_main ()] initiates the game in gui mode. *)
