@@ -5,43 +5,46 @@ type fen = string
 type move = square * piece_type option
 
 type puz = {
-    initial_board: fen;
     current_board: fen;
     
     player_moves: int;
     computer_moves: fen list;
+    wrong: bool;
 }
 
-let get_puz_initial_board puz = puz.initial_board
+type rush = {
+    remaining: puz list;
+    current_puz: puz; 
+    solved: int;
+    total_wrong: int;
+}
+
+let empty_puz = {
+    current_board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    
+    player_moves = 0;
+    computer_moves = [];
+    wrong = false;
+}
+
 let get_puz_current_board puz = puz.current_board
 let get_player_moves puz = puz.player_moves
 let get_computer_moves puz = puz.computer_moves
 
-(** [puzzle_history t] is a list of booleans representing which puzzles
-    the user has correctly answered. *)
-let puzzle_history t = failwith "Unimplemented"
+let get_wrong puz = puz.wrong
 
-(** [puzzle_streak t] is the number of puzzles the user has answered
-    correctly in the puzzle state t. *)
-let puzzle_streak t =
-  let ph = puzzle_history t in
-  let rec helper p acc =
-    match p with
-    | [] -> acc
-    | h :: t -> if h then helper t (acc + 1) else helper t acc
-  in
-  helper ph 0
+let get_remaining rush = rush.remaining
+let current_puz rush = rush.current_puz
+let solved_rush rush = rush.solved
+let wrong_rush rush = rush.total_wrong
 
-(** [failed_count t] is the number of failed puzzles (i.e. the number of
-    "strikes") that the player has in state t. *)
-let failed_count t = (puzzle_history t |> List.length) - puzzle_streak t
 
 (** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
     that the user moved piece [p] to square [m]. If [m] was the optimal
     square to move to, [puz] advances to its next state, if there is
     one. If [puz] does not have a next state, [puzzle_step] is true. If
     [m] was not the optimal square, then [puzzle_step] is false. *)
-let rec puzzle_move puz p m = 
+let puzzle_move puz p m = 
     let t = init_from_fen (get_puz_current_board puz) in 
 
     let next_player_square = move_piece t p m true in 
@@ -68,22 +71,45 @@ in
         | [] -> []
         in
     {
-    initial_board = get_puz_initial_board puz;
     current_board = new_board;
     player_moves = (get_player_moves puz) - 1;
     computer_moves = remaining_comp_moves;
+    wrong = false
     }
-    else puz
+    else  {
+        current_board = get_puz_current_board puz;
+        player_moves = (get_player_moves puz);
+        computer_moves = get_computer_moves puz;
+        wrong = true
+        }
 
+let solve_puzzle rush = 
+    match get_remaining (rush) with
+    | h :: t -> (h, t)
+    | [] -> (empty_puz, [])
+        
+    
+let next_puz_from_rush rush puzzle_new =   
+    match (get_computer_moves (puzzle_new), get_wrong puzzle_new) with
+    | ([], false) -> {
+        remaining = solve_puzzle rush |> snd;
+        current_puz = solve_puzzle rush |> fst; 
+        solved = solved_rush rush + 1;
+        total_wrong = wrong_rush rush;
+    }
+    | (_, true) -> {
+        remaining = solve_puzzle rush |> snd;
+        current_puz = solve_puzzle rush |> fst; 
+        solved = solved_rush rush;
+        total_wrong = wrong_rush rush + 1;
+    }
+    | _ -> {
+        remaining = get_remaining rush;
+        current_puz = puzzle_new; 
+        solved = solved_rush rush;
+        total_wrong = wrong_rush rush;
+    }
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
     puzzle state. *)
-let rec play_puzzles () = failwith "Unimplemented"
-
-(** [compare_move cur opt] is a boolean representing whether or not the
-    current player who's turn it is to move made the best possible move. *)
-let compare_move cur opt = failwith "Unimplemented"
-
-(** [init_puzzle p] is the game state initialized from puzzle [p].
-    Requires: [p] is an FEN string. *)
-let init_puzzle p = init_from_fen p
+let rec play_puzzles puz = get_puz_current_board puz |> init_from_fen 
