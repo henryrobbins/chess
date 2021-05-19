@@ -21,7 +21,7 @@ val failed_count: t -> int
     square to move to, [puz] advances to its next state, if there is
     one. If [puz] does not have a next state, [puzzle_step] is true. If
     [m] was not the optimal square, then [puzzle_step] is false. *)
-val puzzle_move: t -> p -> square
+val puzzle_move: t -> p -> puz
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
     puzzle state. *)

@@ -7,18 +7,15 @@ type move = square * piece_type option
 type puz = {
     initial_board: fen;
     current_board: fen;
-
-    player_moves: t list;
+    
+    player_moves: int;
     computer_moves: fen list;
-
-    solved: bool;
 }
 
 let get_puz_initial_board puz = puz.initial_board
 let get_puz_current_board puz = puz.current_board
 let get_player_moves puz = puz.player_moves
 let get_computer_moves puz = puz.computer_moves
-let get_solved puz = puz.solved
 
 (** [puzzle_history t] is a list of booleans representing which puzzles
     the user has correctly answered. *)
@@ -44,7 +41,40 @@ let failed_count t = (puzzle_history t |> List.length) - puzzle_streak t
     square to move to, [puz] advances to its next state, if there is
     one. If [puz] does not have a next state, [puzzle_step] is true. If
     [m] was not the optimal square, then [puzzle_step] is false. *)
-let rec puzzle_move puz p m = failwith "Unimplemented"
+let rec puzzle_move puz p m = 
+    let t = init_from_fen (get_puz_current_board puz) in 
+
+    let next_player_square = move_piece t p m true in 
+    let next_player_fen = board_fen_string next_player_square in
+
+    let best_move_square =  best_move (board_fen_string t) |> fst in
+    let rank = fst best_move_square in 
+    let file = snd best_move_square in 
+    let best_move_piece = match board_fen_string t |> best_move |> snd with
+    | Some p -> gen_piece (string_of_piece_id p) rank file 
+    | None -> failwith "Impossible; no piece moved"
+in
+    let best_move_fen = 
+        board_fen_string (move_piece t best_move_piece (rank^file) true) in 
+    if next_player_fen = best_move_fen then
+        let new_board =
+        match get_computer_moves puz with
+        | h :: t -> h
+        | [] -> "good job you have finished the puz good"
+        in
+        let remaining_comp_moves =
+        match get_computer_moves puz with
+        | h :: t -> t
+        | [] -> []
+        in
+    {
+    initial_board = get_puz_initial_board puz;
+    current_board = new_board;
+    player_moves = (get_player_moves puz) - 1;
+    computer_moves = remaining_comp_moves;
+    }
+    else puz
+
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
     puzzle state. *)
