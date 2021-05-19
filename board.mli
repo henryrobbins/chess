@@ -148,6 +148,10 @@ val export_to_fen : t -> string
 (** [init_game] is the game state at the start of a normal chess game. *)
 val init_game : unit -> t
 
+(** [board_fen_string t] is the component of the FEN string representing
+    the current pieces on the board [t.board]. *)
+val board_fen_string : t -> string
+
 (** [print_game_state t] prints the game state [t] in string format. *)
 val print_game_state : t -> unit
 

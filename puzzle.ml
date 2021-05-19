@@ -6,10 +6,19 @@ type move = square * piece_type option
 
 type puz = {
     initial_board: fen;
+    current_board: fen;
 
-    player_moves: move list;
+    player_moves: t list;
     computer_moves: fen list;
+
+    solved: bool;
 }
+
+let get_puz_initial_board puz = puz.initial_board
+let get_puz_current_board puz = puz.current_board
+let get_player_moves puz = puz.player_moves
+let get_computer_moves puz = puz.computer_moves
+let get_solved puz = puz.solved
 
 (** [puzzle_history t] is a list of booleans representing which puzzles
     the user has correctly answered. *)
