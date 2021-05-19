@@ -1,4 +1,16 @@
 open Board
+open Engine
+
+type fen = string
+type move = square * piece_type option
+
+type puz = {
+    initial_board: fen;
+
+    player_moves: move list;
+    computer_moves: fen list;
+}
+
 (** [puzzle_history t] is a list of booleans representing which puzzles
     the user has correctly answered. *)
 let puzzle_history t = failwith "Unimplemented"
