@@ -332,6 +332,22 @@ let main =
   let fen = GEdit.entry ~packing:(add 0 2) () in
   fen#set_text "Paste an FEN here!";
 
+  (* -------------- TESING DRAG AND DROP ------------------- *)
+
+  let (dndTargets:(Gtk.target_entry) list) =
+          [
+            { target = "A_STRING"; flags = []; info = 0 };
+            { target = "A_STRING_OF_FLOAT"; flags = []; info = 1}
+          ]; in
+
+
+  one_player_button#drag#source_set dndTargets ~actions:[`COPY ];
+  (* one_player_button#drag#connect#ending ==> fun context -> (
+    print_endline "TEST";
+  ); *)
+
+  (* ------------------------------------------------------- *)
+
   (* GEdit.combo_box ~packing:(add 0 3) () |> ignore; *)
 
   ( one_player_button#connect#pressed ==> fun () ->
