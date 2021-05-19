@@ -63,7 +63,7 @@ in
         let new_board =
         match get_computer_moves puz with
         | h :: t -> h
-        | [] -> "good job you have finished the puz good"
+        | [] -> get_puz_current_board empty_puz
         in
         let remaining_comp_moves =
         match get_computer_moves puz with
