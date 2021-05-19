@@ -46,11 +46,11 @@ let wrong_rush rush = rush.total_wrong
 let rec gen_computer_moves t num_moves = 
     let rec gen_helper t' nm acc = 
         match nm with 
-        | 1 -> acc
-        | _ -> print_string "HERE"; begin
-            let best_move_square = best_move (board_fen_string t') |> fst in
-            let rank = fst best_move_square in
-            let file = snd best_move_square in
+        | 0 -> acc
+        | _ -> begin
+            let best_move_square = best_move (board_fen_string t') |> fst |> snd in
+            let rank = String.make 1 (String.get best_move_square 1) in
+            let file = String.make 1 (String.get best_move_square 0) in
             let best_move_piece =
                 match board_fen_string t' |> best_move |> snd with
                 | Some p -> gen_piece (string_of_piece_id p) rank file

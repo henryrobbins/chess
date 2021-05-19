@@ -418,7 +418,7 @@ let puzzle_move_test name sq sq' num_moves expected =
   let player_move_board = puzzle_move puz p sq' in
   match get_computer_moves puz with 
   | h :: t -> 
-    assert_equal (get_puz_current_board player_move_board) (expected)
+    assert_equal h (get_puz_current_board player_move_board)
   | [] -> failwith "Impossible" 
 
 let puzzle_tests = [
