@@ -206,8 +206,8 @@ let castle_still_viable t piece color side =
             | White, Queen -> not (square_of_piece piece = "a1")
             | Black, King -> not (square_of_piece piece = "h8")
             | Black, Queen -> not (square_of_piece piece = "a8")
-            | _ -> failwith "impossible" )
-      | _ -> true )
+            | _ -> failwith "impossible")
+      | _ -> true)
 
 (** [is_castling_move piece sq'] returns true iff moving piece [piece]
     to square [sq'] is a castling move. *)
@@ -336,7 +336,7 @@ let zip_lists lst1 lst2 =
     | h :: t -> (
         match lst2 with
         | [] -> List.rev acc
-        | h' :: t' -> zip t t' ((h ^ h') :: acc) )
+        | h' :: t' -> zip t t' ((h ^ h') :: acc))
   in
   zip lst1 lst2 []
 
@@ -407,7 +407,7 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc) ) )
+            | Some s' -> gen_l_moves square t (s' :: acc)))
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
@@ -457,7 +457,7 @@ let extract_rank rank_str rk : (square * p option) list =
                 (acc @ gen_empty_squares rk skip_fls [])
             with exn ->
               let piece = gen_piece (Char.escaped x) rk h in
-              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc) ) )
+              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc)))
   in
   extract_aux 0 files []
 
@@ -480,7 +480,7 @@ let active_pieces_of_board b_assoc =
     | (sq, p) :: t -> (
         match p with
         | None -> a_piece_aux t a_pieces
-        | Some p' -> a_piece_aux t (p' :: a_pieces) )
+        | Some p' -> a_piece_aux t (p' :: a_pieces))
   in
   a_piece_aux b_assoc []
 
@@ -526,7 +526,7 @@ let board_fen_string b =
           | Some p ->
               let id = piece_identifier p in
               if acc > 0 then string_of_int acc ^ id ^ it_files t 0
-              else id ^ it_files t 0 )
+              else id ^ it_files t 0)
     in
     it_files files 0
   in
