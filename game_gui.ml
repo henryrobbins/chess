@@ -33,10 +33,9 @@ let locale = GtkMain.Main.init ()
 let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
   ignore (signal ~callback)
 
-(** [sprite_pixbuf d id] is the pixbuf containing the image of the
-    sprite for the piece identifier [id] scaled to dimension [d]. *)
-let sprite_pixbuf d id =
-  let pixbuf = GdkPixbuf.from_file ("assets/" ^ id ^ ".png") in
+(** [sprite d name] is the sprite called [name] scaled to dimension [d]. *)
+let sprite d name =
+  let pixbuf = GdkPixbuf.from_file ("assets/" ^ name ^ ".png") in
   let pixbuf' =
     GdkPixbuf.create ~width:d ~height:d ~has_alpha:true ()
   in
@@ -48,9 +47,9 @@ let sprite_pixbuf d id =
 let update_button_image button id =
   if id = "  " then button#unset_image ()
   else
-    GMisc.image ~pixbuf:(sprite_pixbuf 45 id) ~packing:button#set_image
-      ()
-    |> ignore
+    GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image () |> ignore;
+    (* GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#add () |> ignore; *)
+  ()
 
 (** [pawn_promotion_window c] opens a window allowing player [c] to choose
     a piece to use in a pawn promotion. *)
@@ -73,7 +72,7 @@ let pawn_promotion_window color =
     | [] -> ()
     | (pt, i, j) :: t ->
       let button = GButton.button ~packing:(add i j) () in
-      GMisc.image ~pixbuf:(sprite_pixbuf (d - 10) (c ^ pt))
+      GMisc.image ~pixbuf:(sprite (d - 10) (c ^ pt))
         ~packing:button#set_image () |> ignore;
       button#connect#pressed ==> fun () -> (
         print_endline pt;
@@ -121,17 +120,6 @@ let add_file_rank_labels (table : GPack.table) =
   in
   labels_aux 0; ()
 
-(** [square_image b] returns a dark square if [b] else a light square. *)
-let square_image b =
-  let d = 60 in
-  let pixbuf =
-    if b then GdkPixbuf.from_file "assets/dark_sq.png"
-    else GdkPixbuf.from_file "assets/light_sq.png"
-  in
-  let pixbuf' = GdkPixbuf.create ~width:d ~height:d ~has_alpha:true () in
-  GdkPixbuf.scale ~dest:pixbuf' ~width:d ~height:d pixbuf;
-  pixbuf'
-
 (** [add_board_squares b t] adds buttons for board squares to game board [t]
     representing the board state [b]. *)
 let add_board_squares board (table : GPack.table) =
@@ -147,8 +135,8 @@ let add_board_squares board (table : GPack.table) =
           let id = string_of_piece (piece_of_square !board (r ^ c)) in
           let add x = table#attach i (7 - j) x in
           let button = GButton.button ~packing:add () in
-          let img = square_image ((i + j) mod 2 = 1) in
-          GMisc.image ~pixbuf:img ~packing:add () |> ignore;
+          let name = if (i + j) mod 2 = 1 then "dark_sq" else "light_sq" in
+          GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
           update_button_image button id;
           button#set_border_width 0;
           button#set_focus_on_click false;
@@ -201,7 +189,7 @@ let update_captured w =
       match pieces with
       | [] -> ()
       | h :: t ->
-        GMisc.image ~pixbuf:(sprite_pixbuf 30 h)
+        GMisc.image ~pixbuf:(sprite 30 h)
           ~packing:(fun x -> w.captured_table#attach j i x)
           ()
         |> ignore;
@@ -236,47 +224,63 @@ let enter_square_callback w = fun () -> (
   else ()
 )
 
+(** [show_valid_moves w p] updates window [w] to show all of the valid moves
+    for the current selected piece [p]. *)
+let show_valid_moves w p =
+  update_window w;
+  let rec show_valid_moves_aux lst =
+  match lst with
+  | [] -> ()
+  | (_,s) :: t -> (
+    let button = List.assoc s w.squares in
+    GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#set_image () |> ignore;
+    show_valid_moves_aux t;);
+  in
+  show_valid_moves_aux (valid_piece_moves !(w.board) p); ()
+
 (** [pressed_square_callback w] is the callback function for window [w] called
     when the mouse presses on a square. *)
 let pressed_square_callback w sq = fun () -> (
-  if !(w.drop) then (
-    w.from_square := Some sq;
-    w.to_square := None )
-  else w.to_square := Some sq;
-
-  w.drop := not !(w.drop);
-
-  if !(w.drop) then (
-    (* get current from/to square and buttons *)
-    let a =
-      match !(w.from_square) with
-      | None -> failwith "no from square selected"
-      | Some sq -> sq
-    in
-    let b =
-      match !(w.to_square) with
-      | None -> failwith "no to square selected"
-      | Some sq -> sq
-    in
-
-    (* update *)
-    let p = piece_of_square !(w.board) a in
+  let p =
+  match piece_of_square !(w.board) sq with
+  | None -> print_endline "impossible"; None
+  | Some p -> Some p in
+  let valid_start =
     match p with
-    | None -> print_endline "impossible"
-    | Some p ->
-        let move = ((a, b), None) in
-        let board' = update_with_move !(w.board) (fst move) false in
-        print_game_state board';
-        if !(w.board) = board' then
-          print_endline "invalid move."
-        else (
-          w.board := board';
-          update_window w;
-          print_endline
-          "==================TESTING==================";
-          print_game_state board';
-          print_endline
-          "===========================================" );
+    | None -> false
+    | Some p -> (color_of_piece p) = color_to_move !(w.board) in
+  if not !(w.drop) || valid_start then (
+    (* set w.drop to true if the from_square is a valid start. *)
+    if valid_start then (
+      w.drop := true;
+      w.from_square := Some sq;
+      w.to_square := None;
+      let p = match p with Some p -> p | None -> failwith "impossible" in
+      show_valid_moves w p;)
+    else ()
+  )
+  else (
+    let sq' = sq in
+    let sq =
+      match !(w.from_square) with
+      | None -> failwith "impossible"
+      | Some sq -> sq in
+    let board' = update_with_move !(w.board) (sq, sq') false in
+    print_game_state board';
+    if !(w.board) = board' then
+      print_endline "invalid move."
+    else (
+      w.drop := false;
+      w.from_square := None;
+      w.to_square := None;
+      w.board := board';
+      update_window w;
+      print_endline
+      "==================TESTING==================";
+      print_game_state board';
+      print_endline
+      "===========================================" );
+
   );)
 
 (** [gui_main ()] initiates the game in gui mode. *)
@@ -290,7 +294,7 @@ let gui_main computer fen =
 
   (* state variables *)
   let board = ref (try init_from_fen fen with Failure _ -> init_game ()) in
-  let drop = ref true in
+  let drop = ref false in
   let from_square = ref None in
   let to_square = ref None in
 
