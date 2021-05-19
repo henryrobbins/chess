@@ -175,9 +175,9 @@ let iterator_from_sq_test name s d expected : test =
 
 let value_captured_test name color exp =
   name >:: fun _ ->
-    let test = List.assoc name tests in
-    let board = init_from_fen test.fen in
-    assert_equal exp (value_of_captured board color)
+  let test = List.assoc name tests in
+  let board = init_from_fen test.fen in
+  assert_equal exp (value_of_captured board color)
 
 let board_tests =
   [
@@ -224,17 +224,17 @@ let board_tests =
       (* values_captured tests *)
       (* TODO: implement captured pieces to be a non-empty list *)
       value_captured_test "Black has pinned piece but is not in check"
-      Black 0;
+        Black 0;
       value_captured_test "Black has pinned piece but is not in check"
-      White 0;
+        White 0;
       value_captured_test "Black in check East" Black 0;
       value_captured_test "Black in check East" White 0;
       value_captured_test "Various pieces can intercept" Black 0;
       value_captured_test "Various pieces can intercept" White 0;
-      value_captured_test "Pawn attack and initial one or two space move"
-      White 0;
-      value_captured_test "Pawn attack and initial one or two space move"
-      Black 0;
+      value_captured_test
+        "Pawn attack and initial one or two space move" White 0;
+      value_captured_test
+        "Pawn attack and initial one or two space move" Black 0;
       value_captured_test "Double check, L and SE, Queen" Black 0;
       value_captured_test "Double check, L and SE, Queen" White 0;
       value_captured_test "Full range of pawn attack" Black 0;
@@ -397,7 +397,7 @@ let valid_piece_moves_tests =
       [ ("e8", "f8"); ("e8", "d8") ];
     valid_piece_moves_test
       "King cannot castle on either side because king has moved" "e8"
-      [ ("e8", "d8"); ("e8", "f8")];
+      [ ("e8", "d8"); ("e8", "f8") ];
     valid_piece_moves_test
       "Black king can’t castle; in check from knight" "e8"
       [ ("e8", "e7"); ("e8", "f8") ];
@@ -405,13 +405,29 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
-let puzzle_move_test name puz p m exp = 
-  name >:: fun _ -> 
-    assert_equal (puzzle_move puz p m) exp 
+let puzzle_move_test name sq sq' num_moves expected =
+  "puzzle_move_test" ^ name >:: fun _ ->
+  let fen = (List.assoc name tests).fen in
+  let board = init_from_fen fen in
+  let p =
+    match piece_of_square board sq with
+    | None -> failwith "bad test"
+    | Some p' -> p'
+  in
+  let puz = make_puz fen num_moves in
+  let player_move_board_fen =
+    get_puz_current_board (puzzle_move puz p sq')
+  in
+  match get_computer_moves puz with
+  | h :: t -> assert_equal h player_move_board_fen
+  | [] -> failwith "Impossible"
 
-let puzzle_tests = [
-  
-]
+let puzzle_tests =
+  [
+    puzzle_move_test
+      "Prevent moves placing king under check by other king" "b7" "c7" 1
+      "";
+  ]
 
 let fen_test name =
   let fen = (List.assoc name tests).fen in
@@ -421,7 +437,7 @@ let fen_test name =
   (* let fen'' = export_to_fen board' in *)
   name ^ "a" >:: fun _ -> assert_equal fen fen' ~printer:(fun x -> x)
 
-let fen_tests=
+let fen_tests =
   let test_name t = match t with name, _ -> name in
   tests |> List.map test_name |> List.map fen_test
 
@@ -435,6 +451,7 @@ let suite =
            valid_piece_moves_tests;
            is_check_tests;
            fen_tests;
+           puzzle_tests;
          ]
 
 let _ = run_test_tt_main suite
