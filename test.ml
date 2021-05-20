@@ -45,10 +45,29 @@ let extract j =
   let moves = j |> member "moves" |> to_list |> List.map parse_move in
   (description, { fen; check; moves })
 
-let init_tests_json json =
-  json |> Yojson.Basic.from_file |> to_list |> List.map extract
+let init_tests_json json extraction_fn =
+  json |> Yojson.Basic.from_file |> to_list |> List.map extraction_fn
 
-let tests = init_tests_json "test_fens.json"
+let tests = init_tests_json "test_fens.json" extract
+
+type puzzle_instance = {
+  current_board : string;
+  player_moves : string list;
+  computer_moves : string list;
+  wrong: bool;
+  complete: bool;
+}
+
+let extract_puz j = 
+  let description = j |> member "description" |> to_string in
+  let current_board = j |> member "current_board" |> to_string in 
+  let player_moves = j |> member "player_moves" |> to_list |> List.map to_string in
+  let computer_moves = j |> member "computer_moves" |> to_list |> List.map to_string in 
+  let wrong = j |> member "wrong" |> to_string |> bool_of_string in 
+  let complete = j |> member "complete" |> to_string |> bool_of_string in 
+  (description, {current_board; player_moves; computer_moves; wrong; complete})
+
+let puzzle_tests = init_tests_json "puzzles.json" extract_puz
 
 (* HELPER FUNCTIONS *)
 
@@ -405,28 +424,25 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
-let puzzle_move_test name sq sq' num_moves expected =
+let puzzle_move_test name sq sq' optimal =
   "puzzle_move_test" ^ name >:: fun _ ->
-  let fen = (List.assoc name tests).fen in
-  let board = init_from_fen fen in
-  let p =
-    match piece_of_square board sq with
-    | None -> failwith "bad test"
-    | Some p' -> p'
-  in
-  let puz = make_puz fen num_moves in
-  let player_move_board_fen =
-    get_puz_current_board (puzzle_move puz p sq')
-  in
-  match get_computer_moves puz with
-  | h :: t -> assert_equal h player_move_board_fen
+  let cur_test = List.assoc name puzzle_tests in
+  let first_board_fen = cur_test.current_board in
+  let first_board_t = init_from_fen first_board_fen in
+  let piece = match piece_of_square first_board_t sq with 
+  | Some p' -> p'
+  | None -> failwith "Bad move." in
+  let player_moves = cur_test.player_moves in 
+  let new_board = move_piece first_board_t piece sq' true in 
+  let new_board_fen = board_fen_string new_board in 
+  let opt = match player_moves with 
   | [] -> failwith "Impossible"
+  | h :: t -> h = new_board_fen  
+  in assert_equal optimal opt
 
 let puzzle_tests =
   [
-    puzzle_move_test
-      "Prevent moves placing king under check by other king" "b7" "c7" 1
-      "";
+    puzzle_move_test "L400 1" "d2" "d8" true;
   ]
 
 let fen_test name =
