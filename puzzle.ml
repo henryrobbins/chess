@@ -7,7 +7,7 @@ type move = square * piece_type option
 
 type puz = {
   current_board : fen;
-  player_moves : int;
+  player_moves : fen list;
   computer_moves : fen list;
   wrong : bool;
 }
@@ -23,10 +23,11 @@ let empty_puz =
   {
     current_board =
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    player_moves = 0;
+    player_moves = [];
     computer_moves = [];
     wrong = false;
   }
+
 let get_puz_current_board puz = puz.current_board
 
 let get_player_moves puz = puz.player_moves
@@ -43,26 +44,6 @@ let solved_rush rush = rush.solved
 
 let wrong_rush rush = rush.total_wrong
 
-let rec gen_computer_moves t num_moves = 
-    let rec gen_helper t' nm acc = 
-        match nm with 
-        | 1 -> acc
-        | _ -> print_string "HERE"; begin
-            let best_move_square = best_move (board_fen_string t') |> fst in
-            let rank = fst best_move_square in
-            let file = snd best_move_square in
-            let best_move_piece =
-                match board_fen_string t' |> best_move |> snd with
-                | Some p -> gen_piece (string_of_piece_id p) rank file
-                | None -> failwith "Impossible; no piece moved"
-            in
-            let best_move_board = move_piece t' best_move_piece (rank ^ file) true in
-            let best_move_fen =
-                board_fen_string best_move_board 
-            in gen_helper best_move_board (nm - 1) (best_move_fen :: acc)
-        end
-    in gen_helper t num_moves []
-
 (** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
     that the user moved piece [p] to square [m]. If [m] was the optimal
     square to move to, [puz] advances to its next state, if there is
@@ -70,22 +51,13 @@ let rec gen_computer_moves t num_moves =
     [m] was not the optimal square, then [puzzle_step] is false. *)
 let puzzle_move puz p m =
   let t = init_from_fen (get_puz_current_board puz) in
-
   let next_player_square = move_piece t p m true in
   let next_player_fen = board_fen_string next_player_square in
 
-  let best_move_square = best_move (board_fen_string t) |> fst in
-  let rank = fst best_move_square in
-  let file = snd best_move_square in
-  let best_move_piece =
-    match board_fen_string t |> best_move |> snd with
-    | Some p -> gen_piece (string_of_piece_id p) rank file
-    | None -> failwith "Impossible; no piece moved"
-  in
   let best_move_fen =
-    board_fen_string (move_piece t best_move_piece (rank ^ file) true)
+    match get_player_moves puz with h :: t -> (h, t) | [] -> ("", [])
   in
-  if next_player_fen = best_move_fen then
+  if next_player_fen = (best_move_fen |> fst) then
     let new_board =
       match get_computer_moves puz with
       | h :: t -> h
@@ -96,7 +68,7 @@ let puzzle_move puz p m =
     in
     {
       current_board = new_board;
-      player_moves = get_player_moves puz - 1;
+      player_moves = best_move_fen |> snd;
       computer_moves = remaining_comp_moves;
       wrong = false;
     }
@@ -136,14 +108,6 @@ let next_puz_from_rush rush puzzle_new =
         solved = solved_rush rush;
         total_wrong = wrong_rush rush;
       }
-
-let make_puz board num_moves = 
-{
-    current_board = board;
-    player_moves = num_moves; 
-    computer_moves = gen_computer_moves (init_from_fen board) num_moves; 
-    wrong = false;
-} 
 
 (** [play_puzzles] is the current puzzle state, given that we begin in a
     puzzle state. *)
