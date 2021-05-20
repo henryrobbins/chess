@@ -320,5 +320,57 @@
     ],
     "wrong": "false",
     "complete": "false"
+  },
+  {
+    "description": "L600 12",
+    "current_board": "1rb3k1/2p2ppp/pp1qp3/1B1p4/Q1PPP1n1/8/PP3PPP/RN3RK1 b - - 2 18",
+    "player_moves": [
+      "1rb3k1/2p2ppp/pp2p3/1B1p4/Q1PPP1n1/8/PP3PPq/RN3RK1 w - - 0 19"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L600 13",
+    "current_board": "r1b2rk1/pp1n1ppp/1q2p3/6N1/3P2P1/2P1n2P/P1Q2PB1/2KR3R w - - 0 17",
+    "player_moves": [
+      "r1b2rk1/pp1n1ppQ/1q2p3/6N1/3P2P1/2P1n2P/P4PB1/2KR3R b - - 0 17"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L600 14",
+    "current_board": "1r4k1/6pp/4N3/3n3P/2K5/8/8/5R2 b - - 1 1",
+    "player_moves": [
+      "1r4k1/6pp/4N3/7P/2K5/4n3/8/5R2 w - - 2 2",
+      "1r4k1/6pp/4N3/7P/3K4/8/8/5n2 w - - 0 3"
+    ],
+    "computer_moves": [
+      "1r4k1/6pp/4N3/7P/3K4/4n3/8/5R2 b - - 3 2"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L600 15",
+    "current_board": "r7/2p2pkp/p4p2/4q3/2p5/4QPP1/PPP3K1/7R w - - 4 31",
+    "player_moves": [
+      "r7/2p2pkp/p4p1Q/4q3/2p5/5PP1/PPP3K1/7R b - - 5 31",
+      "r5k1/2p2p1Q/p4p2/4q3/2p5/5PP1/PPP3K1/7R b - - 0 32",
+      "r4k1Q/2p2p2/p4p2/4q3/2p5/5PP1/PPP3K1/7R b - - 2 33",
+      "Q7/2p1kp2/p4p2/4q3/2p5/5PP1/PPP3K1/7R b - - 0 34",
+      "Q7/2p1kp2/p4p2/8/2p5/5PPK/PPP1q3/7R b - - 2 35"
+    ],
+    "computer_moves": [
+      "r5k1/2p2p1p/p4p1Q/4q3/2p5/5PP1/PPP3K1/7R w - - 6 32",
+      "r4k2/2p2p1Q/p4p2/4q3/2p5/5PP1/PPP3K1/7R w - - 1 33",
+      "r6Q/2p1kp2/p4p2/4q3/2p5/5PP1/PPP3K1/7R w - - 3 34",
+      "Q7/2p1kp2/p4p2/8/2p5/5PP1/PPP1q1K1/7R w - - 1 35"
+    ],
+    "wrong": "false",
+    "complete": "false"
   }
 ]
