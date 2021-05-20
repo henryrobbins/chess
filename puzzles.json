@@ -565,5 +565,80 @@
     ],
     "wrong": "false",
     "complete": "false"
+  },
+  {
+    "description": "L1000 1",
+    "current_board": "1r6/5kp1/R7/pr3P2/4p2P/P1P1R3/2K5/8 b - - 1 1",
+    "player_moves": [
+      "1r6/5kp1/R7/p4P2/4p2P/P1P1R3/1rK5/8 w - - 2 2",
+      "1r6/5kp1/R7/p4P2/4p2P/P1P1R3/8/1r1K4 w - - 4 3",
+      "8/5kp1/R7/p4P2/4p2P/P1P1R3/1r2K3/1r6 w - - 6 4"
+    ],
+    "computer_moves": [
+      "1r6/5kp1/R7/p4P2/4p2P/P1P1R3/1r6/3K4 b - - 3 2",
+      "1r6/5kp1/R7/p4P2/4p2P/P1P1R3/4K3/1r6 b - - 5 3"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L1000 2",
+    "current_board": "3Q4/p1r2kp1/4p2p/8/Q4P2/1Pp1q3/P2R2P1/2K5 b - - 4 35",
+    "player_moves": [
+      "3Q4/p1r2kp1/4p2p/8/Q4P2/1P2q3/P2p2P1/2K5 w - - 0 36",
+      "3Q4/p1r2kp1/4p2p/8/Q4P2/1Pq5/PK1p2P1/8 w - - 2 37",
+      "3Q4/p1r2kp1/4p2p/8/Q4P2/KP6/P2p2P1/2q5 w - - 4 38"
+    ],
+    "computer_moves": [
+      "3Q4/p1r2kp1/4p2p/8/Q4P2/1P2q3/PK1p2P1/8 b - - 1 36",
+      "3Q4/p1r2kp1/4p2p/8/Q4P2/KPq5/P2p2P1/8 b - - 3 37"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L1000 3",
+    "current_board": "rnbqk2r/3pppbp/6p1/1BpP2P1/4n3/4PP2/PP5P/RNBQK1NR b KQkq - 0 1",
+    "player_moves": [
+      "rnb1k2r/3pppbp/6p1/qBpP2P1/4n3/4PP2/PP5P/RNBQK1NR w KQkq - 1 2",
+      "rnb1k2r/3pppbp/6p1/qBpP2P1/8/4PP2/PP1n3P/R1BQK1NR w KQkq - 0 3",
+      "rnb1k2r/3pppbp/6p1/1qpP2P1/8/4PP2/PP1B3P/R2QK1NR w KQkq - 0 4"
+    ],
+    "computer_moves": [
+      "rnb1k2r/3pppbp/6p1/qBpP2P1/4n3/4PP2/PP1N3P/R1BQK1NR b KQkq - 2 2",
+      "rnb1k2r/3pppbp/6p1/qBpP2P1/8/4PP2/PP1B3P/R2QK1NR b KQkq - 0 3"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L1000 4",
+    "current_board": "rQ1nk4/7p/Bpp2rp1/3Pn3/4bq2/N7/PPP2PPP/5RK1 b - - 1 1",
+    "player_moves": [
+      "Q1nk4/7p/Bpp2rp1/3P4/4bq2/N4n2/PPP2PPP/5RK1 w - - 2 2",
+      "Q1nk4/7p/Bpp2rp1/3P2q1/4b3/N4P2/PPP2P1P/5RK1 w - - 1 3",
+      "Q1nk4/7p/Bpp2rp1/3P2q1/8/N4b2/PPP2P1P/5R1K w - - 0 4"
+    ],
+    "computer_moves": [
+      "Q1nk4/7p/Bpp2rp1/3P4/4bq2/N4P2/PPP2P1P/5RK1 b - - 0 2",
+      "Q1nk4/7p/Bpp2rp1/3P2q1/4b3/N4P2/PPP2P1P/5R1K b - - 2 3"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L1000 5",
+    "current_board": "r5k1/3q3p/p2PprpQ/1p1b4/3R4/8/P4PPP/4RBK1 w - - 1 2",
+    "player_moves": [
+      "r5k1/3q3p/p2PprpQ/1p1R4/8/8/P4PPP/4RBK1 b - - 0 2",
+      "r5k1/3qR2p/p2P1rpQ/1p1p4/8/8/P4PPP/5BK1 b - - 1 3",
+      "r5k1/4P2p/p4rpQ/1p1p4/8/8/P4PPP/5BK1 b - - 0 4"
+    ],
+    "computer_moves": [
+      "r5k1/3q3p/p2P1rpQ/1p1p4/8/8/P4PPP/4RBK1 w - - 0 3",
+      "r5k1/4q2p/p2P1rpQ/1p1p4/8/8/P4PPP/5BK1 w - - 0 4"
+    ],
+    "wrong": "false",
+    "complete": "false"
   }
 ]
