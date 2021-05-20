@@ -6,10 +6,12 @@ type fen = string
 type move = square * piece_type option
 
 type puz = {
+  description : string;
   current_board : fen;
   player_moves : fen list;
   computer_moves : fen list;
   wrong : bool;
+  complete : bool;
 }
 
 type rush = {
@@ -21,12 +23,16 @@ type rush = {
 
 let empty_puz =
   {
+    description = "empty puz";
     current_board =
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     player_moves = [];
     computer_moves = [];
     wrong = false;
+    complete = true;
   }
+
+let get_puz_description puz = puz.description
 
 let get_puz_current_board puz = puz.current_board
 
@@ -35,6 +41,8 @@ let get_player_moves puz = puz.player_moves
 let get_computer_moves puz = puz.computer_moves
 
 let get_wrong puz = puz.wrong
+
+let get_complete puz = puz.complete
 
 let get_remaining rush = rush.remaining
 
@@ -57,27 +65,43 @@ let puzzle_move puz p m =
   let best_move_fen =
     match get_player_moves puz with h :: t -> (h, t) | [] -> ("", [])
   in
-  if next_player_fen = (best_move_fen |> fst) then
-    let new_board =
-      match get_computer_moves puz with
-      | h :: t -> h
-      | [] -> get_puz_current_board empty_puz
-    in
+  if
+    next_player_fen = (best_move_fen |> fst)
+    && get_computer_moves puz = []
+  then
+    {
+      description = get_puz_description puz;
+      current_board = next_player_fen;
+      player_moves = best_move_fen |> snd;
+      computer_moves = [];
+      wrong = false;
+      complete = true;
+    }
+  else if
+    next_player_fen = (best_move_fen |> fst)
+    && get_computer_moves puz != []
+  then
     let remaining_comp_moves =
-      match get_computer_moves puz with h :: t -> t | [] -> []
+      match get_computer_moves puz with
+      | h :: t -> (h, t)
+      | [] -> failwith "reached the unreachable"
     in
     {
-      current_board = new_board;
+      description = get_puz_description puz;
+      current_board = remaining_comp_moves |> fst;
       player_moves = best_move_fen |> snd;
-      computer_moves = remaining_comp_moves;
+      computer_moves = remaining_comp_moves |> snd;
       wrong = false;
+      complete = false;
     }
   else
     {
-      current_board = get_puz_current_board puz;
+      description = get_puz_description puz;
+      current_board = next_player_fen;
       player_moves = get_player_moves puz;
       computer_moves = get_computer_moves puz;
       wrong = true;
+      complete = false;
     }
 
 let solve_puzzle rush =

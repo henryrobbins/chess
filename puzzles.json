@@ -1,5 +1,6 @@
 [
   {
+    "description": "L400 1",
     "current_board": "6k1/5ppp/1rb5/2p1p3/8/1p3PP1/3R1K1P/8 w - - 0 32",
     "player_moves": [
       "3R2k1/5ppp/1rb5/2p1p3/8/1p3PP1/5K1P/8 b - - 1 32",
@@ -8,6 +9,17 @@
     "computer_moves": [
       "3Rb1k1/5ppp/1r6/2p1p3/8/1p3PP1/5K1P/8 w - - 2 33"
     ],
-    "wrong": "false"
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 2",
+    "current_board": "1rb2k1r/ppNp1ppp/8/8/3p4/8/qPP1RPPP/3K1B1R w - - 4 16",
+    "player_moves": [
+      "1rb1Rk1r/ppNp1ppp/8/8/3p4/8/qPP2PPP/3K1B1R b - - 5 16"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
   }
 ]
