@@ -21,5 +21,106 @@
     "computer_moves": [],
     "wrong": "false",
     "complete": "false"
+  },
+  {
+    "description": "L400 3",
+    "current_board": "6k1/1pR2ppp/8/8/P7/6P1/4rPKP/1r6 w - - 1 25",
+    "player_moves": [
+      "2R3k1/1p3ppp/8/8/P7/6P1/4rPKP/1r6 b - - 2 25",
+      "4R1k1/1p3ppp/8/8/P7/6P1/5PKP/1r6 b - - 0 26"
+    ],
+    "computer_moves": [
+      "2R1r1k1/1p3ppp/8/8/P7/6P1/5PKP/1r6 w - - 3 26"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 4",
+    "current_board": "4rrk1/p5p1/1p1q1n1p/2p1N3/8/P5QP/5PP1/3RR1K1 w - - 1 2",
+    "player_moves": [
+      "4rrk1/p5p1/1p1R1n1p/2p1N3/8/P5QP/5PP1/4R1K1 b - - 0 2"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 5",
+    "current_board": "6R1/7p/5k2/2p3N1/2R5/r7/5PPP/6K1 b - - 0 35",
+    "player_moves": [
+      "6R1/7p/5k2/2p3N1/2R5/8/5PPP/r5K1 w - - 1 36",
+      "6R1/7p/5k2/2p3N1/8/8/5PPP/2r3K1 w - - 0 37"
+    ],
+    "computer_moves": [
+      "6R1/7p/5k2/2p3N1/8/8/5PPP/r1R3K1 b - - 2 36"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 6",
+    "current_board": "5r2/p1Q3p1/4kqn1/4p3/8/2P1P1P1/PP4PP/3R2K1 b - - 0 25",
+    "player_moves": [
+      "5r2/p1Q3p1/4k1n1/4p3/8/2P1P1P1/PP3qPP/3R2K1 w - - 1 26",
+      "5r2/p1Q3p1/4k1n1/4p3/8/2P1P1P1/PP4PP/3R1q1K w - - 3 27",
+      "8/p1Q3p1/4k1n1/4p3/8/2P1P1P1/PP4PP/5r1K w - - 0 28"
+    ],
+    "computer_moves": [
+      "5r2/p1Q3p1/4k1n1/4p3/8/2P1P1P1/PP3qPP/3R3K b - - 2 26",
+      "5r2/p1Q3p1/4k1n1/4p3/8/2P1P1P1/PP4PP/5R1K b - - 0 27"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 7",
+    "current_board": "8/3R1B2/5k1p/5p2/R5pK/4r3/2P4P/8 b - - 6 40",
+    "player_moves": [
+      "8/3R1B2/5k1p/5p2/R5pK/7r/2P4P/8 w - - 7 41"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 8",
+    "current_board": "r3kb1r/ppp1pppp/2n2n2/6B1/3q4/2N2B2/PPPQ1PPP/R3K2R w KQkq - 0 2",
+    "player_moves": [
+      "r3kb1r/ppp1pppp/2B2n2/6B1/3q4/2N5/PPPQ1PPP/R3K2R b KQkq - 0 2",
+      "r3kb1r/p1p1pppp/2p2n2/6B1/3Q4/2N5/PPP2PPP/R3K2R b KQkq - 0 3"
+    ],
+    "computer_moves": [
+      "r3kb1r/p1p1pppp/2p2n2/6B1/3q4/2N5/PPPQ1PPP/R3K2R w KQkq - 0 3"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 9",
+    "current_board": "8/6N1/3P3K/2r5/7k/8/6P1/8 w - - 0 2",
+    "player_moves": [
+      "8/3P2N1/7K/2r5/7k/8/6P1/8 b - - 0 2",
+      "8/3P4/7K/3r1N2/7k/8/6P1/8 b - - 2 3",
+      "8/3P4/7K/3r4/6k1/4N3/6P1/8 b - - 4 4",
+      "8/3P4/7K/3N4/5k2/8/6P1/8 b - - 0 5"
+    ],
+    "computer_moves": [
+      "8/3P2N1/7K/3r4/7k/8/6P1/8 w - - 1 3",
+      "8/3P4/7K/3r1N2/6k1/8/6P1/8 w - - 3 4",
+      "8/3P4/7K/3r4/5k2/4N3/6P1/8 w - - 5 5"
+    ],
+    "wrong": "false",
+    "complete": "false"
+  },
+  {
+    "description": "L400 10",
+    "current_board": "2kr2nr/pppn1p1p/4pq2/2b2b2/5p2/2NP1QP1/PPP2PBP/R1N2RK1 w - - 0 12",
+    "player_moves": [
+      "2kr2nr/pQpn1p1p/4pq2/2b2b2/5p2/2NP2P1/PPP2PBP/R1N2RK1 b - - 0 12"
+    ],
+    "computer_moves": [],
+    "wrong": "false",
+    "complete": "false"
   }
 ]
