@@ -8,24 +8,32 @@ open Unix
 open Engine
 
 (* Static parameters for the GUI *)
-let width = 600
-let height = 650
+let width = 800
+let height = 800
 
 type game_window = {
   computer : bool; (* True if the user is playing aganist the computer. *)
   board : Board.t ref;  (* The current board state in this game window. *)
   drop : bool ref;  (* True if the user is selecting the to_square. *)
+  promotion : (Board.p * square) option ref; (* Represents a promotion. *)
   to_square : square option ref;  (* Square piece should move to. *)
   from_square : square option ref;  (* Square piece is currently on. *)
   squares : (string * GButton.button) list; (* List of widgets for squares. *)
   captured_table : GPack.table; (* Widget for captured pieces. *)
   black_captured : GMisc.label; (* Widget for black captured point value. *)
   white_captured : GMisc.label; (* Widget for white captured point value. *)
+  (* piece_select : GPack.table; Widget for selecting pieces. *)
   turn_lbl : GMisc.label; (* Widget for whose turn it is. *)
   export_fen : GEdit.entry; (* Widget for FEN for exporting. *)
 }
 
 let locale = GtkMain.Main.init ()
+
+(** [extract option] extracts the value from option [option] if it exists.
+    Otherwise, fails with "impossible". *)
+let extract = function
+  | None -> failwith "impossible"
+  | Some option -> option
 
 (* Connect a signal handler, ignoring the resulting signal ID. This
    avoids having to use [|> ignore] everywhere.
@@ -50,60 +58,6 @@ let update_button_image button id =
     GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image () |> ignore;
     (* GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#add () |> ignore; *)
   ()
-
-(** [pawn_promotion_window c] opens a window allowing player [c] to choose
-    a piece to use in a pawn promotion. *)
-let pawn_promotion_window color =
-  let d = 75 in
-  let window =
-    GWindow.window ~width:(d * 2) ~height:(d * 2) ~position:`CENTER
-      ~resizable:true ~title:"Pawn Promotion" ()
-  in
-  window#connect#destroy ==> Main.quit;
-
-  let c = String.uppercase_ascii (string_of_color color) in
-  let table =
-    GPack.table ~width:(d * 2) ~height:(d * 2) ~packing:window#add () in
-  let add i j x = table#attach i j x in
-
-  let btns = [("R", 0, 0); ("B", 1, 0); ("N", 0, 1); ("Q", 1, 1)] in
-  let rec create_buttons btns =
-    match btns with
-    | [] -> ()
-    | (pt, i, j) :: t ->
-      let button = GButton.button ~packing:(add i j) () in
-      GMisc.image ~pixbuf:(sprite (d - 10) (c ^ pt))
-        ~packing:button#set_image () |> ignore;
-      button#connect#pressed ==> fun () -> (
-        print_endline pt;
-        Main.quit ();
-      );
-      create_buttons t; in
-  create_buttons btns;
-
-  window#show ();
-  Main.main ()
-
-(** [update_with_move b m] is the board [b] after executing move [m] if
-    move [m] is valid. Otherwise, returns board [b] unaltered. *)
-let update_with_move b m cmd =
-  match m with
-  | sq, sq' ->
-      let p =
-        match piece_of_square b sq with
-        | None -> failwith "impossible"
-        | Some p' -> p'
-      in
-      if is_valid_move (sq, sq') b then
-        let b' = move_piece b p sq' true in
-        if is_pawn_promotion b p sq' then
-          match piece_of_square b' sq' with
-          | None -> failwith "impossible"
-          | Some p' ->
-            pawn_promotion_window (color_to_move b);
-            promote_pawn b' p' Queen
-        else b'
-      else b
 
 (** [add_file_rank_labels t] adds file and rank labels to a game board [t]. *)
 let add_file_rank_labels (table : GPack.table) =
@@ -218,13 +172,61 @@ let terminal_output b =
     else if is_stalemate b then print_string "STALEMATE \n"
     else (); ()
 
+(** [piece_select_callback pt] is the callback function when pressing the
+    button corresponding to piece type [pt] in the piece select window. *)
+let piece_select_callback w pt = fun () -> (
+  match !(w.promotion) with
+  | None -> ()
+  | Some (p, sq') ->
+    let b' = move_piece !(w.board) p sq' true in
+    let p' = extract (piece_of_square b' sq') in
+    w.board := promote_pawn b' p' pt;
+    w.promotion := None;
+    update_window w;
+)
+
+(** [init_piece_selection packing] adds a widget for piece selection using
+    the given packing function [packing]. *)
+let init_piece_selection w packing =
+  let d = 60 in
+  let c = String.uppercase_ascii (string_of_color White) in
+  let table = GPack.table ~width:(d*2) ~height:(d*2) ~packing:packing () in
+  let add i j x = table#attach i j x in
+  let attr = [(Rook, 0, 0); (Bishop, 1, 0); (Knight, 0, 1); (Queen, 1, 1)] in
+  let rec create_buttons attr =
+    match attr with
+    | [] -> ()
+    | (pt, i, j) :: t ->
+      GMisc.image ~pixbuf:(sprite 60 "gray_sq") ~packing:(add i j) |> ignore;
+      let button = GButton.button ~packing:(add i j) () in
+      button#set_border_width 0;
+      button#set_focus_on_click false;
+      button#set_relief `NONE;
+      GMisc.image ~pixbuf:(sprite (d - 15) (c ^ (string_of_piece_id pt)))
+        ~packing:button#set_image () |> ignore;
+      button#connect#pressed ==> piece_select_callback w pt;
+      create_buttons t; in
+  create_buttons attr;
+  table
+
 (** [enter_square_callback w] is the callback function for window [w] called
     when the mouse enters a square. *)
 let enter_square_callback w = fun () -> (
-  let board = !(w.board) in
-  if w.computer && color_to_move board = Black then (
-    let move = best_move (export_to_fen board) in
-    let board' = update_with_move board (fst move) false in
+  let b = !(w.board) in
+  let in_promotion =
+    match !(w.promotion) with
+    | None -> false
+    | Some _ -> true in
+  if not in_promotion && w.computer && color_to_move b = Black then (
+    let (sq, sq'), promote = best_move (export_to_fen b) in
+    let p = extract (piece_of_square b sq) in
+    let board' = move_piece b p sq' true in
+    let board' =
+    match promote with
+    | None -> board'
+    | Some pt -> (
+      let p' = extract (piece_of_square board' sq') in
+      promote_pawn board' p' pt) in
     w.board := board';
     update_window w;
     terminal_output board' )
@@ -245,44 +247,50 @@ let show_valid_moves w p =
   in
   show_valid_moves_aux (valid_piece_moves !(w.board) p); ()
 
+(** [from_square_callback w sq p] is the callback function for window [w]
+    called when the mouse selects the from_square [sq] with the piece [p] on
+    it for a move. *)
+let from_square_callback w sq p =
+  w.drop := true;
+  w.from_square := Some sq;
+  w.to_square := None;
+  show_valid_moves w (extract p); ()
+
+(** [to_square_callback w sq] is the callback function for window [w] called
+    when the mouse selects the from_square [sq] for a move. *)
+let to_square_callback w sq =
+  let b = !(w.board) in
+  let sq' = sq in
+  let sq = extract (!(w.from_square)) in
+  let p = extract (piece_of_square b sq) in
+  let board' =
+    if is_valid_move (sq, sq') b then (
+      if is_pawn_promotion b p sq' then
+       ( w.promotion := Some (p, sq'); b)
+      else move_piece b p sq' true)
+    else b in
+  w.drop := false;
+  w.from_square := None;
+  w.to_square := None;
+  w.board := board';
+  update_window w;
+  terminal_output board'; ()
+
 (** [pressed_square_callback w] is the callback function for window [w] called
     when the mouse presses on a square. *)
 let pressed_square_callback w sq = fun () -> (
-  let p =
-  match piece_of_square !(w.board) sq with
-  | None -> print_endline "impossible"; None
-  | Some p -> Some p in
-  let valid_start =
-    match p with
-    | None -> false
-    | Some p -> (color_of_piece p) = color_to_move !(w.board) in
-  if not !(w.drop) || valid_start then (
-    (* set w.drop to true if the from_square is a valid start. *)
-    if valid_start then (
-      w.drop := true;
-      w.from_square := Some sq;
-      w.to_square := None;
-      let p = match p with Some p -> p | None -> failwith "impossible" in
-      show_valid_moves w p;)
-    else ()
-  )
-  else (
-    let sq' = sq in
-    let sq =
-      match !(w.from_square) with
-      | None -> failwith "impossible"
-      | Some sq -> sq in
-    let board' = update_with_move !(w.board) (sq, sq') false in
-    if !(w.board) = board' then
-      print_endline "invalid move."
-    else (
-      w.drop := false;
-      w.from_square := None;
-      w.to_square := None;
-      w.board := board';
-      update_window w;
-      terminal_output board');
-  );)
+  match !(w.promotion) with
+  | Some _ -> ()
+  | None ->
+    let p = piece_of_square !(w.board) sq in
+    let valid_start =
+      match p with
+      | None -> false
+      | Some p -> (color_of_piece p) = color_to_move !(w.board) in
+    if not !(w.drop) || valid_start then (
+      if valid_start then from_square_callback w sq p else ()
+    )
+    else to_square_callback w sq;)
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main computer fen =
@@ -296,11 +304,15 @@ let gui_main computer fen =
   (* state variables *)
   let board = ref (try init_from_fen fen with Failure _ -> init_game ()) in
   let drop = ref false in
+  let promotion = ref None in
   let from_square = ref None in
   let to_square = ref None in
 
   (* container for all widgets *)
   let table = GPack.table ~packing:window#add () in
+  table#set_col_spacings 20;
+  table#set_row_spacings 20;
+
   let add i j x = table#attach i j x in
 
   (* widgets to add to main container *)
@@ -320,9 +332,11 @@ let gui_main computer fen =
   export_fen#set_editable false;
 
   let game_window = {
-    computer; board; drop;  from_square; to_square; squares; captured_table;
-    black_captured; white_captured; turn_lbl; export_fen
+    computer; board; drop; promotion; from_square; to_square; squares; turn_lbl;
+    captured_table; black_captured; white_captured; export_fen
   } in
+
+  init_piece_selection game_window (add 1 0) |> ignore;
 
   (* go back and set all the button callbacks *)
   let rec set_callbacks rows cols =
@@ -378,7 +392,16 @@ let main =
 
   (* ------------------------------------------------------- *)
 
-  (* GEdit.combo_box ~packing:(add 0 3) () |> ignore; *)
+  (* let tree  = Gtk.ListStore in *)
+
+  (* let combo = GEdit.combo_box ~packing:(add 0 3) () in
+  GMisc.label ~packing:combo#add ~text:"one" |> ignore;
+  GMisc.label ~packing:combo#add ~text:"two" |> ignore;
+  GMisc.label ~packing:combo#add ~text:"three" |> ignore;
+
+  combo#set_active 2;
+  print_endline( string_of_int combo#active); *)
+
 
   ( one_player_button#connect#pressed ==> fun () ->
     gui_main true fen#text );
