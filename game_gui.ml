@@ -18,12 +18,16 @@ type game_window = {
   promotion : (Board.p * square) option ref; (* Represents a promotion. *)
   to_square : square option ref;  (* Square piece should move to. *)
   from_square : square option ref;  (* Square piece is currently on. *)
-  squares : (string * GButton.button) list; (* List of widgets for squares. *)
+  squares : ((int * int) * GButton.button) list; (* Widgets for squares. *)
+  file_lbls : GMisc.label list; (* Widget for file labels. *)
+  rank_lbls : GMisc.label list; (* Widget for rank labels. *)
   captured_table : GPack.table; (* Widget for captured pieces. *)
   black_captured : GMisc.label; (* Widget for black captured point value. *)
   white_captured : GMisc.label; (* Widget for white captured point value. *)
   (* piece_select : GPack.table; Widget for selecting pieces. *)
   export_fen : GEdit.entry; (* Widget for FEN for exporting. *)
+  files : string list ref; (* Ordered list of files for board state. *)
+  ranks : string list ref; (* Ordered list of ranks for board state. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -61,7 +65,7 @@ let update_button_image button id =
 (** [add_file_rank_labels t] adds file and rank labels to a game board [t]. *)
 let add_file_rank_labels (table : GPack.table) =
   let add i j x = table#attach i j x in
-  let rec labels_aux i =
+  let rec labels_aux i f r =
     if i < 8 then (
       let f_text = GMisc.label ~packing:(add (i + 1) 8) () in
       f_text#set_text (List.nth files i);
@@ -69,35 +73,34 @@ let add_file_rank_labels (table : GPack.table) =
       let r_text = GMisc.label ~packing:(add 0 (7 - i)) () in
       r_text#set_text (List.nth ranks i);
       r_text#set_justify `CENTER;
-      labels_aux (i + 1) )
+      labels_aux (i + 1) (f_text :: f) (r_text :: r))
+    else (List.rev f, List.rev r)
   in
-  labels_aux 0; ()
+  labels_aux 0 [] []
 
 (** [add_board_squares b t] adds buttons for board squares to game board [t]
     representing the board state [b]. *)
 let add_board_squares board (table : GPack.table) =
-  let rec squares_aux rows cols i j btns =
-    match rows with
-    | [] -> btns
-    | r :: rt -> (
-      match cols with
-      | [] ->
-        if rt = [] then btns
-        else squares_aux rt ranks (i + 1) 0 btns
-      | c :: ct ->
-          let id = string_of_piece (piece_of_square !board (r ^ c)) in
-          let add x = table#attach i (7 - j) x in
-          let button = GButton.button ~packing:add () in
-          let name = if (i + j) mod 2 = 1 then "dark_sq" else "light_sq" in
-          GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
-          update_button_image button id;
-          button#set_border_width 0;
-          button#set_focus_on_click false;
-          button#set_relief `NONE;
-          let btns = (r ^ c, button) :: btns in
-          squares_aux (r :: rt) ct i (j + 1) btns )
+  let rec squares_aux i j btns =
+    if i < 8 then
+      if j = 8 then (if i = 7 then btns else squares_aux (i + 1) 0 btns)
+      else
+        let r = List.nth files i in
+        let c = List.nth ranks j in
+        let id = string_of_piece (piece_of_square !board (r ^ c)) in
+        let add x = table#attach (i + 1) (7 - j) x in
+        let button = GButton.button ~packing:add () in
+        let name = if (i + j) mod 2 = 1 then "dark_sq" else "light_sq" in
+        GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
+        update_button_image button id;
+        button#set_border_width 0;
+        button#set_focus_on_click false;
+        button#set_relief `NONE;
+        let btns = ((i,j), button) :: btns in
+        squares_aux i (j + 1) btns
+    else btns
   in
-  squares_aux files ranks 1 0 []
+  squares_aux 0 0 []
 
 (** [init_captured_table] returns a table widget for captured pieces and the
     labels for updating point values. *)
@@ -113,20 +116,26 @@ let init_captured_table packing =
 (** [update_board b buttons] updates the playing board [buttons] with the
     current board state [b]. *)
 let update_board w =
-  let rec update_board_aux rows cols =
-    match rows with
-    | [] -> ()
-    | r :: rt -> (
-      match cols with
-      | [] -> if rt = [] then () else update_board_aux rt ranks
-      | c :: ct ->
-        let sq = r ^ c in
-        let button = List.assoc sq w.squares in
+  let rec update_board_aux i j =
+    if i < 8 then
+      if j = 8 then (if i = 7 then () else update_board_aux (i + 1) 0)
+      else
+        let sq = (List.nth !(w.files) i) ^ (List.nth !(w.ranks) j) in
+        let button = List.assoc (i,j) w.squares in
         let id = string_of_piece (piece_of_square !(w.board) sq) in
         update_button_image button id;
-        update_board_aux (r :: rt) ct )
+        update_board_aux i (j + 1)
   in
-  update_board_aux files ranks
+  update_board_aux 0 0
+
+(** [update_file_rank_labels w] updates file and rank labels for window [w]. *)
+let update_file_rank_labels w =
+  let rec aux i =
+    if i < 8 then (
+      (List.nth w.file_lbls i)#set_text (List.nth !(w.files) i);
+      (List.nth w.rank_lbls i)#set_text (List.nth !(w.ranks) i);
+      aux (i + 1);) in
+  aux 0; ()
 
 (** [update_captured b t black white] updates the table of captured pieces [t],
     black captured point value [black], and white captured point value [white]
@@ -151,9 +160,20 @@ let update_captured w =
     add_captured_pieces 0 1 (List.rev lst);
     add_captured_pieces 1 1 (List.rev lst');)
 
+(** [update_ranks_and_files w] updates the ranks and files. *)
+let update_ranks_and_files w =
+  if w.computer || color_to_move !(w.board) = White then (
+    w.files := files;
+    w.ranks := ranks;)
+  else (
+    w.files := List.rev files;
+    w.ranks := List.rev ranks;)
+
 (** [update_window b ...] updates all the widgets on the window for the given
     board state [b]. *)
 let update_window w =
+  update_ranks_and_files w;
+  update_file_rank_labels w;
   update_captured w;
   update_board w;
   let board = !(w.board) in
@@ -231,17 +251,28 @@ let enter_square_callback w = fun () -> (
   else ()
 )
 
+(** [index_of list a] returns the index of the element [a] in list [list] if it
+    exists. Otherwise, returns -1. *)
+let index_of list a =
+  let rec index_of_aux lst i =
+    match lst with
+    | [] -> -1
+    | h :: t -> if a = h then i else index_of_aux t (i + 1) in
+  index_of_aux list 0
+
 (** [show_valid_moves w p] updates window [w] to show all of the valid moves
     for the current selected piece [p]. *)
 let show_valid_moves w p =
   update_window w;
   let rec show_valid_moves_aux lst =
-  match lst with
-  | [] -> ()
-  | (_,s) :: t -> (
-    let button = List.assoc s w.squares in
-    GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#set_image () |> ignore;
-    show_valid_moves_aux t;);
+    match lst with
+    | [] -> ()
+    | (_,sq) :: t -> (
+      let i = index_of !(w.files) (Char.escaped sq.[0]) in
+      let j = index_of !(w.ranks) (Char.escaped sq.[1]) in
+      let button = List.assoc (i,j) w.squares in
+      GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#set_image () |> ignore;
+      show_valid_moves_aux t;);
   in
   show_valid_moves_aux (valid_piece_moves !(w.board) p); ()
 
@@ -274,12 +305,16 @@ let to_square_callback w sq =
   update_window w;
   terminal_output board'; ()
 
-(** [pressed_square_callback w] is the callback function for window [w] called
-    when the mouse presses on a square. *)
-let pressed_square_callback w sq = fun () -> (
+(** [pressed_square_callback w btn] is the callback function for window [w]
+    called when the mouse presses on a the button [btn]. *)
+let pressed_square_callback w btn = fun () -> (
   match !(w.promotion) with
   | Some _ -> ()
   | None ->
+    let (i,j) = btn in
+    let r = List.nth !(w.files) i in
+    let c = List.nth !(w.ranks) j in
+    let sq = r ^ c in
     let p = piece_of_square !(w.board) sq in
     let valid_start =
       match p with
@@ -305,6 +340,8 @@ let gui_main computer fen =
   let promotion = ref None in
   let from_square = ref None in
   let to_square = ref None in
+  let files = ref files in
+  let ranks = ref ranks in
 
   (* container for all widgets *)
   let table = GPack.table ~packing:window#add () in
@@ -316,7 +353,7 @@ let gui_main computer fen =
   (* widgets to add to main container *)
 
   let board_table = GPack.table ~packing:(add 0 0) ~homogeneous:true () in
-  add_file_rank_labels board_table;
+  let file_lbls, rank_lbls = add_file_rank_labels board_table in
   let squares = add_board_squares board board_table in
 
   let captured_table, black_captured, white_captured =
@@ -328,26 +365,23 @@ let gui_main computer fen =
 
   let game_window = {
     computer; board; drop; promotion; from_square; to_square; squares;
-    captured_table; black_captured; white_captured; export_fen
+    captured_table; black_captured; white_captured; export_fen; files; ranks;
+    file_lbls; rank_lbls
   } in
 
   init_piece_selection game_window (add 1 0) |> ignore;
 
   (* go back and set all the button callbacks *)
-  let rec set_callbacks rows cols =
-    match rows with
-    | [] -> ()
-    | r :: rt ->
-      match cols with
-      | [] -> if rt = [] then () else set_callbacks rt ranks
-      | c :: ct -> (
-        let button = List.assoc (r ^ c) squares in
+  let rec set_callbacks i j =
+    if i < 8 then
+      if j = 8 then (if i = 7 then () else set_callbacks (i + 1) 0)
+      else
+        let button = List.assoc (i,j) squares in
         button#connect#enter ==> enter_square_callback game_window;
-        button#connect#pressed ==> pressed_square_callback game_window (r ^ c);
-        set_callbacks (r :: rt) ct;
-        );
+        button#connect#pressed ==> pressed_square_callback game_window (i,j);
+        set_callbacks i (j + 1);
   in
-  set_callbacks files ranks;
+  set_callbacks 0 0;
 
   window#show ();
   Main.main ()
