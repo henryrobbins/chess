@@ -209,7 +209,7 @@ let update_piece_select w =
     | h :: t -> (
       let button = List.assoc h w.piece_select in
       let c = string_of_color (color_to_move !(w.board)) in
-      let id = c ^ (string_of_piece_id h) in
+      let id = (String.uppercase_ascii c) ^ (string_of_piece_id h) in
       GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image () |> ignore;
       (match !(w.promotion) with
       | None -> button#misc#hide ()
@@ -217,7 +217,6 @@ let update_piece_select w =
       aux t;) in
       aux [Rook; Bishop; Knight; Queen];
   ()
-
 
 (** [update_window b ...] updates all the widgets on the window for the given
     board state [b]. *)
