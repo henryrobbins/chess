@@ -8,8 +8,8 @@ open Unix
 open Engine
 
 (* Static parameters for the GUI *)
-let width = 800
-let height = 800
+let width = 640
+let height = 700
 
 type game_window = {
   computer : bool; (* True if the user is playing aganist the computer. *)
@@ -24,7 +24,7 @@ type game_window = {
   captured_table : GPack.table; (* Widget for captured pieces. *)
   black_captured : GMisc.label; (* Widget for black captured point value. *)
   white_captured : GMisc.label; (* Widget for white captured point value. *)
-  (* piece_select : GPack.table; Widget for selecting pieces. *)
+  piece_select : (Board.piece_type * GButton.button) list; (* Select type. *)
   export_fen : GEdit.entry; (* Widget for FEN for exporting. *)
   files : string list ref; (* Ordered list of files for board state. *)
   ranks : string list ref; (* Ordered list of ranks for board state. *)
@@ -67,11 +67,18 @@ let add_file_rank_labels (table : GPack.table) =
   let add i j x = table#attach i j x in
   let rec labels_aux i f r =
     if i < 8 then (
+      let text_color = `RGB (200 * 255, 200 * 255, 200*  255) in
       let f_text = GMisc.label ~packing:(add (i + 1) 8) () in
-      f_text#set_text (List.nth files i);
+      f_text#set_text ("<b>" ^ (List.nth files i) ^ "</b>");
+      f_text#set_use_markup true;
+      f_text#misc#modify_font_by_name "Sans 16";
+      f_text#misc#modify_fg [(`NORMAL, text_color)];
       f_text#set_justify `CENTER;
       let r_text = GMisc.label ~packing:(add 0 (7 - i)) () in
-      r_text#set_text (List.nth ranks i);
+      r_text#set_text ("<b>" ^ (List.nth ranks i) ^ "</b>");
+      r_text#set_use_markup true;
+      r_text#misc#modify_font_by_name "Sans 16";
+      r_text#misc#modify_fg [(`NORMAL, text_color)];
       r_text#set_justify `CENTER;
       labels_aux (i + 1) (f_text :: f) (r_text :: r))
     else (List.rev f, List.rev r)
@@ -113,6 +120,28 @@ let init_captured_table packing =
   white_captured#set_text "0";
   (table, black_captured, white_captured)
 
+(** [init_piece_selection packing] adds a widget for piece selection using
+    the given packing function [packing]. *)
+let init_piece_selection packing =
+  let d = 60 in
+  let c = String.uppercase_ascii (string_of_color White) in
+  let table = GPack.table ~width:(d*2) ~height:(d*2) ~packing:packing () in
+  let add i j x = table#attach i j x in
+  let attr = [(Rook, 0, 0); (Bishop, 0, 1); (Knight, 0, 2); (Queen, 0, 3)] in
+  let rec create_buttons attr btns =
+    match attr with
+    | [] -> btns
+    | (pt, i, j) :: t ->
+      let button = GButton.button ~packing:(add i j) () in
+      button#set_border_width 0;
+      button#set_focus_on_click false;
+      button#set_relief `NONE;
+      button#misc#hide ();
+      GMisc.image ~pixbuf:(sprite (d - 15) (c ^ (string_of_piece_id pt)))
+        ~packing:button#set_image () |> ignore;
+      create_buttons t ((pt, button) :: btns); in
+  create_buttons attr []
+
 (** [update_board b buttons] updates the playing board [buttons] with the
     current board state [b]. *)
 let update_board w =
@@ -132,8 +161,11 @@ let update_board w =
 let update_file_rank_labels w =
   let rec aux i =
     if i < 8 then (
-      (List.nth w.file_lbls i)#set_text (List.nth !(w.files) i);
-      (List.nth w.rank_lbls i)#set_text (List.nth !(w.ranks) i);
+      let bold text = "<b>" ^ text ^ "</b>" in
+      (List.nth w.file_lbls i)#set_text (bold (List.nth !(w.files) i));
+      (List.nth w.file_lbls i)#set_use_markup true;
+      (List.nth w.rank_lbls i)#set_text (bold (List.nth !(w.ranks) i));
+      (List.nth w.rank_lbls i)#set_use_markup true;
       aux (i + 1);) in
   aux 0; ()
 
@@ -169,11 +201,30 @@ let update_ranks_and_files w =
     w.files := List.rev files;
     w.ranks := List.rev ranks;)
 
+(** [update_piece_select w] updates the piece select menu. *)
+let update_piece_select w =
+  let rec aux pts =
+    match pts with
+    | [] -> ()
+    | h :: t -> (
+      let button = List.assoc h w.piece_select in
+      let c = string_of_color (color_to_move !(w.board)) in
+      let id = c ^ (string_of_piece_id h) in
+      GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image () |> ignore;
+      (match !(w.promotion) with
+      | None -> button#misc#hide ()
+      | _ -> button#misc#show ());
+      aux t;) in
+      aux [Rook; Bishop; Knight; Queen];
+  ()
+
+
 (** [update_window b ...] updates all the widgets on the window for the given
     board state [b]. *)
 let update_window w =
   update_ranks_and_files w;
   update_file_rank_labels w;
+  update_piece_select w;
   update_captured w;
   update_board w;
   let board = !(w.board) in
@@ -202,30 +253,6 @@ let piece_select_callback w pt = fun () -> (
     w.promotion := None;
     update_window w;
 )
-
-(** [init_piece_selection packing] adds a widget for piece selection using
-    the given packing function [packing]. *)
-let init_piece_selection w packing =
-  let d = 60 in
-  let c = String.uppercase_ascii (string_of_color White) in
-  let table = GPack.table ~width:(d*2) ~height:(d*2) ~packing:packing () in
-  let add i j x = table#attach i j x in
-  let attr = [(Rook, 0, 0); (Bishop, 0, 1); (Knight, 0, 2); (Queen, 0, 3)] in
-  let rec create_buttons attr =
-    match attr with
-    | [] -> ()
-    | (pt, i, j) :: t ->
-      GMisc.image ~pixbuf:(sprite 60 "gray_sq") ~packing:(add i j) |> ignore;
-      let button = GButton.button ~packing:(add i j) () in
-      button#set_border_width 0;
-      button#set_focus_on_click false;
-      button#set_relief `NONE;
-      GMisc.image ~pixbuf:(sprite (d - 15) (c ^ (string_of_piece_id pt)))
-        ~packing:button#set_image () |> ignore;
-      button#connect#pressed ==> piece_select_callback w pt;
-      create_buttons t; in
-  create_buttons attr;
-  table
 
 (** [enter_square_callback w] is the callback function for window [w] called
     when the mouse enters a square. *)
@@ -295,7 +322,9 @@ let to_square_callback w sq =
   let board' =
     if is_valid_move (sq, sq') b then (
       if is_pawn_promotion b p sq' then
-       ( w.promotion := Some (p, sq'); b)
+       ( w.promotion := Some (p, sq');
+         update_piece_select w;
+         b)
       else move_piece b p sq' true)
     else b in
   w.drop := false;
@@ -333,6 +362,7 @@ let gui_main computer fen =
       ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
+  window#misc#modify_bg [(`NORMAL, `RGB (37 * 255, 35 * 255, 32*  255))];
 
   (* state variables *)
   let board = ref (try init_from_fen fen with Failure _ -> init_game ()) in
@@ -363,25 +393,35 @@ let gui_main computer fen =
   export_fen#set_text (export_to_fen !board);
   export_fen#set_editable false;
 
+  let piece_select = init_piece_selection (add 1 0) in
+
   let game_window = {
     computer; board; drop; promotion; from_square; to_square; squares;
     captured_table; black_captured; white_captured; export_fen; files; ranks;
-    file_lbls; rank_lbls
+    file_lbls; rank_lbls; piece_select
   } in
 
-  init_piece_selection game_window (add 1 0) |> ignore;
-
   (* go back and set all the button callbacks *)
-  let rec set_callbacks i j =
+
+  let rec set_board_callbacks i j =
     if i < 8 then
-      if j = 8 then (if i = 7 then () else set_callbacks (i + 1) 0)
+      if j = 8 then (if i = 7 then () else set_board_callbacks (i + 1) 0)
       else
         let button = List.assoc (i,j) squares in
         button#connect#enter ==> enter_square_callback game_window;
         button#connect#pressed ==> pressed_square_callback game_window (i,j);
-        set_callbacks i (j + 1);
+        set_board_callbacks i (j + 1);
   in
-  set_callbacks 0 0;
+  set_board_callbacks 0 0;
+
+  let rec set_piece_select_callbacks pts =
+    match pts with
+    | [] -> ()
+    | h :: t -> (
+      let button = List.assoc h piece_select in
+      button#connect#pressed ==> piece_select_callback game_window h;
+      set_piece_select_callbacks t;) in
+  set_piece_select_callbacks [Rook; Bishop; Knight; Queen];
 
   window#show ();
   Main.main ()
