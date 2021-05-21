@@ -23,7 +23,6 @@ type game_window = {
   black_captured : GMisc.label; (* Widget for black captured point value. *)
   white_captured : GMisc.label; (* Widget for white captured point value. *)
   (* piece_select : GPack.table; Widget for selecting pieces. *)
-  turn_lbl : GMisc.label; (* Widget for whose turn it is. *)
   export_fen : GEdit.entry; (* Widget for FEN for exporting. *)
 }
 
@@ -158,7 +157,6 @@ let update_window w =
   update_captured w;
   update_board w;
   let board = !(w.board) in
-  w.turn_lbl#set_text (string_of_color (color_to_move board));
   w.export_fen#set_text (export_to_fen board); ()
 
 (** [terminal_output b] sends output to teminal representing the state [b]. *)
@@ -192,7 +190,7 @@ let init_piece_selection w packing =
   let c = String.uppercase_ascii (string_of_color White) in
   let table = GPack.table ~width:(d*2) ~height:(d*2) ~packing:packing () in
   let add i j x = table#attach i j x in
-  let attr = [(Rook, 0, 0); (Bishop, 1, 0); (Knight, 0, 1); (Queen, 1, 1)] in
+  let attr = [(Rook, 0, 0); (Bishop, 0, 1); (Knight, 0, 2); (Queen, 0, 3)] in
   let rec create_buttons attr =
     match attr with
     | [] -> ()
@@ -324,15 +322,12 @@ let gui_main computer fen =
   let captured_table, black_captured, white_captured =
     init_captured_table (add 0 1) in
 
-  let turn_lbl = GMisc.label ~packing:(add 0 2) () in
-  turn_lbl#set_text (string_of_color (color_to_move !board));
-
-  let export_fen = GEdit.entry ~packing:(add 0 3) () in
+  let export_fen = GEdit.entry ~packing:(add 0 2) () in
   export_fen#set_text (export_to_fen !board);
   export_fen#set_editable false;
 
   let game_window = {
-    computer; board; drop; promotion; from_square; to_square; squares; turn_lbl;
+    computer; board; drop; promotion; from_square; to_square; squares;
     captured_table; black_captured; white_captured; export_fen
   } in
 
@@ -375,33 +370,6 @@ let main =
   two_player_button#set_label "Two Player";
   let fen = GEdit.entry ~packing:(add 0 2) () in
   fen#set_text "Paste an FEN here!";
-
-  (* -------------- TESING DRAG AND DROP ------------------- *)
-
-  let (dndTargets:(Gtk.target_entry) list) =
-          [
-            { target = "A_STRING"; flags = []; info = 0 };
-            { target = "A_STRING_OF_FLOAT"; flags = []; info = 1}
-          ]; in
-
-
-  one_player_button#drag#source_set dndTargets ~actions:[`COPY ];
-  (* one_player_button#drag#connect#ending ==> fun context -> (
-    print_endline "TEST";
-  ); *)
-
-  (* ------------------------------------------------------- *)
-
-  (* let tree  = Gtk.ListStore in *)
-
-  (* let combo = GEdit.combo_box ~packing:(add 0 3) () in
-  GMisc.label ~packing:combo#add ~text:"one" |> ignore;
-  GMisc.label ~packing:combo#add ~text:"two" |> ignore;
-  GMisc.label ~packing:combo#add ~text:"three" |> ignore;
-
-  combo#set_active 2;
-  print_endline( string_of_int combo#active); *)
-
 
   ( one_player_button#connect#pressed ==> fun () ->
     gui_main true fen#text );
