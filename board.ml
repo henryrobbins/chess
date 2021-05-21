@@ -46,7 +46,7 @@ type t = {
   w_castle_qs : bool;
   b_castle_ks : bool;
   b_castle_qs : bool;
-  en_passant : square option;
+  ep_sq : square option;
   ep_piece : p option;
   half_turns : int;
   full_turns : int;
@@ -107,7 +107,7 @@ let value_of_captured t color =
 
 let color_to_move t = t.color_to_move
 
-let en_passant_sq t = t.en_passant
+let en_passant_sq t = t.ep_sq
 
 let en_passant_piece t = t.ep_piece
 
@@ -158,9 +158,10 @@ let switch_color = function White -> Black | Black -> White
 let extract_piece p_opt : p =
   match p_opt with None -> failwith "no piece" | Some p -> p
 
-(** [get_en_passant sq sq'] returns [Some square] if the move from [sq]
-    to [sq'] creates an en passant square. Otherwise, returns [None]. *)
-let get_en_passant sq sq' =
+(** [get_ep_sq sq sq'] returns [Some square] if the move from [sq] to
+    [sq'] creates an en passant square [square]. Otherwise, returns
+    [None]. *)
+let get_ep_sq sq sq' =
   let file = Char.escaped sq.[0] in
   let rank = int_of_string (Char.escaped sq.[1]) in
   let rank' = int_of_string (Char.escaped sq'.[1]) in
@@ -168,7 +169,9 @@ let get_en_passant sq sq' =
     Some (file ^ string_of_int ((rank + rank') / 2))
   else None
 
-(* TODO: There could be multiple en passant pieces though.. *)
+(** [get_ep_piece p_lst col ep_sq] is [Some piece] if [ep_sq] is a valid
+    en-passant square and [piece] is the pawn that was moved to create
+    it, otherwise [None] *)
 let get_ep_piece active_pieces color_to_move ep_sq =
   match ep_sq with
   | None -> None
@@ -189,42 +192,11 @@ let get_ep_piece active_pieces color_to_move ep_sq =
       in
       search_pieces active_pieces
 
-(** [castle_still_viable t p c side] is true iff the player of color [c]
-    can castle in the direction of [side] in game state [t] after the
-    most recent move involving piece [piece]. *)
-let castle_still_viable t piece color side =
-  match can_castle t color side with
-  | false -> false
-  | true -> (
-      match id_of_piece piece with
-      | King -> not (color_of_piece piece = color)
-      | Rook -> (
-          if not (color_of_piece piece = color) then true
-          else
-            match (color, side) with
-            | White, King -> not (square_of_piece piece = "h1")
-            | White, Queen -> not (square_of_piece piece = "a1")
-            | Black, King -> not (square_of_piece piece = "h8")
-            | Black, Queen -> not (square_of_piece piece = "a8")
-            | _ -> failwith "impossible")
-      | _ -> true)
-
 (** [is_castling_move piece sq'] returns true iff moving piece [piece]
     to square [sq'] is a castling move. *)
 let is_castling_move piece sq' =
   let sq = square_of_piece piece in
   abs (int_of_char sq'.[0] - int_of_char sq.[0]) = 2
-
-(** [capture_en_passant t p s] is the state [t] after piece [p] moves to
-    square [s] in which a piece captured via en passant is now captured
-    and no longer active. *)
-let capture_en_passant t piece sq' =
-  match t.en_passant with
-  | None -> t
-  | Some ep_sq ->
-      if piece.id = Pawn && sq' = ep_sq then
-        capture_piece t (t.ep_piece |> extract_piece)
-      else t
 
 let promote_pawn t p id =
   let p' = { p with id } in
@@ -245,55 +217,80 @@ let is_pawn_promotion t p sq' =
   | Black, Pawn -> sq'.[1] = '1'
   | _ -> false
 
-let rec move_piece t piece sq' turn =
-  let state =
-    match piece_of_square t sq' with
-    | Some p -> capture_piece t p
-    | None -> capture_en_passant t piece sq'
-  in
-  let sq = square_of_piece piece in
-  let piece' =
-    if is_pawn_promotion t piece sq' then
-      { piece with id = Queen; current_pos = Some sq' }
-    else { piece with current_pos = Some sq' }
-  in
-  let active =
-    active_pieces state
+let update_active_pieces piece piece' t =
+  let active_pieces' =
+    t.active_pieces
     |> List.filter (fun x -> x <> piece)
     |> List.cons piece'
   in
-  let board =
-    state.board |> List.remove_assoc sq
+  { t with active_pieces = active_pieces' }
+
+let update_castles sq t =
+  let update_castle color side =
+    if can_castle t color side then
+      match (sq, color, side) with
+      | "e1", White, _ -> false
+      | "a1", White, Queen -> false
+      | "h1", White, King -> false
+      | "e8", Black, King -> false
+      | "a8", Black, Queen -> false
+      | "h8", Black, King -> false
+      | _ -> true
+    else false
+  in
+  {
+    t with
+    w_castle_ks = update_castle White King;
+    b_castle_ks = update_castle Black King;
+    w_castle_qs = update_castle White Queen;
+    b_castle_qs = update_castle Black Queen;
+  }
+
+let update_board sq sq' piece' t =
+  let board' =
+    t.board |> List.remove_assoc sq
     |> List.cons (sq, None)
     |> List.remove_assoc sq'
     |> List.cons (sq', Some piece')
   in
-  let en_passant =
-    match piece.id with Pawn -> get_en_passant sq sq' | _ -> None
+  { t with board = board' }
+
+let update_color_to_move turn t =
+  let color_to_move' =
+    if turn then switch_color t.color_to_move else t.color_to_move
   in
-  let ep_piece =
-    match en_passant with None -> None | Some _ -> Some piece'
+  { t with color_to_move = color_to_move' }
+
+let update_en_passant sq sq' piece' t =
+  let ep_sq' =
+    match piece'.id with Pawn -> get_ep_sq sq sq' | _ -> None
   in
-  let color_to_move =
-    if turn then switch_color (color_of_piece piece)
-    else t.color_to_move
+  let ep_piece' =
+    match ep_sq' with None -> None | Some _ -> Some piece'
   in
-  let half_turns = if turn then t.half_turns + 1 else t.half_turns in
+  { t with ep_sq = ep_sq'; ep_piece = ep_piece' }
+
+let update_turn_counters turn t =
+  let half_turns' = if turn then t.half_turns + 1 else t.half_turns in
+  let full_turns' = 1 + (half_turns' / 2) in
+  { t with half_turns = half_turns'; full_turns = full_turns' }
+
+let rec move_piece t piece sq' turn =
+  let t_with_capture =
+    match piece_of_square t sq' with
+    | Some p -> capture_piece t p
+    | None -> t
+  in
+  let sq = square_of_piece piece in
+  let piece' = { piece with current_pos = Some sq' } in
   let out_state =
-    {
-      state with
-      board;
-      active_pieces = active;
-      color_to_move;
-      w_castle_ks = castle_still_viable t piece White King;
-      w_castle_qs = castle_still_viable t piece White Queen;
-      b_castle_ks = castle_still_viable t piece Black King;
-      b_castle_qs = castle_still_viable t piece Black Queen;
-      en_passant;
-      ep_piece;
-      half_turns;
-      full_turns = 1 + (half_turns / 2);
-    }
+    t_with_capture
+    |> update_board sq sq' piece'
+    |> update_active_pieces piece piece'
+    |> update_color_to_move turn
+    |> update_castles sq
+    |> update_en_passant sq sq' piece'
+    |> update_turn_counters turn
   in
   move_rook_for_castle out_state piece sq'
 
@@ -336,7 +333,7 @@ let zip_lists lst1 lst2 =
     | h :: t -> (
         match lst2 with
         | [] -> List.rev acc
-        | h' :: t' -> zip t t' ((h ^ h') :: acc))
+        | h' :: t' -> zip t t' ((h ^ h') :: acc) )
   in
   zip lst1 lst2 []
 
@@ -407,7 +404,7 @@ let l_it_from_sq sq =
             let square2 = list_head (cardinal_it_from_sq s d2) in
             match square2 with
             | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc)))
+            | Some s' -> gen_l_moves square t (s' :: acc) ) )
   in
   gen_l_moves sq
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
@@ -457,7 +454,7 @@ let extract_rank rank_str rk : (square * p option) list =
                 (acc @ gen_empty_squares rk skip_fls [])
             with exn ->
               let piece = gen_piece (Char.escaped x) rk h in
-              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc)))
+              extract_aux (i + 1) t ((h ^ rk, Some piece) :: acc) ) )
   in
   extract_aux 0 files []
 
@@ -480,7 +477,7 @@ let active_pieces_of_board b_assoc =
     | (sq, p) :: t -> (
         match p with
         | None -> a_piece_aux t a_pieces
-        | Some p' -> a_piece_aux t (p' :: a_pieces))
+        | Some p' -> a_piece_aux t (p' :: a_pieces) )
   in
   a_piece_aux b_assoc []
 
@@ -488,7 +485,7 @@ let init_from_fen fen =
   let state_info_list = String.split_on_char ' ' fen in
   match state_info_list with
   | [ b; ctp; cast; ep; ht; ft ] ->
-      let en_passant = match ep with "-" -> None | x -> Some x in
+      let ep_sq = match ep with "-" -> None | x -> Some x in
       let color_to_move = color_of_string ctp in
       let active_pieces = active_pieces_of_board (extract_board b) in
       {
@@ -500,8 +497,8 @@ let init_from_fen fen =
         w_castle_qs = String.contains cast 'Q';
         b_castle_ks = String.contains cast 'k';
         b_castle_qs = String.contains cast 'q';
-        en_passant;
-        ep_piece = get_ep_piece active_pieces color_to_move en_passant;
+        ep_sq;
+        ep_piece = get_ep_piece active_pieces color_to_move ep_sq;
         half_turns = int_of_string ht;
         full_turns = int_of_string ft;
       }
@@ -526,7 +523,7 @@ let board_fen_string b =
           | Some p ->
               let id = piece_identifier p in
               if acc > 0 then string_of_int acc ^ id ^ it_files t 0
-              else id ^ it_files t 0)
+              else id ^ it_files t 0 )
     in
     it_files files 0
   in
