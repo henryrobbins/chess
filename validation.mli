@@ -15,9 +15,10 @@ type check_state =
   | Check of direction list
   | NotCheck
 
-(** [is_check b] is the check state of the given boardmstate [b]. The
-    color to play is either in check [Check] or [NotCheck] *)
-val is_check : Board.t -> check_state
+(** [get_checks b] is the check state of the given boardmstate [b]. The
+    color to play is either in check [Check dir] from directions in
+    [dir] or [NotCheck] *)
+val get_checks : Board.t -> check_state
 
 (* TODO: consider getting rid of the check_state input (just make it
    NotCheck)*)

@@ -79,7 +79,10 @@ let piece_id_map =
     ("K", King);
   ]
 
-let piece_id_of_string s = List.assoc s piece_id_map
+let piece_id_of_string s = 
+  try List.assoc s piece_id_map
+  with 
+  | Not_found -> failwith "invalid string identifier" 
 
 let string_of_piece_id p = List.assoc p (rev_map piece_id_map)
 
