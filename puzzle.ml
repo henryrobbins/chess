@@ -177,12 +177,14 @@ let get_next_puzzle rush = match get_remaining rush with
 | [] -> print_string "This puzzle has been completed!"; empty_puz
 
 let init_rush () = 
-  let rec helper acc counter = 
-    let index = Random.int (List.length puzzles) in
+  let rec get_random bottom top acc counter = 
+    let index = bottom + Random.int top in 
     match counter with 
-    | 0 -> acc
-    | _ -> helper (List.nth puzzles index :: acc) (counter - 1)
-  in helper [] 20
+    | 0 -> acc 
+    | _ -> get_random bottom top (List.nth puzzles index :: acc) (counter - 1)
+  in get_random 0 15 [] 4 @ get_random 15 30 [] 4 @ get_random 30 45 [] 2
+  @ get_random 45 60 [] 2 @ get_random 60 70 [] 2 @ get_random 70 75 [] 2
+  @ get_random 75 80 [] 2 @ get_random 80 83 [] 2
 
 let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
 
