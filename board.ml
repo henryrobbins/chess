@@ -79,10 +79,9 @@ let piece_id_map =
     ("K", King);
   ]
 
-let piece_id_of_string s = 
+let piece_id_of_string s =
   try List.assoc s piece_id_map
-  with 
-  | Not_found -> failwith "invalid string identifier" 
+  with Not_found -> failwith "invalid string identifier"
 
 let string_of_piece_id p = List.assoc p (rev_map piece_id_map)
 
@@ -273,12 +272,24 @@ let update_en_passant sq sq' piece' t =
   in
   { t with ep_sq = ep_sq'; ep_piece = ep_piece' }
 
-let update_turn_counters turn t =
-  let half_turns' = if turn then t.half_turns + 1 else t.half_turns in
-  let full_turns' = 1 + (half_turns' / 2) in
+let update_turn_counters turn reset t =
+  let full_turns' =
+    if turn && color_to_move t = Black then t.full_turns + 1
+    else t.full_turns
+  in
+  let half_turns' =
+    if reset then 0 else if turn then 1 + t.half_turns else t.half_turns
+  in
   { t with half_turns = half_turns'; full_turns = full_turns' }
 
+let is_turn_reset piece t sq' =
+  match (id_of_piece piece, piece_of_square t sq') with
+  | Pawn, _ -> true
+  | _, Some _ -> true
+  | _ -> false
+
 let rec move_piece t piece sq' turn =
+  let reset_turn_count = is_turn_reset piece t sq' in
   let t_with_capture =
     match piece_of_square t sq' with
     | Some p -> capture_piece t p
@@ -293,7 +304,7 @@ let rec move_piece t piece sq' turn =
     |> update_color_to_move turn
     |> update_castles sq
     |> update_en_passant sq sq' piece'
-    |> update_turn_counters turn
+    |> update_turn_counters turn reset_turn_count
   in
   move_rook_for_castle out_state piece sq'
 
