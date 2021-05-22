@@ -274,6 +274,13 @@ let update_piece_select w =
   aux [ Rook; Bishop; Knight; Queen ];
   ()
 
+(** [update_rush_labels w] updates the total solved and wrong labels. *)
+let update_rush_labels w =
+  let rush = extract w.rush in
+  update_text_label w.solved (rush |> solved_rush |> string_of_int);
+  update_text_label w.total_wrong (rush |> wrong_rush |> string_of_int);
+  ()
+
 (** [text_popup text] is a popup window with the text [text] on it. *)
 let text_popup text =
   let window =
@@ -300,7 +307,7 @@ let update_window w =
   | SinglePlayer | TwoPlayer ->
     if is_checkmate b then text_popup "CHECKMATE"
     else if is_stalemate b then text_popup "STALEMATE"
-  | Rush -> failwith "TODO"
+  | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
     [b]. *)
@@ -424,6 +431,10 @@ let game_pressed_callback w sq p =
     if valid_start then from_square_callback w sq p else ()
   else to_square_callback w sq
 
+(** [rush_pressed_callback w] is the additional callback function called for
+    a rush game. *)
+let rush_pressed_callback w = () (* TODO *)
+
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
@@ -438,7 +449,9 @@ let pressed_square_callback w btn () =
       match w.mode with
       | SinglePlayer -> game_pressed_callback w sq p
       | TwoPlayer -> game_pressed_callback w sq p
-      | Rush -> failwith "TODO"
+      | Rush ->
+        game_pressed_callback w sq p;
+        rush_pressed_callback w
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main mode fen =
