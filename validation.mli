@@ -30,11 +30,3 @@ val valid_moves : Board.t -> move list
 (** [is_valid_move move state] is true iff [move] is a valid move for
     the player-to-move in game state [state]. *)
 val is_valid_move : move -> Board.t -> bool
-
-(** [is_checkmate state] is true iff the player to move in [state] is in
-    check and cannot move any pieces. *)
-val is_checkmate : Board.t -> bool
-
-(** [is_stalemate state] is true iff the player to move in [state] is
-    not in check and cannot move any pieces. *)
-val is_stalemate : Board.t -> bool

@@ -6,17 +6,26 @@ open Command
 open Validation
 open Unix
 open Engine
+open Endgame
 open Puzzle
 
 (* Static parameters for the GUI *)
 let width = 640
+
 let height = 700
+
 let bg_color = `RGB (37 * 255, 35 * 255, 32 * 255)
+
 let text_color = `RGB (200 * 255, 200 * 255, 200 * 255)
 
-type mode = SinglePlayer | TwoPlayer | Rush
+type mode =
+  | SinglePlayer
+  | TwoPlayer
+  | Rush
 
-type game_over = Checkmate | Stalemate
+type game_over =
+  | Checkmate
+  | Stalemate
 
 type game_window = {
   mode : mode;
@@ -58,7 +67,7 @@ type game_window = {
   solved : GMisc.label;
   (* Widget for the number of puzzles solved. *)
   total_wrong : GMisc.label;
-  (* Widget for the number of puzzles wrong. *)
+      (* Widget for the number of puzzles wrong. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -95,10 +104,10 @@ let update_button_image button id =
      ignore; *)
   ()
 
-(** [text_label text packing] is a text label with initial text [text] and size
-    [size] using the given packing function [packing]. *)
+(** [text_label text packing] is a text label with initial text [text]
+    and size [size] using the given packing function [packing]. *)
 let text_label text size packing =
-  let lbl = GMisc.label ~packing:packing () in
+  let lbl = GMisc.label ~packing () in
   lbl#set_text ("<b>" ^ text ^ "</b>");
   lbl#set_use_markup true;
   lbl#misc#modify_font_by_name ("Sans " ^ string_of_int size);
@@ -106,20 +115,22 @@ let text_label text size packing =
   lbl#set_justify `CENTER;
   lbl
 
-(** [update_text_label lbl t] updates the text [text] of the label [label] *)
+(** [update_text_label lbl t] updates the text [text] of the label
+    [label] *)
 let update_text_label label text =
   label#set_text ("<b>" ^ text ^ "</b>");
-  label#set_use_markup true; ()
+  label#set_use_markup true;
+  ()
 
 (** [add_file_rank_labels t] adds file and rank labels to a game board
     [t]. *)
 let add_file_rank_labels (table : GPack.table) =
   let add i j x = table#attach i j x in
   let rec labels_aux i f r =
-    if i < 8 then (
+    if i < 8 then
       let f_text = text_label (List.nth files i) 16 (add (i + 1) 8) in
       let r_text = text_label (List.nth ranks i) 16 (add 0 (7 - i)) in
-      labels_aux (i + 1) (f_text :: f) (r_text :: r) )
+      labels_aux (i + 1) (f_text :: f) (r_text :: r)
     else (List.rev f, List.rev r)
   in
   labels_aux 0 [] []
@@ -186,8 +197,8 @@ let init_piece_selection packing =
   in
   create_buttons attr []
 
-(** [init_puzzle_labels packing] adds a widget for puzzle labels using the
-    given packing function [packing]. *)
+(** [init_puzzle_labels packing] adds a widget for puzzle labels using
+    the given packing function [packing]. *)
 let init_puzzle_labels packing =
   let d = 60 in
   let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () in
@@ -250,7 +261,7 @@ let update_captured w =
 
 (** [update_ranks_and_files w] updates the ranks and files. *)
 let update_ranks_and_files w =
-  if not (w.mode = TwoPlayer) || color_to_move !(w.board) = White then (
+  if (not (w.mode = TwoPlayer)) || color_to_move !(w.board) = White then (
     w.files := files;
     w.ranks := ranks )
   else (
@@ -307,8 +318,8 @@ let update_window w =
   w.export_fen#set_text (export_to_fen b);
   match w.mode with
   | SinglePlayer | TwoPlayer ->
-    if is_checkmate b then text_popup "CHECKMATE"
-    else if is_stalemate b then text_popup "STALEMATE"
+      if is_checkmate b then text_popup "CHECKMATE"
+      else if is_stalemate b then text_popup "STALEMATE"
   | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
@@ -342,8 +353,11 @@ let enter_square_callback w () =
   let in_promotion =
     match !(w.promotion) with None -> false | Some _ -> true
   in
-  if (not in_promotion) && w.mode = SinglePlayer && color_to_move b = Black then (
-    let (sq, sq'), promote = best_move (export_to_fen b) (w.elo) in
+  if
+    (not in_promotion) && w.mode = SinglePlayer
+    && color_to_move b = Black
+  then (
+    let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
     let p = extract (piece_of_square b sq) in
     let board' = move_piece b p sq' true in
     let board' =
@@ -421,8 +435,8 @@ let to_square_callback w sq =
   terminal_output board';
   ()
 
-(** [game_pressed_callback w sq p] is the callback function for a button [sq]
-    with piece option [p] pressed on window [w] in a game mode. *)
+(** [game_pressed_callback w sq p] is the callback function for a button
+    [sq] with piece option [p] pressed on window [w] in a game mode. *)
 let game_pressed_callback w sq p =
   let valid_start =
     match p with
@@ -433,16 +447,18 @@ let game_pressed_callback w sq p =
     if valid_start then from_square_callback w sq p else ()
   else to_square_callback w sq
 
-(** [rush_pressed_callback w] is the additional callback function called for
-    a rush game. *)
-let rush_pressed_callback w = () (* TODO *)
+(** [rush_pressed_callback w] is the additional callback function called
+    for a rush game. *)
+let rush_pressed_callback w = ()
+
+(* TODO *)
 
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
   match !(w.promotion) with
   | Some _ -> ()
-  | None ->
+  | None -> (
       let i, j = btn in
       let r = List.nth !(w.files) i in
       let c = List.nth !(w.ranks) j in
@@ -452,8 +468,8 @@ let pressed_square_callback w btn () =
       | SinglePlayer -> game_pressed_callback w sq p
       | TwoPlayer -> game_pressed_callback w sq p
       | Rush ->
-        game_pressed_callback w sq p;
-        rush_pressed_callback w
+          game_pressed_callback w sq p;
+          rush_pressed_callback w )
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main mode elo fen =
@@ -468,16 +484,19 @@ let gui_main mode elo fen =
   let rush =
     match mode with
     | SinglePlayer | TwoPlayer -> (None : rush option)
-    | Rush -> None (* TODO *)
+    | Rush -> None
+    (* TODO *)
   in
   let board =
     match mode with
     | SinglePlayer | TwoPlayer ->
-      ref (try init_from_fen fen with Failure _ -> init_game ())
-    | Rush -> ref (init_game ()) (* TODO *)
+        ref (try init_from_fen fen with Failure _ -> init_game ())
+    | Rush -> ref (init_game ())
+    (* TODO *)
   in
   let elo =
-    try elo |> int_of_string |> string_of_int with Failure _ -> "3000" in
+    try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
+  in
 
   let drop = ref false in
   let promotion = ref None in
@@ -512,13 +531,13 @@ let gui_main mode elo fen =
 
   let solved, total_wrong = init_puzzle_labels (add 0 3) in
 
-  (match mode with
-  | SinglePlayer | TwoPlayer -> (
-    solved#misc#hide ();
-    total_wrong#misc#hide ())
-  | Rush -> (
-    captured_table#misc#hide ();
-    export_fen#misc#hide ()));
+  ( match mode with
+  | SinglePlayer | TwoPlayer ->
+      solved#misc#hide ();
+      total_wrong#misc#hide ()
+  | Rush ->
+      captured_table#misc#hide ();
+      export_fen#misc#hide () );
 
   let game_window =
     {
@@ -541,7 +560,7 @@ let gui_main mode elo fen =
       rank_lbls;
       piece_select;
       solved;
-      total_wrong
+      total_wrong;
     }
   in
 

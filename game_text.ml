@@ -1,8 +1,10 @@
 open Board
 open Command
 open Validation
+open Endgame
 
-(** [string_of_string_list lst] is a string representing a list of strings. *)
+(** [string_of_string_list lst] is a string representing a list of
+    strings. *)
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
   let rec build_str str lst' =

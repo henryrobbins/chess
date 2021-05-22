@@ -14,7 +14,8 @@
         "b7",
         "c7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Double check, L and S, Queen",
@@ -28,13 +29,15 @@
         "c8",
         "d8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Forced draw",
     "fen": "2B1R3/2B3R1/8/P7/8/8/2K5/7k b - - 0 0",
     "check": [],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "White in checkmate",
@@ -42,7 +45,8 @@
     "check": [
       "E"
     ],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "White in check from W",
@@ -59,7 +63,8 @@
         "d2",
         "d1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Neither color in check",
@@ -94,7 +99,8 @@
         "g8",
         "h8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Pinned black piece takes white piece",
@@ -181,7 +187,8 @@
         "f8",
         "h6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White in check from NE",
@@ -198,13 +205,15 @@
         "c1",
         "d2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White in stalemate",
     "fen": "rnb1kr2/pp4pp/8/3n4/2p5/6q1/8/7K w q - 0 0",
     "check": [],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "Pinned queen movement",
@@ -223,7 +232,8 @@
         "e8",
         "d8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White in check from SE",
@@ -244,7 +254,8 @@
         "c2",
         "d1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White in check from S",
@@ -265,7 +276,8 @@
         "c2",
         "d3"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Test king having a move during a check",
@@ -334,7 +346,8 @@
         "g6",
         "f5"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Pawn can not deliver a pin",
@@ -413,7 +426,8 @@
         "g8",
         "f6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black has pinned piece but is not in check",
@@ -440,7 +454,8 @@
         "b6",
         "b5"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black in check East",
@@ -448,7 +463,8 @@
     "check": [
       "E"
     ],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "White in check from SW",
@@ -469,7 +485,8 @@
         "c2",
         "d2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Various pieces can intercept",
@@ -502,7 +519,8 @@
         "c7",
         "c6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Pawn attack and initial one or two space move",
@@ -533,7 +551,8 @@
         "h1",
         "h2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "white_in_check_NW",
@@ -550,7 +569,8 @@
         "c1",
         "d1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Pawn intercept from start square moving up 2.",
@@ -567,7 +587,8 @@
         "a1",
         "a2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Move restricted by its own piece",
@@ -575,7 +596,8 @@
     "check": [
       "L"
     ],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "Double check, L and SE, Queen",
@@ -597,7 +619,8 @@
         "b8",
         "b7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White in check from N",
@@ -614,7 +637,8 @@
         "c1",
         "d1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black in checkmate",
@@ -627,7 +651,8 @@
         "g7",
         "g6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Full range of pawn attack",
@@ -646,7 +671,8 @@
         "f4",
         "e5"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "White has pinned piece and in check NW",
@@ -671,7 +697,8 @@
         "e1",
         "f2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Multiple queens pinned with restricted movement",
@@ -684,7 +711,8 @@
         "h7",
         "f7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black king must capture or move to escape check.",
@@ -713,7 +741,8 @@
         "g5",
         "h4"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Capture a piece to prevent a check",
@@ -730,7 +759,8 @@
         "e7",
         "f8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Test multiple calls to is_check",
@@ -743,7 +773,8 @@
         "e3",
         "f2"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Double check, L and SW, Rook",
@@ -769,7 +800,8 @@
         "g8",
         "h7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "King can not deliver a pin",
@@ -932,7 +964,8 @@
         "b8",
         "d7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Checkmate, enemy king can check a king",
@@ -940,7 +973,8 @@
     "check": [
       "NW"
     ],
-    "moves": []
+    "moves": [],
+    "draw": false
   },
   {
     "description": "En-passant Discovered Checkmate",
@@ -953,7 +987,8 @@
         "f5",
         "g6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Take piece to intercept",
@@ -986,7 +1021,8 @@
         "d3",
         "e4"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "En-passant white on black",
@@ -1161,7 +1197,8 @@
         "h6",
         "h7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "En-passant black on white",
@@ -1188,7 +1225,8 @@
         "b4",
         "a3"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Not En-passant, but in the same position",
@@ -1211,7 +1249,8 @@
         "b4",
         "b3"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Overlooked En-passant left, new En-passant right",
@@ -1358,7 +1397,8 @@
         "b5",
         "b6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Knight move blocking castle",
@@ -1505,7 +1545,8 @@
         "h1",
         "f1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Where the spot in between a king castle is under attack",
@@ -1568,7 +1609,8 @@
         "e1",
         "f1"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black King can castle to g8",
@@ -1603,7 +1645,8 @@
         "e8",
         "g8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black King cannot castle because rook has moved",
@@ -1630,7 +1673,8 @@
         "e8",
         "f8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "King cannot castle on either side because king has moved",
@@ -1673,7 +1717,8 @@
         "a8",
         "d8"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Black king can’t castle; in check from knight",
@@ -1694,7 +1739,8 @@
         "e8",
         "e7"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Valid moves post castling for White",
@@ -1801,7 +1847,8 @@
         "b1",
         "a3"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "Not En-passant, but in the same position on both sides",
@@ -1960,7 +2007,8 @@
         "b5",
         "b6"
       ]
-    ]
+    ],
+    "draw": false
   },
   {
     "description": "knight giving check must be captured",
@@ -1977,6 +2025,83 @@
         "e7",
         "d6"
       ]
-    ]
+    ],
+    "draw": false
+  },
+  {
+    "description": "knight bishop endgame",
+    "fen": "6bk/8/8/8/8/8/8/6NK w - - 0 1",
+    "check": [],
+    "moves": [
+      [
+        "h1",
+        "h2"
+      ],
+      [
+        "h1",
+        "g2"
+      ],
+      [
+        "g1",
+        "h3"
+      ],
+      [
+        "g1",
+        "f3"
+      ],
+      [
+        "g1",
+        "e2"
+      ]
+    ],
+    "draw": true
+  },
+  {
+    "description": "bishop bishop endgame",
+    "fen": "8/8/8/8/8/6k1/5b2/6BK w - - 0 1",
+    "check": [],
+    "moves": [
+      [
+        "g1",
+        "h2"
+      ],
+      [
+        "g1",
+        "f2"
+      ]
+    ],
+    "draw": true
+  },
+  {
+    "description": "knight knight endgame",
+    "fen": "8/8/8/8/8/6k1/7n/6NK w - - 0 1",
+    "check": [],
+    "moves": [
+      [
+        "g1",
+        "h3"
+      ],
+      [
+        "g1",
+        "f3"
+      ],
+      [
+        "g1",
+        "e2"
+      ]
+    ],
+    "draw": true
+  },
+  {
+    "description": "king king endgame",
+    "fen": "8/8/8/8/8/6k1/8/7K w - - 0 1",
+    "check": [],
+    "moves": [
+      [
+        "h1",
+        "g1"
+      ]
+    ],
+    "draw": true
   }
 ]

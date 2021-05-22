@@ -1,5 +1,6 @@
 open OUnit2
 open Board
+open Endgame
 open Command
 open Validation
 open Puzzle
@@ -24,6 +25,7 @@ type test_instance = {
   fen : string;
   check : check_state;
   moves : move list;
+  draw : bool;
 }
 
 let extract j =
@@ -43,7 +45,8 @@ let extract j =
     x |> to_list |> List.map to_string |> lst_to_tuple
   in
   let moves = j |> member "moves" |> to_list |> List.map parse_move in
-  (description, { fen; check; moves })
+  let draw = j |> member "draw" |> to_bool in
+  (description, { fen; check; moves; draw })
 
 let init_tests_json json extraction_fn =
   json |> Yojson.Basic.from_file |> to_list |> List.map extraction_fn
@@ -382,7 +385,18 @@ let is_check_test name =
   let check_state = get_checks board in
   assert_equal check_state test.check ~printer:check_printer
 
+let is_draw_test name =
+  name >:: fun _ ->
+  let test = List.assoc name tests in
+  let board = init_from_fen test.fen in
+  let draw = is_draw board in
+  assert_equal draw test.draw ~printer:string_of_bool
+
 let is_check_tests =
+  let test_name t = match t with name, _ -> name in
+  tests |> List.map test_name |> List.map is_check_test
+
+let is_draw_tests =
   let test_name t = match t with name, _ -> name in
   tests |> List.map test_name |> List.map is_check_test
 
@@ -431,71 +445,73 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
-(** [make_moves puz moves] is the step-by-step list of boards generated when 
-    a piece is moved from [sq] to [sq'], initialized in the puzzle state [puz]. 
-    *)
+(** [make_moves puz moves] is the step-by-step list of boards generated
+    when a piece is moved from [sq] to [sq'], initialized in the puzzle
+    state [puz]. *)
 let make_moves puz moves =
   let init_fen = get_puz_current_board puz in
-  let rec helper pu m acc = 
-    match m with 
-      | [] -> acc
-      | (sq, sq') :: l -> begin
-        let current_piece = match piece_of_square board sq with 
-        | Some p -> p
-        | None -> failwith "No piece found." in 
-        let new_puz = puzzle_move pu sq' in 
-        let new_board = get_puz_current_board new_puz in
-        let player_moves = get_player_moves new_puz in 
-        let c_moves = get_computer_moves new_puz in 
-        print_string (" " ^ new_board ^ " ");
-        helper (init_puz_from_fen new_board player_moves c_moves) l 
-        (new_board :: acc)
-    end
-  in helper puz moves [init_fen]
-
-(** [make_boards fens] are all the boards constructed from the list of 
-    fens [fens]. *)
-let make_boards fens = 
-  let rec helper fs acc = 
-    match fs with 
+  let rec helper pu m acc =
+    match m with
     | [] -> acc
-    | h :: t -> helper t (init_from_fen h :: acc) in
-  helper fens [] 
+    | (sq, sq') :: l ->
+        (* let current_piece = match piece_of_square board sq with |
+           Some p -> p | None -> failwith "No piece found." in *)
+        let new_puz = puzzle_move pu sq' in
+        let new_board = get_puz_current_board new_puz in
+        let player_moves = get_player_moves new_puz in
+        let c_moves = get_computer_moves new_puz in
+        print_string (" " ^ new_board ^ " ");
+        helper
+          (init_puz_from_fen new_board player_moves c_moves)
+          l (new_board :: acc)
+  in
+  helper puz moves [ init_fen ]
 
-(** [get_move_fens init_puz moves] is the list of fens corresponding to 
+(** [make_boards fens] are all the boards constructed from the list of
+    fens [fens]. *)
+let make_boards fens =
+  let rec helper fs acc =
+    match fs with
+    | [] -> acc
+    | h :: t -> helper t (init_from_fen h :: acc)
+  in
+  helper fens []
+
+(** [get_move_fens init_puz moves] is the list of fens corresponding to
     the moves [moves] made starting from the [init_puz]. *)
-let get_move_fens init_puz moves =  
-  let boards = (make_moves init_puz moves) |> make_boards in
-  let rec helper b m acc = 
-    match b with 
-    | [] -> acc 
-    | h :: t -> begin
-      match m with 
-      | [] -> acc
-      | (sq, sq') :: l -> begin
-        let current_piece = match piece_of_square h sq with 
-        | Some p -> p 
-        | None -> failwith "No piece found." in 
-        let new_board = move_piece h current_piece sq' true in 
-        let new_fen = export_to_fen new_board in 
-        helper t l (new_fen :: acc)
-      end
-    end
-  in helper boards moves []
+let get_move_fens init_puz moves =
+  let boards = make_moves init_puz moves |> make_boards in
+  let rec helper b m acc =
+    match b with
+    | [] -> acc
+    | h :: t -> (
+        match m with
+        | [] -> acc
+        | (sq, sq') :: l ->
+            let current_piece =
+              match piece_of_square h sq with
+              | Some p -> p
+              | None -> failwith "No piece found."
+            in
+            let new_board = move_piece h current_piece sq' true in
+            let new_fen = export_to_fen new_board in
+            helper t l (new_fen :: acc) )
+  in
+  helper boards moves []
 
-let puzzle_move_test_improved name user_moves = 
+let puzzle_move_test_improved name user_moves =
   "puzzle_move_test" ^ name >:: fun _ ->
-    let cur_test = List.assoc name puzzle_tests in
-    let optimal_moves = cur_test.player_moves in 
-    let cur_puz = init_puz_from_fen cur_test.current_board in
-    assert_equal true true
-    (* let moved_fens = get_move_fens cur_puz optimal_moves in *)
-    (* assert_equal moved_fens optimal_moves ~printer:pp_list pp_string moved_fens *)
+  let cur_test = List.assoc name puzzle_tests in
+  let optimal_moves = cur_test.player_moves in
+  let cur_puz = init_puz_from_fen cur_test.current_board in
+  assert_equal true true
+
+(* let moved_fens = get_move_fens cur_puz optimal_moves in *)
+(* assert_equal moved_fens optimal_moves ~printer:pp_list pp_string
+   moved_fens *)
 
 let puzzle_tests =
-  [
-    puzzle_move_test_improved "L400 1" [("d2","d8"); ("d8", "e8")];
-  ]
+  [ puzzle_move_test_improved "L400 1" [ ("d2", "d8"); ("d8", "e8") ] ]
 
 let fen_test name =
   let fen = (List.assoc name tests).fen in

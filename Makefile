@@ -1,4 +1,4 @@
-MODULES=board command validation engine puzzle game_text game_gui
+MODULES=board command validation engine puzzle game_text game_gui endgame
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
