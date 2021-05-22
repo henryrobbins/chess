@@ -6,6 +6,7 @@ open Command
 open Validation
 open Unix
 open Engine
+open Endgame
 
 (* Static parameters for the GUI *)
 let width = 640

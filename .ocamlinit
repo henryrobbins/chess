@@ -10,3 +10,4 @@
 #load "puzzle.cmo"
 #load "game_text.cmo";;
 #load "game_gui.cmo";;
+#load "endgame.cmo";;

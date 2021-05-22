@@ -1,5 +1,6 @@
 open OUnit2
 open Board
+open Endgame
 open Command
 open Validation
 open Puzzle
@@ -24,6 +25,7 @@ type test_instance = {
   fen : string;
   check : check_state;
   moves : move list;
+  draw : bool;
 }
 
 let extract j =
@@ -43,7 +45,8 @@ let extract j =
     x |> to_list |> List.map to_string |> lst_to_tuple
   in
   let moves = j |> member "moves" |> to_list |> List.map parse_move in
-  (description, { fen; check; moves })
+  let draw = j |> member "draw" |> to_bool in
+  (description, { fen; check; moves; draw })
 
 let init_tests_json json extraction_fn =
   json |> Yojson.Basic.from_file |> to_list |> List.map extraction_fn
@@ -382,7 +385,18 @@ let is_check_test name =
   let check_state = get_checks board in
   assert_equal check_state test.check ~printer:check_printer
 
+let is_draw_test name =
+  name >:: fun _ ->
+  let test = List.assoc name tests in
+  let board = init_from_fen test.fen in
+  let draw = is_draw board in
+  assert_equal draw test.draw ~printer:string_of_bool
+
 let is_check_tests =
+  let test_name t = match t with name, _ -> name in
+  tests |> List.map test_name |> List.map is_check_test
+
+let is_draw_tests =
   let test_name t = match t with name, _ -> name in
   tests |> List.map test_name |> List.map is_check_test
 

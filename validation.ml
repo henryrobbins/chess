@@ -483,13 +483,3 @@ let is_valid_move move b : bool =
       | Some p ->
           let valid = valid_moves b in
           List.mem move valid )
-
-let is_checkmate (b : Board.t) =
-  match get_checks b with
-  | NotCheck -> false
-  | Check _ -> if valid_moves b = [] then true else false
-
-let is_stalemate (b : Board.t) =
-  match get_checks b with
-  | NotCheck -> if valid_moves b = [] then true else false
-  | Check _ -> false
