@@ -1,7 +1,7 @@
 (** Maintains the state of a puzzle *)
 open Board
 
-type progress = InProgress | Complete | Correct | Wrong
+type progress = InProgress | Complete | GameOver | Correct | Wrong
 
 (** The abstract type of values representing a puzzle. *)
 type puzzle

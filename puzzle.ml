@@ -5,7 +5,7 @@ open Yojson.Basic.Util
 
 type fen = string
 
-type progress = InProgress | Complete | Correct | Wrong
+type progress = InProgress | Complete | GameOver | Correct | Wrong
 
 type puzzle = {
   description : string;
@@ -35,7 +35,7 @@ let extract_puzzle j =
     player_moves = (ref player_moves);
     computer_moves = (ref computer_moves); }
 
-let puzzles =
+let puzzles () =
   "puzzles.json" |> Yojson.Basic.from_file |> to_list |> List.map extract_puzzle
 
 let total_solved rush = !(rush.total_solved)
@@ -52,6 +52,12 @@ let update_puzzle rush =
     rush.puzzles := t;
     true
 
+let update_wrong rush =
+  let total_wrong = !(rush.total_wrong) + 1 in
+  rush.total_wrong := total_wrong;
+  if total_wrong = 3 then GameOver else
+  if update_puzzle rush then Wrong else Complete
+
 let update_rush_with_move rush fen =
   let player_moves = !(!(rush.current_puz).player_moves) in
   match player_moves with
@@ -62,22 +68,17 @@ let update_rush_with_move rush fen =
       !(rush.current_puz).player_moves := [];
       rush.total_solved := !(rush.total_solved) + 1;
       if update_puzzle rush then Correct else Complete)
-    else (
-      rush.total_wrong := !(rush.total_wrong) + 1;
-      if update_puzzle rush then Wrong else Complete)
+    else update_wrong rush
   | correct_fen :: player_moves' ->
     if fen = correct_fen then (
       !(rush.current_puz).player_moves := player_moves';
-      rush.total_solved := !(rush.total_solved) + 1;
       (match !(!(rush.current_puz).computer_moves) with
       | [] -> failwith "impossible"
       | computer_move :: computer_moves' ->
         !(rush.current_puz).board := computer_move;
         !(rush.current_puz).computer_moves := computer_moves';);
       InProgress)
-    else (
-      rush.total_wrong := !(rush.total_wrong) + 1;
-      if update_puzzle rush then Wrong else Complete)
+    else update_wrong rush
 
 let init_rush () =
   let rec get_random bottom top acc counter =
@@ -85,9 +86,9 @@ let init_rush () =
     print_endline (bottom |> string_of_int);
     match counter with
     | 0 -> acc
-    | _ -> get_random bottom top (List.nth puzzles index :: acc) (counter - 1)
+    | _ -> get_random bottom top (List.nth (puzzles ()) index :: acc) (counter - 1)
   in
-  let puz_list = get_random 0 1 [] 1
+  let puz_list = get_random 0 15 [] 4
     (* get_random 0 15 [] 4 @
     get_random 15 30 [] 4 @
     get_random 30 45 [] 2 @

@@ -23,10 +23,6 @@ type mode =
   | TwoPlayer
   | Rush
 
-type game_over =
-  | Checkmate
-  | Stalemate
-
 type game_window = {
   mode : mode;
   (* The game mode of this window. *)
@@ -36,6 +32,8 @@ type game_window = {
   (* An instance of rush if the mode is rush. *)
   board : Board.t ref;
   (* The current board state in this game window. *)
+  locked : bool ref;
+  (* True if the window is now locked. *)
   drop : bool ref;
   (* True if the user is selecting the to_square. *)
   promotion : (Board.p * square) option ref;
@@ -318,8 +316,8 @@ let update_window w =
   w.export_fen#set_text (export_to_fen b);
   match w.mode with
   | SinglePlayer | TwoPlayer ->
-      if is_checkmate b then text_popup "CHECKMATE"
-      else if is_stalemate b then text_popup "STALEMATE"
+      if is_checkmate b then (text_popup "CHECKMATE"; w.locked := true)
+      else if is_stalemate b then (text_popup "STALEMATE"; w.locked := true)
   | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
@@ -348,6 +346,7 @@ let piece_select_callback w pt () =
 (** [enter_square_callback w] is the callback function for window [w]
     called when the mouse enters a square. *)
 let enter_square_callback w () =
+  if !(w.locked) then () else
   let b = !(w.board) in
   let in_promotion =
     match !(w.promotion) with None -> false | Some _ -> true
@@ -415,7 +414,8 @@ let rush_pressed_callback w b =
   let current_fen = export_to_fen b in
   let rush = extract w.rush in
   (match update_rush_with_move rush current_fen with
-  | Complete -> text_popup "You Win!";
+  | Complete -> text_popup "You Win!"; w.locked := true;
+  | GameOver -> text_popup "Game Over!"; w.locked := true;
   | Correct -> text_popup "Correct! Next Puzzle.";
   | Wrong -> text_popup "Incorrect. Next Puzzle.";
   | InProgress -> ());
@@ -462,6 +462,7 @@ let game_pressed_callback w sq p =
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
+  if !(w.locked) then () else
   match !(w.promotion) with
   | Some _ -> ()
   | None -> (
@@ -497,6 +498,7 @@ let gui_main mode elo fen =
     try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
   in
 
+  let locked = ref false in
   let drop = ref false in
   let promotion = ref None in
   let from_square = ref None in
@@ -543,6 +545,7 @@ let gui_main mode elo fen =
       mode;
       elo;
       board;
+      locked;
       rush;
       drop;
       promotion;
