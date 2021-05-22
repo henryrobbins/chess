@@ -6,6 +6,7 @@ open Command
 open Validation
 open Unix
 open Engine
+open Puzzle
 
 (* Static parameters for the GUI *)
 let width = 640
@@ -20,6 +21,8 @@ type game_over = Checkmate | Stalemate
 type game_window = {
   mode : mode;
   (* The game mode of this window. *)
+  rush : rush option;
+  (* An instance of rush if the mode is rush. *)
   board : Board.t ref;
   (* The current board state in this game window. *)
   drop : bool ref;
@@ -48,7 +51,12 @@ type game_window = {
   (* Widget for FEN for exporting. *)
   files : string list ref;
   (* Ordered list of files for board state. *)
-  ranks : string list ref; (* Ordered list of ranks for board state. *)
+  ranks : string list ref;
+  (* Ordered list of ranks for board state. *)
+  solved : GMisc.label;
+  (* Widget for the number of puzzles solved. *)
+  total_wrong : GMisc.label;
+  (* Widget for the number of puzzles wrong. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -85,24 +93,30 @@ let update_button_image button id =
      ignore; *)
   ()
 
+(** [text_label text packing] is a text label with initial text [text] and size
+    [size] using the given packing function [packing]. *)
+let text_label text size packing =
+  let lbl = GMisc.label ~packing:packing () in
+  lbl#set_text ("<b>" ^ text ^ "</b>");
+  lbl#set_use_markup true;
+  lbl#misc#modify_font_by_name ("Sans " ^ string_of_int size);
+  lbl#misc#modify_fg [ (`NORMAL, text_color) ];
+  lbl#set_justify `CENTER;
+  lbl
+
+(** [update_text_label lbl t] updates the text [text] of the label [label] *)
+let update_text_label label text =
+  label#set_text ("<b>" ^ text ^ "</b>");
+  label#set_use_markup true; ()
+
 (** [add_file_rank_labels t] adds file and rank labels to a game board
     [t]. *)
 let add_file_rank_labels (table : GPack.table) =
   let add i j x = table#attach i j x in
   let rec labels_aux i f r =
     if i < 8 then (
-      let f_text = GMisc.label ~packing:(add (i + 1) 8) () in
-      f_text#set_text ("<b>" ^ List.nth files i ^ "</b>");
-      f_text#set_use_markup true;
-      f_text#misc#modify_font_by_name "Sans 16";
-      f_text#misc#modify_fg [ (`NORMAL, text_color) ];
-      f_text#set_justify `CENTER;
-      let r_text = GMisc.label ~packing:(add 0 (7 - i)) () in
-      r_text#set_text ("<b>" ^ List.nth ranks i ^ "</b>");
-      r_text#set_use_markup true;
-      r_text#misc#modify_font_by_name "Sans 16";
-      r_text#misc#modify_fg [ (`NORMAL, text_color) ];
-      r_text#set_justify `CENTER;
+      let f_text = text_label (List.nth files i) 16 (add (i + 1) 8) in
+      let r_text = text_label (List.nth ranks i) 16 (add 0 (7 - i)) in
       labels_aux (i + 1) (f_text :: f) (r_text :: r) )
     else (List.rev f, List.rev r)
   in
@@ -139,10 +153,8 @@ let add_board_squares board (table : GPack.table) =
 let init_captured_table packing =
   let table = GPack.table ~packing ~homogeneous:true () in
   let add i j x = table#attach i j x in
-  let black_captured = GMisc.label ~packing:(add 0 0) () in
-  black_captured#set_text "0";
-  let white_captured = GMisc.label ~packing:(add 0 1) () in
-  white_captured#set_text "0";
+  let black_captured = text_label "0" 14 (add 0 0) in
+  let white_captured = text_label "0" 14 (add 0 1) in
   (table, black_captured, white_captured)
 
 (** [init_piece_selection packing] adds a widget for piece selection
@@ -172,6 +184,16 @@ let init_piece_selection packing =
   in
   create_buttons attr []
 
+(** [init_puzzle_labels packing] adds a widget for puzzle labels using the
+    given packing function [packing]. *)
+let init_puzzle_labels packing =
+  let d = 60 in
+  let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () in
+  let add i j x = table#attach i j x in
+  let solved = text_label "0" 16 (add 0 0) in
+  let total_wrong = text_label "0" 16 (add 1 0) in
+  (solved, total_wrong)
+
 (** [update_board b buttons] updates the playing board [buttons] with
     the current board state [b]. *)
 let update_board w =
@@ -192,11 +214,8 @@ let update_board w =
 let update_file_rank_labels w =
   let rec aux i =
     if i < 8 then (
-      let bold text = "<b>" ^ text ^ "</b>" in
-      (List.nth w.file_lbls i)#set_text (bold (List.nth !(w.files) i));
-      (List.nth w.file_lbls i)#set_use_markup true;
-      (List.nth w.rank_lbls i)#set_text (bold (List.nth !(w.ranks) i));
-      (List.nth w.rank_lbls i)#set_use_markup true;
+      update_text_label (List.nth w.file_lbls i) (List.nth !(w.files) i);
+      update_text_label (List.nth w.rank_lbls i) (List.nth !(w.ranks) i);
       aux (i + 1) )
   in
   aux 0;
@@ -210,10 +229,10 @@ let update_captured w =
   let print_lists = partition_pieces_by_color (captured_pieces b) in
   match print_lists with
   | lst, lst' ->
-      w.black_captured#set_text
-        (value_of_captured b White |> string_of_int);
-      w.white_captured#set_text
-        (value_of_captured b Black |> string_of_int);
+      let black_cap_text = value_of_captured b White |> string_of_int in
+      update_text_label w.black_captured black_cap_text;
+      let white_cap_text = value_of_captured b Black |> string_of_int in
+      update_text_label w.white_captured white_cap_text;
       let rec add_captured_pieces i j pieces =
         match pieces with
         | [] -> ()
@@ -263,14 +282,7 @@ let text_popup text =
   in
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg [ (`NORMAL, bg_color) ];
-
-  let label = GMisc.label ~packing:window#add () in
-  label#set_text ("<b>" ^ text ^ "</b>");
-  label#set_use_markup true;
-  label#misc#modify_font_by_name "Sans 16";
-  label#misc#modify_fg [ (`NORMAL, text_color) ];
-  label#set_justify `CENTER;
-
+  text_label text 16 window#add |> ignore;
   window#show ();
   Main.main ()
 
@@ -438,14 +450,18 @@ let gui_main mode fen =
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg [ (`NORMAL, bg_color) ];
 
-  (* state variables *)
+  let rush =
+    match mode with
+    | SinglePlayer | TwoPlayer -> (None : rush option)
+    | Rush -> None (* TODO *)
+  in
   let board =
     match mode with
     | SinglePlayer | TwoPlayer ->
       ref (try init_from_fen fen with Failure _ -> init_game ())
-    | Rush -> failwith "TODO"
-
+    | Rush -> ref (init_game ()) (* TODO *)
   in
+
   let drop = ref false in
   let promotion = ref None in
   let from_square = ref None in
@@ -477,10 +493,21 @@ let gui_main mode fen =
 
   let piece_select = init_piece_selection (add 1 0) in
 
+  let solved, total_wrong = init_puzzle_labels (add 0 3) in
+
+  (match mode with
+  | SinglePlayer | TwoPlayer -> (
+    solved#misc#hide ();
+    total_wrong#misc#hide ())
+  | Rush -> (
+    captured_table#misc#hide ();
+    export_fen#misc#hide ()));
+
   let game_window =
     {
       mode;
       board;
+      rush;
       drop;
       promotion;
       from_square;
@@ -495,6 +522,8 @@ let gui_main mode fen =
       file_lbls;
       rank_lbls;
       piece_select;
+      solved;
+      total_wrong
     }
   in
 
@@ -532,6 +561,8 @@ let main =
       ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
+  window#misc#modify_bg [ (`NORMAL, bg_color) ];
+
   let table =
     GPack.table ~width:250 ~height:100 ~packing:window#add ()
   in
