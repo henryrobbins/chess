@@ -64,7 +64,7 @@ type game_window = {
   (* Ordered list of files for board state. *)
   ranks : string list ref;
   (* Ordered list of ranks for board state. *)
-  solved : GMisc.label;
+  total_solved : GMisc.label;
   (* Widget for the number of puzzles solved. *)
   total_wrong : GMisc.label;
       (* Widget for the number of puzzles wrong. *)
@@ -290,8 +290,8 @@ let update_piece_select w =
 (** [update_rush_labels w] updates the total solved and wrong labels. *)
 let update_rush_labels w =
   let rush = extract w.rush in
-  update_text_label w.solved (rush |> solved_rush |> string_of_int);
-  update_text_label w.total_wrong (rush |> wrong_rush |> string_of_int);
+  update_text_label w.total_solved (rush |> total_solved |> string_of_int);
+  update_text_label w.total_wrong (rush |> total_wrong |> string_of_int);
   ()
 
 (** [text_popup text] is a popup window with the text [text] on it. *)
@@ -320,7 +320,7 @@ let update_window w =
   | SinglePlayer | TwoPlayer ->
       if is_checkmate b then text_popup "CHECKMATE"
       else if is_stalemate b then text_popup "STALEMATE"
-  | Rush -> update_rush_labels w
+  | Rush -> update_rush_labels w; print_endline "test"
 
 (** [terminal_output b] sends output to teminal representing the state
     [b]. *)
@@ -330,8 +330,7 @@ let terminal_output b =
   print_endline "===========================================";
   if is_checkmate b then print_string "CHECKMATE \n"
   else if is_stalemate b then print_string "STALEMATE \n"
-  else ();
-  ()
+  else ()
 
 (** [piece_select_callback pt] is the callback function when pressing
     the button corresponding to piece type [pt] in the piece select
@@ -411,6 +410,17 @@ let from_square_callback w sq p =
   show_valid_moves w (extract p);
   ()
 
+(** [rush_callback w] is the additional callback function for a rush game. *)
+let rush_pressed_callback w b =
+  let current_fen = export_to_fen b in
+  let rush = extract w.rush in
+  (match update_rush_with_move rush current_fen with
+  | Complete -> text_popup "You Win!";
+  | Correct -> text_popup "Correct! Next Puzzle.";
+  | Wrong -> text_popup "Incorrect. Next Puzzle.";
+  | InProgress -> ());
+  w.board := current_board rush
+
 (** [to_square_callback w sq] is the callback function for window [w]
     called when the mouse selects the from_square [sq] for a move. *)
 let to_square_callback w sq =
@@ -431,9 +441,11 @@ let to_square_callback w sq =
   w.from_square := None;
   w.to_square := None;
   w.board := board';
+  (match w.mode with
+  | Rush -> rush_pressed_callback w board';
+  | _ -> ());
   update_window w;
-  terminal_output board';
-  ()
+  terminal_output board'
 
 (** [game_pressed_callback w sq p] is the callback function for a button
     [sq] with piece option [p] pressed on window [w] in a game mode. *)
@@ -447,12 +459,6 @@ let game_pressed_callback w sq p =
     if valid_start then from_square_callback w sq p else ()
   else to_square_callback w sq
 
-(** [rush_pressed_callback w] is the additional callback function called
-    for a rush game. *)
-let rush_pressed_callback w = ()
-
-(* TODO *)
-
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
@@ -464,12 +470,7 @@ let pressed_square_callback w btn () =
       let c = List.nth !(w.ranks) j in
       let sq = r ^ c in
       let p = piece_of_square !(w.board) sq in
-      match w.mode with
-      | SinglePlayer -> game_pressed_callback w sq p
-      | TwoPlayer -> game_pressed_callback w sq p
-      | Rush ->
-          game_pressed_callback w sq p;
-          rush_pressed_callback w )
+      game_pressed_callback w sq p)
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main mode elo fen =
@@ -484,15 +485,13 @@ let gui_main mode elo fen =
   let rush =
     match mode with
     | SinglePlayer | TwoPlayer -> (None : rush option)
-    | Rush -> None
-    (* TODO *)
+    | Rush -> Some (init_rush ())
   in
   let board =
     match mode with
     | SinglePlayer | TwoPlayer ->
         ref (try init_from_fen fen with Failure _ -> init_game ())
-    | Rush -> ref (init_game ())
-    (* TODO *)
+    | Rush -> ref (current_board (extract rush))
   in
   let elo =
     try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
@@ -529,15 +528,15 @@ let gui_main mode elo fen =
 
   let piece_select = init_piece_selection (add 1 0) in
 
-  let solved, total_wrong = init_puzzle_labels (add 0 3) in
+  let total_solved, total_wrong = init_puzzle_labels (add 0 3) in
 
   ( match mode with
   | SinglePlayer | TwoPlayer ->
-      solved#misc#hide ();
-      total_wrong#misc#hide ()
+    total_solved#misc#hide ();
+    total_wrong#misc#hide ()
   | Rush ->
-      captured_table#misc#hide ();
-      export_fen#misc#hide () );
+    captured_table#misc#hide ();
+    export_fen#misc#hide () );
 
   let game_window =
     {
@@ -559,7 +558,7 @@ let gui_main mode elo fen =
       file_lbls;
       rank_lbls;
       piece_select;
-      solved;
+      total_solved;
       total_wrong;
     }
   in
