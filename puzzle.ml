@@ -60,7 +60,7 @@ let wrong_rush rush = rush.total_wrong
 let puzzle_move puz p m =
   let t = init_from_fen (get_puz_current_board puz) in
   let next_player_square = move_piece t p m true in
-  let next_player_fen = board_fen_string next_player_square in
+  let next_player_fen = export_to_fen next_player_square in
 
   let best_move_fen =
     match get_player_moves puz with h :: t -> (h, t) | [] -> ("", [])
@@ -133,6 +133,34 @@ let next_puz_from_rush rush puzzle_new =
         total_wrong = wrong_rush rush;
       }
 
-(** [play_puzzles] is the current puzzle state, given that we begin in a
-    puzzle state. *)
+let make_puz descrip current player computer = 
+  {
+    description = descrip;
+    current_board = current;
+    player_moves = player;
+    computer_moves = computer;
+    wrong = false;
+    complete = false;
+  }
+
+let make_rush puz_list init = {
+  remaining = puz_list;
+  current_puz = init;
+  solved = 0;
+  total_wrong = 0;  
+}
+
+let init_rush rush = 
+  let current = current_puz rush in 
+  let remaining = get_remaining rush in 
+  let rec rush_helper init rest wrongs = 
+    match rest with 
+    | [] -> init
+    | h :: t -> rush_helper h t 0
+  in rush_helper current remaining 
+
+let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
+
+(** [play_puzzles rush] is the current puzzle state, given that we begin in a
+    rush state [rush]. *)
 let play_puzzles rush = current_puz rush
