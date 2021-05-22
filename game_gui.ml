@@ -9,10 +9,13 @@ open Engine
 
 (* Static parameters for the GUI *)
 let width = 640
-
 let height = 700
+let bg_color = `RGB (37 * 255, 35 * 255, 32 * 255)
+let text_color = `RGB (200 * 255, 200 * 255, 200 * 255)
 
 type mode = SinglePlayer | TwoPlayer | Rush
+
+type game_over = Checkmate | Stalemate
 
 type game_window = {
   mode : mode;
@@ -88,7 +91,6 @@ let add_file_rank_labels (table : GPack.table) =
   let add i j x = table#attach i j x in
   let rec labels_aux i f r =
     if i < 8 then (
-      let text_color = `RGB (200 * 255, 200 * 255, 200 * 255) in
       let f_text = GMisc.label ~packing:(add (i + 1) 8) () in
       f_text#set_text ("<b>" ^ List.nth files i ^ "</b>");
       f_text#set_use_markup true;
@@ -253,6 +255,25 @@ let update_piece_select w =
   aux [ Rook; Bishop; Knight; Queen ];
   ()
 
+(** [text_popup text] is a popup window with the text [text] on it. *)
+let text_popup text =
+  let window =
+    GWindow.window ~width:250 ~height:100 ~position:`CENTER
+      ~resizable:true ~title:"OCaml Chess" ()
+  in
+  window#connect#destroy ==> Main.quit;
+  window#misc#modify_bg [ (`NORMAL, bg_color) ];
+
+  let label = GMisc.label ~packing:window#add () in
+  label#set_text ("<b>" ^ text ^ "</b>");
+  label#set_use_markup true;
+  label#misc#modify_font_by_name "Sans 16";
+  label#misc#modify_fg [ (`NORMAL, text_color) ];
+  label#set_justify `CENTER;
+
+  window#show ();
+  Main.main ()
+
 (** [update_window b ...] updates all the widgets on the window for the
     given board state [b]. *)
 let update_window w =
@@ -261,9 +282,13 @@ let update_window w =
   update_piece_select w;
   update_captured w;
   update_board w;
-  let board = !(w.board) in
-  w.export_fen#set_text (export_to_fen board);
-  ()
+  let b = !(w.board) in
+  w.export_fen#set_text (export_to_fen b);
+  match w.mode with
+  | SinglePlayer | TwoPlayer ->
+    if is_checkmate b then text_popup "CHECKMATE"
+    else if is_stalemate b then text_popup "STALEMATE"
+  | Rush -> failwith "TODO"
 
 (** [terminal_output b] sends output to teminal representing the state
     [b]. *)
@@ -411,8 +436,7 @@ let gui_main mode fen =
       ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  window#misc#modify_bg
-    [ (`NORMAL, `RGB (37 * 255, 35 * 255, 32 * 255)) ];
+  window#misc#modify_bg [ (`NORMAL, bg_color) ];
 
   (* state variables *)
   let board =
