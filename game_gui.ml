@@ -22,6 +22,8 @@ type game_window = {
   mode : mode;
   (* The game mode of this window. *)
   rush : rush option;
+  (* The elo of the opposing player if single player is chosen *)
+  elo : string;
   (* An instance of rush if the mode is rush. *)
   board : Board.t ref;
   (* The current board state in this game window. *)
@@ -341,7 +343,7 @@ let enter_square_callback w () =
     match !(w.promotion) with None -> false | Some _ -> true
   in
   if (not in_promotion) && w.mode = SinglePlayer && color_to_move b = Black then (
-    let (sq, sq'), promote = best_move (export_to_fen b) "900" in
+    let (sq, sq'), promote = best_move (export_to_fen b) (w.elo) in
     let p = extract (piece_of_square b sq) in
     let board' = move_piece b p sq' true in
     let board' =
@@ -454,7 +456,7 @@ let pressed_square_callback w btn () =
         rush_pressed_callback w
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main mode fen =
+let gui_main mode elo fen =
   (* main game window *)
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -474,6 +476,8 @@ let gui_main mode fen =
       ref (try init_from_fen fen with Failure _ -> init_game ())
     | Rush -> ref (init_game ()) (* TODO *)
   in
+  let elo =
+    try elo |> int_of_string |> string_of_int with Failure _ -> "3000" in
 
   let drop = ref false in
   let promotion = ref None in
@@ -519,6 +523,7 @@ let gui_main mode fen =
   let game_window =
     {
       mode;
+      elo;
       board;
       rush;
       drop;
@@ -570,14 +575,14 @@ let gui_main mode fen =
 let main =
   (* GtkMain.Main.init () |> ignore; *)
   let window =
-    GWindow.window ~width:250 ~height:100 ~position:`CENTER
+    GWindow.window ~width:250 ~height:150 ~position:`CENTER
       ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg [ (`NORMAL, bg_color) ];
 
   let table =
-    GPack.table ~width:250 ~height:100 ~packing:window#add ()
+    GPack.table ~width:250 ~height:150 ~packing:window#add ()
   in
   let add i j x = table#attach i j x in
   let single_player_button = GButton.button ~packing:(add 0 0) () in
@@ -586,15 +591,17 @@ let main =
   two_player_button#set_label "Two Player";
   let rush_button = GButton.button ~packing:(add 0 2) () in
   rush_button#set_label "Rush";
-  let fen = GEdit.entry ~packing:(add 0 3) () in
+  let elo = GEdit.entry ~packing:(add 0 3) () in
+  elo#set_text "900";
+  let fen = GEdit.entry ~packing:(add 0 4) () in
   fen#set_text "Paste an FEN here!";
 
   ( single_player_button#connect#pressed ==> fun () ->
-    gui_main SinglePlayer fen#text );
+    gui_main SinglePlayer elo#text fen#text );
   ( two_player_button#connect#pressed ==> fun () ->
-    gui_main TwoPlayer fen#text );
+    gui_main TwoPlayer elo#text fen#text );
   ( rush_button#connect#pressed ==> fun () ->
-    gui_main Rush fen#text );
+    gui_main Rush elo#text fen#text );
 
   window#show ();
   Main.main ()
