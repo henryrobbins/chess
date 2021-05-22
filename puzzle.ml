@@ -1,5 +1,6 @@
 open Board
 open Engine
+open Random
 open Yojson.Basic.Util
 
 type fen = string
@@ -21,6 +22,24 @@ type rush = {
   solved : int;
   total_wrong : int;
 }
+
+let extract_puz j =
+  let description = j |> member "description" |> to_string in
+  let current_board = j |> member "current_board" |> to_string in
+  let player_moves =
+    j |> member "player_moves" |> to_list |> List.map to_string
+  in
+  let computer_moves =
+    j |> member "computer_moves" |> to_list |> List.map to_string
+  in
+  let wrong = j |> member "wrong" |> to_string |> bool_of_string in
+  let complete =
+    j |> member "complete" |> to_string |> bool_of_string
+  in 
+  { description; current_board; player_moves; computer_moves; wrong; complete } 
+
+let puzzles =  
+  "puzzles.json" |> Yojson.Basic.from_file |> to_list |> List.map extract_puz
 
 let init_chessboard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 let empty_puz =
@@ -154,11 +173,19 @@ let make_rush puz_list init = {
 }
 
 (** [get_next_puzzle rush] takes the next puzzle from the remaining puzzles. *)
-let get_next_puzzle rush = failwith "Unimplemented"
+let get_next_puzzle rush = match get_remaining rush with 
+| h :: t -> h 
+| [] -> print_string "This puzzle has been completed!"; empty_puz
 
-(** [init_rush rush] needs to make a list of random puzzles from the JSON file
+(** [init_rush] needs to make a list of random puzzles from the JSON file
     *)
-let init_rush rush = failwith "Unimplemented"
+let init_rush () = 
+  let rec helper acc counter = 
+    let index = Random.int (List.length puzzles) in
+    match counter with 
+    | 0 -> acc
+    | _ -> helper (List.nth puzzles index :: acc) (counter - 1)
+  in helper [] 20
 
 let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
 
