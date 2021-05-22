@@ -35,7 +35,7 @@ val init_rush : rush -> rush
 
 val next_puz_from_rush : rush -> puz -> rush
 
-(** [make_rush puz_list init] is the rush instance created by beginning in 
+(** [make_rush puz_list init] is the rush instance created by beginning in
     puzzle [init] and continuing through [puz_list].*)
 val make_rush : puz list -> puz -> rush
 
