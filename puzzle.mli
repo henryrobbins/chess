@@ -56,7 +56,9 @@ val get_next_puzzle : rush -> puz
 (** [init_rush] is a randomly generated puzzle list of 20 puzzles. *)
 val init_rush : unit -> puz list 
 
-val next_puz_from_rush : rush -> puz -> rush
+(** [next_puz_from_rush rush] returns the next puzzle from the remaining puzzles 
+    of rush state [rush].*)
+val next_puz_from_rush : rush -> rush
 
 (** [init_puz_from_fen initial p c] is the puzzle instance created with initial
     board [initial], player moves [p] and computer moves [c]. *)
