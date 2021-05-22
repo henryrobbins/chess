@@ -15,7 +15,11 @@ expect << EOF
 
     expect -timeout 1  Linscott
 
-    send "setoption name Ponder value false \r isready \r"
+    send "setoption name UCI_LimitStrength value true \r isready \r"
+
+    expect -timeout 1  readyok
+
+    send "setoption name UCI_Elo value $2 \r isready \r"
 
     expect -timeout 1  readyok
 
@@ -23,7 +27,7 @@ expect << EOF
 
     expect -timeout 1  readyok
 
-    send "go depth 15 \r"
+    send "go depth 12 \r"
 
-    expect -timeout 2 readyok
+    expect -timeout 3 readyok
 EOF
