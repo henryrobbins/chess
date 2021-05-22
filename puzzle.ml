@@ -22,11 +22,11 @@ type rush = {
   total_wrong : int;
 }
 
+let init_chessboard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 let empty_puz =
   {
     description = "empty puz";
-    current_board =
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    current_board = init_chessboard;
     player_moves = [];
     computer_moves = [];
     wrong = false;
@@ -60,18 +60,11 @@ let solved_rush rush = rush.solved
 
 let wrong_rush rush = rush.total_wrong
 
-(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
-    that the user moved piece [p] to square [m]. If [m] was the optimal
-    square to move to, [puz] advances to its next state, if there is
-    one. *)
-let puzzle_move puz p m =
-  let t = init_from_fen (get_puz_current_board puz) in
-  let next_player_square = move_piece t p m true in
-  let next_player_fen = export_to_fen next_player_square in
-
-  let best_move_fen =
-    match get_player_moves puz with h :: t -> (h, t) | [] -> ("", [])
-  in
+let puzzle_move puz fen =
+  let next_player_fen = fen in
+  let best_move_fen = match get_player_moves puz with 
+  | [] -> print_string "Puzzle completed!"; ("", [])
+  | h :: t -> h, t in
   if
     next_player_fen = (best_move_fen |> fst)
     && get_computer_moves puz = []
@@ -91,7 +84,7 @@ let puzzle_move puz p m =
     let remaining_comp_moves =
       match get_computer_moves puz with
       | h :: t -> (h, t)
-      | [] -> failwith "reached the unreachable"
+      | [] -> print_string "reached the unreachable"; (init_chessboard, [])
     in
     {
       description = get_puz_description puz;
@@ -104,18 +97,12 @@ let puzzle_move puz p m =
   else
     {
       description = get_puz_description puz;
-      current_board = next_player_fen;
+      current_board = get_puz_current_board puz;
       player_moves = get_player_moves puz;
       computer_moves = get_computer_moves puz;
       wrong = true;
       complete = false;
     }
-
-(** [is_valid_puzzle_move puz fen] is the validity of the move from the next 
-    valid player move in puzzle state [puz] to the game state represented by 
-    [fen]. If the move is valid, then we will return a puzzle with the current
-    board value updated to be the next computer move. Otherwise, we will update
-    the wrong value to be true. *)
 
 let solve_puzzle rush =
   match get_remaining rush with

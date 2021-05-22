@@ -26,13 +26,9 @@ val solved_rush : rush -> int
 
 val wrong_rush : rush -> int
 
-(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
-    that the user moved piece [p] to square [m]. If [m] was the optimal
-    square to move to, [puz] advances to its next state, if there is
-    one. If [puz] does not have a next state, [puzzle_step] is true. If
-    [m] was not the optimal square, then [puzzle_step] is false. *)
-val puzzle_move : puz -> Board.p -> Board.square -> puz
-
+(** [puzzle_move puz fen] is the next puzzle step in puzzle [puz], given that 
+    the user's move resulted in fen [fen]. *)
+val puzzle_move : puz -> fen -> puz
 
 (** [init_rush rush] is the puzzle state beginning from rush state [rush]. *)
 val init_rush : rush -> rush 
