@@ -431,74 +431,66 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
+(** [make_moves puz moves] is the step-by-step list of boards generated when 
+    a piece is moved from [sq] to [sq'], initialized in the puzzle state [puz]. 
+    *)
+let make_moves puz moves =
+  let init_fen = get_puz_current_board puz in
+  let rec helper pu m acc = 
+    match m with 
+      | [] -> acc
+      | (sq, sq') :: l -> begin
+        let current_piece = match piece_of_square board sq with 
+        | Some p -> p
+        | None -> failwith "No piece found." in 
+        let new_puz = puzzle_move pu current_piece sq' in 
+        let new_board = get_puz_current_board new_puz in
+        print_string (" " ^ new_board ^ " ");
+        helper (init_puz_from_fen new_board) l (new_board :: acc)
+    end
+  in helper puz moves [init_fen]
 
-(** [move_equal board sq sq' fen] evaluates whether the move from square [sq] 
-    to [sq'] in the board state [board] returns the inputted [fen]. *)
-let move_equal board sq sq' fen = 
-  let piece = match piece_of_square board sq with 
-  | Some p -> p 
-  | None -> failwith "Bad move." in
-  let next_board = move_piece board piece sq' true in 
-  (board_fen_string next_board) = fen
+(** [make_boards fens] are all the boards constructed from the list of 
+    fens [fens]. *)
+let make_boards fens = 
+  let rec helper fs acc = 
+    match fs with 
+    | [] -> acc
+    | h :: t -> helper t (init_from_fen h :: acc) in
+  helper fens [] 
 
-let puzzle_move_test_improved name user_moves optimal = 
+(** [get_move_fens init_puz moves] is the list of fens corresponding to 
+    the moves [moves] made starting from the [init_puz]. *)
+let get_move_fens (init_puz : puz) moves =  
+  let boards = (make_moves init_puz moves) |> make_boards in
+  let rec helper b m acc = 
+    match b with 
+    | [] -> acc 
+    | h :: t -> begin
+      match m with 
+      | [] -> acc
+      | (sq, sq') :: l -> begin
+        let current_piece = match piece_of_square h sq with 
+        | Some p -> p 
+        | None -> failwith "No piece found." in 
+        let new_board = move_piece h current_piece sq' true in 
+        let new_fen = export_to_fen new_board in 
+        helper t l (new_fen :: acc)
+      end
+    end
+  in helper boards moves []
+
+let puzzle_move_test_improved name user_moves = 
   "puzzle_move_test" ^ name >:: fun _ ->
     let cur_test = List.assoc name puzzle_tests in
-    let first_board_fen = cur_test.current_board in
-    let first_board = init_from_fen first_board_fen in
-    let optimal_moves = cur_test.player_moves in
-    let sq, sq', rest = match user_moves with 
-    | [] -> failwith "Impossible!"
-    | (a, b) :: t -> a, b, t in
-    let rec check_all_steps board s s' remaining = 
-      let piece = match piece_of_square board s with 
-      | Some p -> p
-      | None -> failwith "Bad move." in
-      match remaining, optimal_moves with 
-      | (x, y) :: t, a :: b -> begin
-      let new_board = move_piece board piece s' true in 
-        if move_equal board s' y a 
-          then check_all_steps new_board s' y t
-      else false
-      end
-      | h :: t, [] -> false
-      | [], h :: t -> false
-      | [], [] -> true in
-     (check_all_steps first_board sq sq' rest) |> string_of_bool |> print_string;
-    assert_equal (check_all_steps first_board sq sq' rest) optimal
-(* let puzzle_move_test name move_list optimal = *)
-  (* "puzzle_move_test" ^ name >:: fun _ ->
-  let cur_test = List.assoc name puzzle_tests in
-  let first_board_fen = cur_test.current_board in
-  let player_moves = cur_test.player_moves in
-  let init_move = 
-    match player_moves with 
-    | [] -> failwith "Impossible"
-    | h :: _ -> h in
-  let rec helper board s s' (cur_move : string) remaining_moves = 
-    let first_board_t = init_from_fen board in
-    let piece = match piece_of_square first_board_t s with 
-    | Some p' -> p'
-    | None -> failwith "Bad move." in
-    let new_board = move_piece first_board_t piece s' true in 
-    let new_board_fen = board_fen_string new_board in 
-    let next_optimal_move = match remaining_moves with 
-    | [] -> failwith "Puzzle has been completed."
-    | a :: b -> (a, b) in 
-    let sq, sq' = match move_list with 
-    | (a, b) :: t -> a, b 
-    | [] -> failwith "Puzzle has been completed!" in
-    match player_moves with 
-    | [] -> true
-    | h :: t ->
-      if h = new_board_fen 
-        then helper new_board_fen s' sq' new_board_fen t
-    else false 
-  in assert_equal false false *)
+    let optimal_moves = cur_test.player_moves in 
+    let cur_puz = init_puz_from_fen cur_test.current_board in
+    let moved_fens = get_move_fens cur_puz user_moves in
+    assert_equal moved_fens optimal_moves 
 
 let puzzle_tests =
   [
-    puzzle_move_test_improved "L400 1" [("d2","d8"); ("d8", "e8")] true;
+    puzzle_move_test_improved "L400 1" [("d2","d8"); ("d8", "e8")];
   ]
 
 let fen_test name =
