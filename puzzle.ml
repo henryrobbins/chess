@@ -83,7 +83,6 @@ let update_rush_with_move rush fen =
 let init_rush () =
   let rec get_random bottom top acc counter =
     let index = bottom + Random.int top in
-    print_endline (bottom |> string_of_int);
     match counter with
     | 0 -> acc
     | _ -> get_random bottom top (List.nth (puzzles ()) index :: acc) (counter - 1)
