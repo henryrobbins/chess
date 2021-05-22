@@ -4,7 +4,7 @@
     "current_board": "6k1/5ppp/1rb5/2p1p3/8/1p3PP1/3R1K1P/8 w - - 0 32",
     "player_moves": [
       "3R2k1/5ppp/1rb5/2p1p3/8/1p3PP1/5K1P/8 b - - 1 32",
-      "4R1k1/5ppp/1r6/2p1p3/8/1p3PP1/5K1P/8 b - - 0 33"
+      "4R1k1/5ppp/1r6/2p1p3/8/1p3PP1/5K1P/8 b - - 3 33"
     ],
     "computer_moves": [
       "3Rb1k1/5ppp/1r6/2p1p3/8/1p3PP1/5K1P/8 w - - 2 33"
