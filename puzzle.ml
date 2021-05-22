@@ -143,12 +143,21 @@ let make_puz descrip current player computer =
     complete = false;
   }
 
-let init_rush puz_list init = {
+let make_rush puz_list init = {
   remaining = puz_list;
   current_puz = init;
   solved = 0;
   total_wrong = 0;  
 }
+
+let init_rush rush = 
+  let current = current_puz rush in 
+  let remaining = get_remaining rush in 
+  let rec rush_helper init rest wrongs = 
+    match rest with 
+    | [] -> init
+    | h :: t -> rush_helper h t 0
+  in rush_helper current remaining 
 
 let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
 

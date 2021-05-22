@@ -35,9 +35,9 @@ val puzzle_move : puz -> Board.p -> Board.square -> puz
 
 val next_puz_from_rush : rush -> puz -> rush
 
-(** [init_rush puz_list init] is the rush instance created by beginning in 
+(** [make_rush puz_list init] is the rush instance created by beginning in 
     puzzle [init] and continuing through [puz_list].*)
-val init_rush : puz list -> puz -> rush
+val make_rush : puz list -> puz -> rush
 
 (** [init_puz_from_fen initial p c] is the puzzle instance created with initial
     board [initial], player moves [p] and computer moves [c]. *)
