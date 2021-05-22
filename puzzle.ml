@@ -1,5 +1,6 @@
 open Board
 open Engine
+open Yojson.Basic.Util
 
 type fen = string
 
@@ -32,6 +33,13 @@ let empty_puz =
     complete = true;
   }
 
+let empty_rush = {
+  remaining = [];
+  current_puz = empty_puz;
+  solved = 0;
+  total_wrong = 0;
+}
+
 let get_puz_description puz = puz.description
 
 let get_puz_current_board puz = puz.current_board
@@ -55,8 +63,7 @@ let wrong_rush rush = rush.total_wrong
 (** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
     that the user moved piece [p] to square [m]. If [m] was the optimal
     square to move to, [puz] advances to its next state, if there is
-    one. If [puz] does not have a next state, [puzzle_step] is true. If
-    [m] was not the optimal square, then [puzzle_step] is false. *)
+    one. *)
 let puzzle_move puz p m =
   let t = init_from_fen (get_puz_current_board puz) in
   let next_player_square = move_piece t p m true in
@@ -104,12 +111,21 @@ let puzzle_move puz p m =
       complete = false;
     }
 
+(** [is_valid_puzzle_move puz fen] is the validity of the move from the next 
+    valid player move in puzzle state [puz] to the game state represented by 
+    [fen]. If the move is valid, then we will return a puzzle with the current
+    board value updated to be the next computer move. Otherwise, we will update
+    the wrong value to be true. *)
+
 let solve_puzzle rush =
   match get_remaining rush with
   | h :: t -> (h, t)
   | [] -> (empty_puz, [])
 
-let next_puz_from_rush rush puzzle_new =
+let next_puz_from_rush rush =
+  let puzzle_new = match get_remaining rush with 
+  | [] -> failwith "Impossible" 
+  | h :: t -> h in
   match (get_computer_moves puzzle_new, get_wrong puzzle_new) with
   | [], false ->
       {
@@ -150,17 +166,13 @@ let make_rush puz_list init = {
   total_wrong = 0;  
 }
 
-let init_rush rush = 
-  let current = current_puz rush in 
-  let remaining = get_remaining rush in 
-  let rec rush_helper init rest wrongs = 
-    match rest with 
-    | [] -> init
-    | h :: t -> rush_helper h t 0
-  in rush_helper current remaining 
+(** [get_next_puzzle rush] takes the next puzzle from the remaining puzzles. *)
+let get_next_puzzle rush = failwith "Unimplemented"
+
+(** [init_rush rush] needs to make a list of random puzzles from the JSON file
+    *)
+let init_rush rush = failwith "Unimplemented"
 
 let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
 
-(** [play_puzzles rush] is the current puzzle state, given that we begin in a
-    rush state [rush]. *)
 let play_puzzles rush = current_puz rush
