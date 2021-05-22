@@ -75,10 +75,10 @@ let invert_direction dir =
   | SE -> NW
   | L -> L
 
-(** [attack_from_L state sq] is true if the square [sq] is attacked by a
-    knight of the color opposite the color to move in board state
+(** [is_attacked_from_L state sq] is true if the square [sq] is attacked
+    by a knight of the color opposite the color to move in board state
     [state], and is false otherwise.*)
-let attack_from_L state sq =
+let is_attacked_from_L state sq =
   let check_sqs = iterator_from_sq sq L in
   let rec search_squares sq_lst =
     match sq_lst with
@@ -120,7 +120,7 @@ let check_from_dir state dir =
   let color = color_to_move state in
   let king_sq = square_of_king state color in
   match dir with
-  | L -> attack_from_L state king_sq
+  | L -> is_attacked_from_L state king_sq
   | _ ->
       let check_sqs = unblocked_squares state king_sq dir in
       is_attacked_from_dir state 1 check_sqs dir
@@ -326,7 +326,8 @@ let sq_not_attacked state dir_list sq =
     | h :: t -> (
         match h with
         | L ->
-            if attack_from_L state sq then false else attack_checker t
+            if is_attacked_from_L state sq then false
+            else attack_checker t
         | _ ->
             let squares = unblocked_squares state sq h in
             if is_attacked_from_dir state 1 squares h then false

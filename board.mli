@@ -136,8 +136,6 @@ val is_pawn_promotion : t -> p -> square -> bool
     in standard algebraic notation. *)
 val iterator_from_sq : square -> direction -> square list
 
-(*TODO: Parse the remaining parts of the string*)
-
 (** [init_from_fen fen] is the board state of the game defined in the
     FEN string [fen]. *)
 val init_from_fen : string -> t
