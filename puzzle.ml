@@ -172,13 +172,10 @@ let make_rush puz_list init = {
   total_wrong = 0;  
 }
 
-(** [get_next_puzzle rush] takes the next puzzle from the remaining puzzles. *)
 let get_next_puzzle rush = match get_remaining rush with 
 | h :: t -> h 
 | [] -> print_string "This puzzle has been completed!"; empty_puz
 
-(** [init_rush] needs to make a list of random puzzles from the JSON file
-    *)
 let init_rush () = 
   let rec helper acc counter = 
     let index = Random.int (List.length puzzles) in
