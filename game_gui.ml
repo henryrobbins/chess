@@ -320,7 +320,7 @@ let update_window w =
   | SinglePlayer | TwoPlayer ->
       if is_checkmate b then text_popup "CHECKMATE"
       else if is_stalemate b then text_popup "STALEMATE"
-  | Rush -> update_rush_labels w; print_endline "test"
+  | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
     [b]. *)
