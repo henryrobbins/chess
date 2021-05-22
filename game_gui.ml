@@ -12,9 +12,11 @@ let width = 640
 
 let height = 700
 
+type mode = SinglePlayer | TwoPlayer | Rush
+
 type game_window = {
-  computer : bool;
-  (* True if the user is playing aganist the computer. *)
+  mode : mode;
+  (* The game mode of this window. *)
   board : Board.t ref;
   (* The current board state in this game window. *)
   drop : bool ref;
@@ -225,7 +227,7 @@ let update_captured w =
 
 (** [update_ranks_and_files w] updates the ranks and files. *)
 let update_ranks_and_files w =
-  if w.computer || color_to_move !(w.board) = White then (
+  if not (w.mode = TwoPlayer) || color_to_move !(w.board) = White then (
     w.files := files;
     w.ranks := ranks )
   else (
@@ -294,7 +296,7 @@ let enter_square_callback w () =
   let in_promotion =
     match !(w.promotion) with None -> false | Some _ -> true
   in
-  if (not in_promotion) && w.computer && color_to_move b = Black then (
+  if (not in_promotion) && w.mode = SinglePlayer && color_to_move b = Black then (
     let (sq, sq'), promote = best_move (export_to_fen b) "900" in
     let p = extract (piece_of_square b sq) in
     let board' = move_piece b p sq' true in
@@ -373,6 +375,18 @@ let to_square_callback w sq =
   terminal_output board';
   ()
 
+(** [game_pressed_callback w sq p] is the callback function for a button [sq]
+    with piece option [p] pressed on window [w] in a game mode. *)
+let game_pressed_callback w sq p =
+  let valid_start =
+    match p with
+    | None -> false
+    | Some p -> color_of_piece p = color_to_move !(w.board)
+  in
+  if (not !(w.drop)) || valid_start then
+    if valid_start then from_square_callback w sq p else ()
+  else to_square_callback w sq
+
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
@@ -384,17 +398,13 @@ let pressed_square_callback w btn () =
       let c = List.nth !(w.ranks) j in
       let sq = r ^ c in
       let p = piece_of_square !(w.board) sq in
-      let valid_start =
-        match p with
-        | None -> false
-        | Some p -> color_of_piece p = color_to_move !(w.board)
-      in
-      if (not !(w.drop)) || valid_start then
-        if valid_start then from_square_callback w sq p else ()
-      else to_square_callback w sq
+      match w.mode with
+      | SinglePlayer -> game_pressed_callback w sq p
+      | TwoPlayer -> game_pressed_callback w sq p
+      | Rush -> failwith "TODO"
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main computer fen =
+let gui_main mode fen =
   (* main game window *)
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -406,7 +416,11 @@ let gui_main computer fen =
 
   (* state variables *)
   let board =
-    ref (try init_from_fen fen with Failure _ -> init_game ())
+    match mode with
+    | SinglePlayer | TwoPlayer ->
+      ref (try init_from_fen fen with Failure _ -> init_game ())
+    | Rush -> failwith "TODO"
+
   in
   let drop = ref false in
   let promotion = ref None in
@@ -441,7 +455,7 @@ let gui_main computer fen =
 
   let game_window =
     {
-      computer;
+      mode;
       board;
       drop;
       promotion;
@@ -498,17 +512,21 @@ let main =
     GPack.table ~width:250 ~height:100 ~packing:window#add ()
   in
   let add i j x = table#attach i j x in
-  let one_player_button = GButton.button ~packing:(add 0 0) () in
-  one_player_button#set_label "One Player";
+  let single_player_button = GButton.button ~packing:(add 0 0) () in
+  single_player_button#set_label "One Player";
   let two_player_button = GButton.button ~packing:(add 0 1) () in
   two_player_button#set_label "Two Player";
-  let fen = GEdit.entry ~packing:(add 0 2) () in
+  let rush_button = GButton.button ~packing:(add 0 2) () in
+  rush_button#set_label "Rush";
+  let fen = GEdit.entry ~packing:(add 0 3) () in
   fen#set_text "Paste an FEN here!";
 
-  ( one_player_button#connect#pressed ==> fun () ->
-    gui_main true fen#text );
+  ( single_player_button#connect#pressed ==> fun () ->
+    gui_main SinglePlayer fen#text );
   ( two_player_button#connect#pressed ==> fun () ->
-    gui_main false fen#text );
+    gui_main TwoPlayer fen#text );
+  ( rush_button#connect#pressed ==> fun () ->
+    gui_main Rush fen#text );
 
   window#show ();
   Main.main ()
