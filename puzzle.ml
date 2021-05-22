@@ -143,6 +143,13 @@ let make_puz descrip current player computer =
     complete = false;
   }
 
+let init_rush puz_list init = {
+  remaining = puz_list;
+  current_puz = init;
+  solved = 0;
+  total_wrong = 0;  
+}
+
 let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
 
 (** [play_puzzles rush] is the current puzzle state, given that we begin in a
