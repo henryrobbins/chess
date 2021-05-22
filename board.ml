@@ -272,10 +272,9 @@ let update_en_passant sq sq' piece' t =
   in
   { t with ep_sq = ep_sq'; ep_piece = ep_piece' }
 
-let update_turn_counters turn reset t =
+let update_turn_counters turn reset col t =
   let full_turns' =
-    if turn && color_to_move t = Black then t.full_turns + 1
-    else t.full_turns
+    if turn && col = Black then t.full_turns + 1 else t.full_turns
   in
   let half_turns' =
     if reset then 0 else if turn then 1 + t.half_turns else t.half_turns
@@ -290,6 +289,7 @@ let is_turn_reset piece t sq' =
 
 let rec move_piece t piece sq' turn =
   let reset_turn_count = is_turn_reset piece t sq' in
+  let col = color_to_move t in
   let t_with_capture =
     match piece_of_square t sq' with
     | Some p -> capture_piece t p
@@ -304,7 +304,7 @@ let rec move_piece t piece sq' turn =
     |> update_color_to_move turn
     |> update_castles sq
     |> update_en_passant sq sq' piece'
-    |> update_turn_counters turn reset_turn_count
+    |> update_turn_counters turn reset_turn_count col
   in
   move_rook_for_castle out_state piece sq'
 
