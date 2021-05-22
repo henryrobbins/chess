@@ -431,6 +431,9 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
+
+(** [move_equal board sq sq' fen] evaluates whether the move from square [sq] 
+    to [sq'] in the board state [board] returns the inputted [fen]. *)
 let move_equal board sq sq' fen = 
   let piece = match piece_of_square board sq with 
   | Some p -> p 
