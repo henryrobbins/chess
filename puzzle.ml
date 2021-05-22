@@ -1,5 +1,7 @@
 open Board
 open Engine
+open Random
+open Yojson.Basic.Util
 
 type fen = string
 
@@ -21,16 +23,41 @@ type rush = {
   total_wrong : int;
 }
 
+let extract_puz j =
+  let description = j |> member "description" |> to_string in
+  let current_board = j |> member "current_board" |> to_string in
+  let player_moves =
+    j |> member "player_moves" |> to_list |> List.map to_string
+  in
+  let computer_moves =
+    j |> member "computer_moves" |> to_list |> List.map to_string
+  in
+  let wrong = j |> member "wrong" |> to_string |> bool_of_string in
+  let complete =
+    j |> member "complete" |> to_string |> bool_of_string
+  in 
+  { description; current_board; player_moves; computer_moves; wrong; complete } 
+
+let puzzles =  
+  "puzzles.json" |> Yojson.Basic.from_file |> to_list |> List.map extract_puz
+
+let init_chessboard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 let empty_puz =
   {
     description = "empty puz";
-    current_board =
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    current_board = init_chessboard;
     player_moves = [];
     computer_moves = [];
     wrong = false;
     complete = true;
   }
+
+let empty_rush = {
+  remaining = [];
+  current_puz = empty_puz;
+  solved = 0;
+  total_wrong = 0;
+}
 
 let get_puz_description puz = puz.description
 
@@ -52,19 +79,11 @@ let solved_rush rush = rush.solved
 
 let wrong_rush rush = rush.total_wrong
 
-(** [puzzle_move puz p m] is the next puzzle step in puzzle [puz], given
-    that the user moved piece [p] to square [m]. If [m] was the optimal
-    square to move to, [puz] advances to its next state, if there is
-    one. If [puz] does not have a next state, [puzzle_step] is true. If
-    [m] was not the optimal square, then [puzzle_step] is false. *)
-let puzzle_move puz p m =
-  let t = init_from_fen (get_puz_current_board puz) in
-  let next_player_square = move_piece t p m true in
-  let next_player_fen = board_fen_string next_player_square in
-
-  let best_move_fen =
-    match get_player_moves puz with h :: t -> (h, t) | [] -> ("", [])
-  in
+let puzzle_move puz fen =
+  let next_player_fen = fen in
+  let best_move_fen = match get_player_moves puz with 
+  | [] -> print_string "Puzzle completed!"; ("", [])
+  | h :: t -> h, t in
   if
     next_player_fen = (best_move_fen |> fst)
     && get_computer_moves puz = []
@@ -84,7 +103,7 @@ let puzzle_move puz p m =
     let remaining_comp_moves =
       match get_computer_moves puz with
       | h :: t -> (h, t)
-      | [] -> failwith "reached the unreachable"
+      | [] -> print_string "reached the unreachable"; (init_chessboard, [])
     in
     {
       description = get_puz_description puz;
@@ -97,7 +116,7 @@ let puzzle_move puz p m =
   else
     {
       description = get_puz_description puz;
-      current_board = next_player_fen;
+      current_board = get_puz_current_board puz;
       player_moves = get_player_moves puz;
       computer_moves = get_computer_moves puz;
       wrong = true;
@@ -109,7 +128,10 @@ let solve_puzzle rush =
   | h :: t -> (h, t)
   | [] -> (empty_puz, [])
 
-let next_puz_from_rush rush puzzle_new =
+let next_puz_from_rush rush =
+  let puzzle_new = match get_remaining rush with 
+  | [] -> failwith "Impossible" 
+  | h :: t -> h in
   match (get_computer_moves puzzle_new, get_wrong puzzle_new) with
   | [], false ->
       {
@@ -133,6 +155,37 @@ let next_puz_from_rush rush puzzle_new =
         total_wrong = wrong_rush rush;
       }
 
-(** [play_puzzles] is the current puzzle state, given that we begin in a
-    puzzle state. *)
+let make_puz descrip current player computer = 
+  {
+    description = descrip;
+    current_board = current;
+    player_moves = player;
+    computer_moves = computer;
+    wrong = false;
+    complete = false;
+  }
+
+let make_rush puz_list init = {
+  remaining = puz_list;
+  current_puz = init;
+  solved = 0;
+  total_wrong = 0;  
+}
+
+let get_next_puzzle rush = match get_remaining rush with 
+| h :: t -> h 
+| [] -> print_string "This puzzle has been completed!"; empty_puz
+
+let init_rush () = 
+  let rec get_random bottom top acc counter = 
+    let index = bottom + Random.int top in 
+    match counter with 
+    | 0 -> acc 
+    | _ -> get_random bottom top (List.nth puzzles index :: acc) (counter - 1)
+  in get_random 0 15 [] 4 @ get_random 15 30 [] 4 @ get_random 30 45 [] 2
+  @ get_random 45 60 [] 2 @ get_random 60 70 [] 2 @ get_random 70 75 [] 2
+  @ get_random 75 80 [] 2 @ get_random 80 83 [] 2
+
+let init_puz_from_fen initial p c = make_puz "A new puzzle" initial p c 
+
 let play_puzzles rush = current_puz rush
