@@ -19,6 +19,9 @@ val current_board : rush -> Board.t
 in rush state [rush]. *)
 val total_solved : rush -> int
 
+(** [computer_color rush] is the color of the computer in the current puzzle. *)
+val computer_color : rush -> Board.color
+
 (** [wrong_rush rush] is the number of puzzles the user has answered
     incorrectly in rush state [rush]. *)
 val total_wrong : rush -> int

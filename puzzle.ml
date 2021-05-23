@@ -9,6 +9,7 @@ type progress = InProgress | Complete | GameOver | Correct | Wrong
 
 type puzzle = {
   description : string;
+  computer_color : color;
   board : fen ref;
   player_moves : fen list ref;
   computer_moves : fen list ref;
@@ -24,6 +25,10 @@ type rush = {
 let extract_puzzle j =
   let description = j |> member "description" |> to_string in
   let init_board = j |> member "current_board" |> to_string in
+  let computer_color =
+    match color_to_move (init_from_fen init_board) with
+    | Black -> White
+    | White -> Black in
   let player_moves =
     j |> member "player_moves" |> to_list |> List.map to_string
   in
@@ -31,12 +36,15 @@ let extract_puzzle j =
     j |> member "computer_moves" |> to_list |> List.map to_string
   in
   { description;
+    computer_color;
     board = (ref init_board);
     player_moves = (ref player_moves);
     computer_moves = (ref computer_moves); }
 
 let puzzles () =
   "puzzles.json" |> Yojson.Basic.from_file |> to_list |> List.map extract_puzzle
+
+let computer_color rush = !(rush.current_puz).computer_color
 
 let total_solved rush = !(rush.total_solved)
 
@@ -87,7 +95,7 @@ let init_rush () =
     | 0 -> acc
     | _ -> get_random bottom top (List.nth (puzzles ()) index :: acc) (counter - 1)
   in
-  let puz_list = get_random 0 15 [] 4
+  let puz_list = get_random 0 5 [] 4
     (* get_random 0 15 [] 4 @
     get_random 15 30 [] 4 @
     get_random 30 45 [] 2 @

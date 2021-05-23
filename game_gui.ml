@@ -34,6 +34,8 @@ type game_window = {
   (* The current board state in this game window. *)
   locked : bool ref;
   (* True if the window is now locked. *)
+  computer : color option ref;
+  (* Color of the computer player (if not two player) *)
   drop : bool ref;
   (* True if the user is selecting the to_square. *)
   promotion : (Board.p * square) option ref;
@@ -343,10 +345,25 @@ let piece_select_callback w pt () =
       w.promotion := None;
       update_window w
 
-(** [enter_square_callback w] is the callback function for window [w]
-    called when the mouse enters a square. *)
-let enter_square_callback w () =
-  if !(w.locked) then () else
+(** [rush_callback w] is the callback function for a rush game. *)
+let rush_pressed_callback w =
+  let current_fen = export_to_fen !(w.board) in
+  let rush = extract w.rush in
+  w.locked := true;
+  (match update_rush_with_move rush current_fen with
+  | Complete -> text_popup "You Win!";
+  | GameOver -> text_popup "Game Over!";
+  | Correct ->
+    text_popup "Correct! Next Puzzle.";
+    w.computer := Some (computer_color rush);
+    w.locked := false;
+  | Wrong -> text_popup "Incorrect. Next Puzzle."; w.locked := false;
+  | InProgress -> w.locked := false;);
+  w.board := current_board rush
+
+(** [single_player_callback w] is the callback function for a single
+    player game. *)
+let single_player_callback w =
   let b = !(w.board) in
   let in_promotion =
     match !(w.promotion) with None -> false | Some _ -> true
@@ -365,10 +382,23 @@ let enter_square_callback w () =
           let p' = extract (piece_of_square board' sq') in
           promote_pawn board' p' pt
     in
-    w.board := board';
-    update_window w;
-    terminal_output board' )
-  else ()
+    w.board := board')
+
+(** [enter_square_callback w] is the callback function for window [w]
+    called when the mouse enters a square. *)
+let enter_square_callback w () =
+  match w.mode with
+  | TwoPlayer -> ()
+  | _ ->
+    let cc = extract !(w.computer) in
+    if not !(w.locked) && (color_to_move !(w.board)) = cc then (
+      (match w.mode with
+      | SinglePlayer -> single_player_callback w;
+      | TwoPlayer -> ()
+      | Rush -> rush_pressed_callback w);
+      update_window w;
+      terminal_output !(w.board))
+    else ()
 
 (** [index_of list a] returns the index of the element [a] in list
     [list] if it exists. Otherwise, returns -1. *)
@@ -409,18 +439,6 @@ let from_square_callback w sq p =
   show_valid_moves w (extract p);
   ()
 
-(** [rush_callback w] is the additional callback function for a rush game. *)
-let rush_pressed_callback w b =
-  let current_fen = export_to_fen b in
-  let rush = extract w.rush in
-  (match update_rush_with_move rush current_fen with
-  | Complete -> text_popup "You Win!"; w.locked := true;
-  | GameOver -> text_popup "Game Over!"; w.locked := true;
-  | Correct -> text_popup "Correct! Next Puzzle.";
-  | Wrong -> text_popup "Incorrect. Next Puzzle.";
-  | InProgress -> ());
-  w.board := current_board rush
-
 (** [to_square_callback w sq] is the callback function for window [w]
     called when the mouse selects the from_square [sq] for a move. *)
 let to_square_callback w sq =
@@ -441,9 +459,6 @@ let to_square_callback w sq =
   w.from_square := None;
   w.to_square := None;
   w.board := board';
-  (match w.mode with
-  | Rush -> rush_pressed_callback w board';
-  | _ -> ());
   update_window w;
   terminal_output board'
 
@@ -498,6 +513,12 @@ let gui_main mode elo fen =
     try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
   in
 
+  let computer =
+    match mode with
+    | SinglePlayer -> ref (Some Black)
+    | TwoPlayer -> ref None
+    | Rush -> ref (Some (computer_color (extract rush))) in
+
   let locked = ref false in
   let drop = ref false in
   let promotion = ref None in
@@ -546,6 +567,7 @@ let gui_main mode elo fen =
       elo;
       board;
       locked;
+      computer;
       rush;
       drop;
       promotion;
