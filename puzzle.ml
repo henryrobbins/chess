@@ -5,6 +5,13 @@ open Yojson.Basic.Util
 
 type fen = string
 
+let string_of_string_list lst =
+  let rev_lst = List.rev lst in
+  let rec build_str str lst' =
+    match lst' with [] -> str | h :: t -> build_str (str ^ h ^ ", ") t
+  in
+  build_str "" rev_lst
+
 type progress =
   | InProgress
   | Complete
@@ -79,6 +86,10 @@ let update_wrong rush =
 
 let update_rush_with_move rush fen =
   let player_moves = !(!(rush.current_puz).player_moves) in
+  print_endline (string_of_string_list player_moves);
+  print_endline
+    (string_of_string_list !(!(rush.current_puz).computer_moves));
+  print_endline "";
   match player_moves with
   | [] -> failwith "impossible 2"
   | [ correct_fen ] ->

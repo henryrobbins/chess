@@ -332,9 +332,12 @@ let update_window w =
   | SinglePlayer | TwoPlayer ->
       if is_checkmate b then (
         text_popup "CHECKMATE";
-        w.locked := true )
-      else if is_stalemate b then (
+        w.locked := true );
+      if is_stalemate b then (
         text_popup "STALEMATE";
+        w.locked := true );
+      if is_draw b then (
+        text_popup "DRAW";
         w.locked := true )
   | Rush -> update_rush_labels w
 
@@ -377,6 +380,7 @@ let rush_pressed_callback w =
       w.locked := false
   | Wrong ->
       text_popup "Incorrect. Next Puzzle.";
+      w.computer := Some (computer_color rush);
       w.locked := false
   | InProgress -> w.locked := false );
   w.board := current_board rush
@@ -579,10 +583,10 @@ let gui_main mode elo fen =
 
   ( match mode with
   | SinglePlayer | TwoPlayer -> puzzle_table#misc#hide ()
-  | Rush ->
-      captured_table#misc#hide ();
-      export_fen#misc#hide () );
+  | Rush -> captured_table#misc#hide () );
 
+  (* export_fen#misc#hide () ); *)
+  (* TODO *)
   let game_window =
     {
       mode;
@@ -651,32 +655,32 @@ let main =
   in
   let add i j x = table#attach i j x in
 
-  let single_player_button = GButton.button ~packing:(add 1 0) () in
-  single_player_button#misc#modify_bg light_color;
-  single_player_button#set_border_width 5;
-  text_label "One Player" 20 single_player_button#set_image |> ignore;
+  let white_button = GButton.button ~packing:(add 1 0) () in
+  white_button#misc#modify_bg light_color;
+  white_button#set_border_width 5;
+  text_label "One Player" 20 white_button#set_image |> ignore;
 
-  let two_player_button = GButton.button ~packing:(add 1 1) () in
-  two_player_button#misc#modify_bg light_color;
-  two_player_button#set_border_width 5;
-  text_label "Two Player" 20 two_player_button#set_image |> ignore;
+  let black_button = GButton.button ~packing:(add 2 0) () in
+  black_button#misc#modify_bg light_color;
+  black_button#set_border_width 5;
+  text_label "Two Player" 20 black_button#set_image |> ignore;
 
   let rush_button = GButton.button ~packing:(add 1 2) () in
   rush_button#misc#modify_bg light_color;
   rush_button#set_border_width 5;
   text_label "Rush" 20 rush_button#set_image |> ignore;
 
-  text_label "Elo:" 16 (add 0 3) |> ignore;
+  text_label "Elo: " 16 (add 0 3) |> ignore;
   let elo = GEdit.entry ~packing:(add 1 3) () in
   elo#set_text "900";
 
+  text_label "Fen: " 16 (add 0 4) |> ignore;
   let fen = GEdit.entry ~packing:(add 1 4) () in
   fen#set_text "Paste an FEN here!";
-  single_player_button#misc#modify_bg light_color;
 
-  ( single_player_button#connect#pressed ==> fun () ->
+  ( white_button#connect#pressed ==> fun () ->
     gui_main SinglePlayer elo#text fen#text );
-  ( two_player_button#connect#pressed ==> fun () ->
+  ( black_button#connect#pressed ==> fun () ->
     gui_main TwoPlayer elo#text fen#text );
   ( rush_button#connect#pressed ==> fun () ->
     gui_main Rush elo#text fen#text );
