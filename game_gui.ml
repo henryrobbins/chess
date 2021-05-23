@@ -368,7 +368,9 @@ let rush_pressed_callback w =
     text_popup "Correct! Next Puzzle.";
     w.computer := Some (computer_color rush);
     w.locked := false;
-  | Wrong -> text_popup "Incorrect. Next Puzzle."; w.locked := false;
+  | Wrong -> text_popup "Incorrect. Next Puzzle.";
+    w.computer := Some (computer_color rush);
+    w.locked := false;
   | InProgress -> w.locked := false;);
   w.board := current_board rush
 
@@ -639,15 +641,15 @@ let main =
   in
   let add i j x = table#attach i j x in
 
-  let single_player_button = GButton.button ~packing:(add 1 0) () in
-  single_player_button#misc#modify_bg light_color;
-  single_player_button#set_border_width 5;
-  text_label "One Player" 20 single_player_button#set_image |> ignore;
+  let white_button = GButton.button ~packing:(add 1 0) () in
+  white_button#misc#modify_bg light_color;
+  white_button#set_border_width 5;
+  text_label "One Player" 20 white_button#set_image |> ignore;
 
-  let two_player_button = GButton.button ~packing:(add 1 1) () in
-  two_player_button#misc#modify_bg light_color;
-  two_player_button#set_border_width 5;
-  text_label "Two Player" 20 two_player_button#set_image |> ignore;
+  let black_button = GButton.button ~packing:(add 2 0) () in
+  black_button#misc#modify_bg light_color;
+  black_button#set_border_width 5;
+  text_label "Two Player" 20 black_button#set_image |> ignore;
 
   let rush_button = GButton.button ~packing:(add 1 2) () in
   rush_button#misc#modify_bg light_color;
@@ -661,11 +663,10 @@ let main =
   text_label "Fen: " 16 (add 0 4) |> ignore;
   let fen = GEdit.entry ~packing:(add 1 4) () in
   fen#set_text "Paste an FEN here!";
-  single_player_button#misc#modify_bg light_color;
 
-  ( single_player_button#connect#pressed ==> fun () ->
+  ( white_button#connect#pressed ==> fun () ->
     gui_main SinglePlayer elo#text fen#text );
-  ( two_player_button#connect#pressed ==> fun () ->
+  ( black_button#connect#pressed ==> fun () ->
     gui_main TwoPlayer elo#text fen#text );
   ( rush_button#connect#pressed ==> fun () ->
     gui_main Rush elo#text fen#text );
