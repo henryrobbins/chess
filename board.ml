@@ -289,13 +289,24 @@ let is_turn_reset piece t sq' =
   | _, Some _ -> true
   | _ -> false
 
+(** [capture_en_passant t p s] is the state [t] after piece [p] moves to
+    square [s] in which a piece captured via en passant is now captured
+    and no longer active. *)
+let capture_en_passant t piece sq' =
+  match t.ep_sq with
+  | None -> t
+  | Some ep_sq ->
+      if piece.id = Pawn && sq' = ep_sq then
+        capture_piece t (t.ep_piece |> extract_piece)
+      else t
+
 let rec move_piece t piece sq' turn =
   let reset_turn_count = is_turn_reset piece t sq' in
   let col = color_to_move t in
   let t_with_capture =
     match piece_of_square t sq' with
     | Some p -> capture_piece t p
-    | None -> t
+    | None -> capture_en_passant t piece sq'
   in
   let sq = square_of_piece piece in
   let piece' = { piece with current_pos = Some sq' } in

@@ -1,6 +1,7 @@
 open Board
 
 let parse_engine_response s =
+  print_endline s;
   let strs = String.split_on_char ' ' s in
   match strs with
   | [ "bestmove"; move; "ponder"; next_move ] -> move
