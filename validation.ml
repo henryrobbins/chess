@@ -11,6 +11,11 @@ type pin_state =
   | Pin of direction
   | NoPin
 
+let terminate_it state p' sq' move_lst =
+  if color_to_move state <> color_of_piece p' then
+    List.rev (sq' :: move_lst)
+  else List.rev move_lst
+
 (** [unblocked_squares state piece direction] is a list of all the
     squares in direction [direction] to which a piece [piece] in game
     state [state] can move unimpeded. *)
@@ -22,10 +27,7 @@ let unblocked_squares state sq direction =
     | sq' :: t -> (
         match piece_of_square state sq' with
         | None -> valid_moves t (sq' :: move_lst)
-        | Some p' ->
-            if color_to_move state <> color_of_piece p' then
-              List.rev (sq' :: move_lst)
-            else List.rev move_lst )
+        | Some p' -> terminate_it state p' sq' move_lst )
   in
   valid_moves potential_squares []
 
