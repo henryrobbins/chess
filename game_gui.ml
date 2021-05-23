@@ -14,9 +14,15 @@ let width = 640
 
 let height = 700
 
-let bg_color = `RGB (37 * 255, 35 * 255, 32 * 255)
+let rgb_color r g b =  [ (`NORMAL, `RGB (r * 255, g * 255, b * 255)) ]
 
-let text_color = `RGB (200 * 255, 200 * 255, 200 * 255)
+let bg_color = rgb_color 37 35 32
+
+let text_color = rgb_color 200 200 200
+
+let dark_color = rgb_color 63 31 31
+
+let light_color = rgb_color 104 59 47
 
 type mode =
   | SinglePlayer
@@ -67,7 +73,7 @@ type game_window = {
   total_solved : GMisc.label;
   (* Widget for the number of puzzles solved. *)
   total_wrong : GMisc.label;
-      (* Widget for the number of puzzles wrong. *)
+  (* Widget for the number of puzzles wrong. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -100,8 +106,6 @@ let update_button_image button id =
   else
     GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image ()
     |> ignore;
-  (* GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#add () |>
-     ignore; *)
   ()
 
 (** [text_label text packing] is a text label with initial text [text]
@@ -111,7 +115,7 @@ let text_label text size packing =
   lbl#set_text ("<b>" ^ text ^ "</b>");
   lbl#set_use_markup true;
   lbl#misc#modify_font_by_name ("Sans " ^ string_of_int size);
-  lbl#misc#modify_fg [ (`NORMAL, text_color) ];
+  lbl#misc#modify_fg text_color;
   lbl#set_justify `CENTER;
   lbl
 
@@ -148,7 +152,7 @@ let add_board_squares board (table : GPack.table) =
         let add x = table#attach (i + 1) (7 - j) x in
         let button = GButton.button ~packing:add () in
         let name =
-          if (i + j) mod 2 = 1 then "dark_sq" else "light_sq"
+          if (i + j) mod 2 = 1 then "light_sq" else "dark_sq"
         in
         GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
         update_button_image button id;
@@ -201,11 +205,15 @@ let init_piece_selection packing =
     the given packing function [packing]. *)
 let init_puzzle_labels packing =
   let d = 60 in
-  let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () in
+  let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () ~homogeneous:true in
+  table#set_col_spacings 40;
+  table#set_row_spacings 20;
   let add i j x = table#attach i j x in
-  let solved = text_label "0" 16 (add 0 0) in
-  let total_wrong = text_label "0" 16 (add 1 0) in
-  (solved, total_wrong)
+  text_label "   <u>Total Solved</u>    " 16 (add 1 0) |> ignore;
+  text_label "   <u>Total Wrong</u>     " 16 (add 2 0) |> ignore;
+  let solved = text_label "0" 16 (add 1 1) in
+  let total_wrong = text_label "0" 16 (add 2 1) in
+  (table, solved, total_wrong)
 
 (** [update_board b buttons] updates the playing board [buttons] with
     the current board state [b]. *)
@@ -301,7 +309,7 @@ let text_popup text =
       ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  window#misc#modify_bg [ (`NORMAL, bg_color) ];
+  window#misc#modify_bg bg_color;
   text_label text 16 window#add |> ignore;
   window#show ();
   Main.main ()
@@ -349,8 +357,10 @@ let piece_select_callback w pt () =
 let rush_pressed_callback w =
   let current_fen = export_to_fen !(w.board) in
   let rush = extract w.rush in
+  let progress = update_rush_with_move rush current_fen in
+  update_rush_labels w;
   w.locked := true;
-  (match update_rush_with_move rush current_fen with
+  (match progress with
   | Complete -> text_popup "You Win!";
   | GameOver -> text_popup "Game Over!";
   | Correct ->
@@ -496,7 +506,7 @@ let gui_main mode elo fen =
       ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  window#misc#modify_bg [ (`NORMAL, bg_color) ];
+  window#misc#modify_bg bg_color;
 
   let rush =
     match mode with
@@ -551,12 +561,11 @@ let gui_main mode elo fen =
 
   let piece_select = init_piece_selection (add 1 0) in
 
-  let total_solved, total_wrong = init_puzzle_labels (add 0 3) in
+  let puzzle_table, total_solved, total_wrong = init_puzzle_labels (add 0 3) in
 
   ( match mode with
   | SinglePlayer | TwoPlayer ->
-    total_solved#misc#hide ();
-    total_wrong#misc#hide ()
+    puzzle_table#misc#hide ();
   | Rush ->
     captured_table#misc#hide ();
     export_fen#misc#hide () );
@@ -618,26 +627,39 @@ let gui_main mode elo fen =
 let main =
   (* GtkMain.Main.init () |> ignore; *)
   let window =
-    GWindow.window ~width:250 ~height:150 ~position:`CENTER
+    GWindow.window ~width:400 ~height:400 ~position:`CENTER
       ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
-  window#misc#modify_bg [ (`NORMAL, bg_color) ];
+  window#misc#modify_bg bg_color;
 
   let table =
-    GPack.table ~width:250 ~height:150 ~packing:window#add ()
+    GPack.table ~width:400 ~height:400 ~packing:window#add ()
   in
   let add i j x = table#attach i j x in
-  let single_player_button = GButton.button ~packing:(add 0 0) () in
-  single_player_button#set_label "One Player";
-  let two_player_button = GButton.button ~packing:(add 0 1) () in
-  two_player_button#set_label "Two Player";
-  let rush_button = GButton.button ~packing:(add 0 2) () in
-  rush_button#set_label "Rush";
-  let elo = GEdit.entry ~packing:(add 0 3) () in
+
+  let single_player_button = GButton.button ~packing:(add 1 0) () in
+  single_player_button#misc#modify_bg light_color;
+  single_player_button#set_border_width 5;
+  text_label "One Player" 20 single_player_button#set_image |> ignore;
+
+  let two_player_button = GButton.button ~packing:(add 1 1) () in
+  two_player_button#misc#modify_bg light_color;
+  two_player_button#set_border_width 5;
+  text_label "Two Player" 20 two_player_button#set_image |> ignore;
+
+  let rush_button = GButton.button ~packing:(add 1 2) () in
+  rush_button#misc#modify_bg light_color;
+  rush_button#set_border_width 5;
+  text_label "Rush" 20 rush_button#set_image |> ignore;
+
+  text_label "Elo:" 16 (add 0 3) |> ignore;
+  let elo = GEdit.entry ~packing:(add 1 3) () in
   elo#set_text "900";
-  let fen = GEdit.entry ~packing:(add 0 4) () in
+
+  let fen = GEdit.entry ~packing:(add 1 4) () in
   fen#set_text "Paste an FEN here!";
+  single_player_button#misc#modify_bg light_color;
 
   ( single_player_button#connect#pressed ==> fun () ->
     gui_main SinglePlayer elo#text fen#text );
