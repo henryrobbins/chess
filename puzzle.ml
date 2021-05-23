@@ -8,9 +8,11 @@ type fen = string
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
   let rec build_str str lst' =
-    match lst' with [] -> str | h :: t -> build_str (str ^ h ^ ", ") t
+    match lst' with
+    | [] -> str ^ "]"
+    | h :: t -> build_str (str ^ h ^ ", ") t
   in
-  build_str "" rev_lst
+  build_str "[" rev_lst
 
 type progress =
   | InProgress
@@ -72,6 +74,7 @@ let update_puzzle rush =
   match !(rush.puzzles) with
   | [] -> false
   | h :: t ->
+      print_endline "UPDATED PUZZLE";
       rush.current_puz := h;
       rush.puzzles := t;
       true

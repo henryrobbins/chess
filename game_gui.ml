@@ -318,8 +318,7 @@ let text_popup text =
   window#show ();
   Main.main ()
 
-(** [update_window b ...] updates all the widgets on the window for the
-    given board state [b]. *)
+(** [update_window w] updates widgets for the window [w]. *)
 let update_window w =
   update_ranks_and_files w;
   update_file_rank_labels w;
@@ -362,6 +361,7 @@ let piece_select_callback w pt () =
       let p' = extract (piece_of_square b' sq') in
       w.board := promote_pawn b' p' pt;
       w.promotion := None;
+      w.locked := false;
       update_window w
 
 (** [rush_callback w] is the callback function for a rush game. *)
@@ -389,24 +389,17 @@ let rush_pressed_callback w =
     player game. *)
 let single_player_callback w =
   let b = !(w.board) in
-  let in_promotion =
-    match !(w.promotion) with None -> false | Some _ -> true
+  let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
+  let p = extract (piece_of_square b sq) in
+  let board' = move_piece b p sq' true in
+  let board' =
+    match promote with
+    | None -> board'
+    | Some pt ->
+        let p' = extract (piece_of_square board' sq') in
+        promote_pawn board' p' pt
   in
-  if
-    (not in_promotion) && w.mode = SinglePlayer
-    && color_to_move b = Black
-  then
-    let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
-    let p = extract (piece_of_square b sq) in
-    let board' = move_piece b p sq' true in
-    let board' =
-      match promote with
-      | None -> board'
-      | Some pt ->
-          let p' = extract (piece_of_square board' sq') in
-          promote_pawn board' p' pt
-    in
-    w.board := board'
+  w.board := board'
 
 (** [enter_square_callback w] is the callback function for window [w]
     called when the mouse enters a square. *)
@@ -474,6 +467,7 @@ let to_square_callback w sq =
     if is_valid_move (sq, sq') b then
       if is_pawn_promotion b p sq' then (
         w.promotion := Some (p, sq');
+        w.locked := true;
         update_piece_select w;
         b )
       else move_piece b p sq' true
@@ -514,7 +508,7 @@ let pressed_square_callback w btn () =
         game_pressed_callback w sq p
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main mode elo fen =
+let gui_main mode elo fen color =
   (* main game window *)
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -540,7 +534,7 @@ let gui_main mode elo fen =
 
   let computer =
     match mode with
-    | SinglePlayer -> ref (Some Black)
+    | SinglePlayer -> ref color
     | TwoPlayer -> ref None
     | Rush -> ref (Some (computer_color (extract rush)))
   in
@@ -644,46 +638,53 @@ let gui_main mode elo fen =
 let main =
   (* GtkMain.Main.init () |> ignore; *)
   let window =
-    GWindow.window ~width:400 ~height:400 ~position:`CENTER
+    GWindow.window ~width:400 ~height:200 ~position:`CENTER
       ~resizable:true ~title:"OCaml Chess" ()
   in
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg bg_color;
 
   let table =
-    GPack.table ~width:400 ~height:400 ~packing:window#add ()
+    GPack.table ~width:400 ~height:200 ~packing:window#add ()
   in
   let add i j x = table#attach i j x in
 
-  let white_button = GButton.button ~packing:(add 1 0) () in
+  let white_button = GButton.button ~packing:(add 0 0) () in
   white_button#misc#modify_bg light_color;
-  white_button#set_border_width 5;
-  text_label "One Player" 20 white_button#set_image |> ignore;
+  white_button#set_border_width 10;
+  text_label "Single (White)" 24 white_button#set_image |> ignore;
 
-  let black_button = GButton.button ~packing:(add 2 0) () in
+  let black_button = GButton.button ~packing:(add 1 0) () in
   black_button#misc#modify_bg light_color;
-  black_button#set_border_width 5;
-  text_label "Two Player" 20 black_button#set_image |> ignore;
+  black_button#set_border_width 10;
+  text_label "Single (Black)" 24 black_button#set_image |> ignore;
 
-  let rush_button = GButton.button ~packing:(add 1 2) () in
+  let two_player_button = GButton.button ~packing:(add 0 1) () in
+  two_player_button#misc#modify_bg light_color;
+  two_player_button#set_border_width 10;
+  text_label "Two-Player" 24 two_player_button#set_image |> ignore;
+
+  let rush_button = GButton.button ~packing:(add 1 1) () in
   rush_button#misc#modify_bg light_color;
-  rush_button#set_border_width 5;
-  text_label "Rush" 20 rush_button#set_image |> ignore;
+  rush_button#set_border_width 10;
+  text_label "Rush" 24 rush_button#set_image |> ignore;
 
-  text_label "Elo: " 16 (add 0 3) |> ignore;
-  let elo = GEdit.entry ~packing:(add 1 3) () in
+  text_label "Elo: " 16 (add 0 2) |> ignore;
+  let elo = GEdit.entry ~packing:(add 1 2) () in
   elo#set_text "900";
 
-  text_label "Fen: " 16 (add 0 4) |> ignore;
-  let fen = GEdit.entry ~packing:(add 1 4) () in
+  text_label "Fen: " 16 (add 0 3) |> ignore;
+  let fen = GEdit.entry ~packing:(add 1 3) () in
   fen#set_text "Paste an FEN here!";
 
   ( white_button#connect#pressed ==> fun () ->
-    gui_main SinglePlayer elo#text fen#text );
+    gui_main SinglePlayer elo#text fen#text (Some Black) );
   ( black_button#connect#pressed ==> fun () ->
-    gui_main TwoPlayer elo#text fen#text );
+    gui_main SinglePlayer elo#text fen#text (Some White) );
+  ( two_player_button#connect#pressed ==> fun () ->
+    gui_main TwoPlayer elo#text fen#text None );
   ( rush_button#connect#pressed ==> fun () ->
-    gui_main Rush elo#text fen#text );
+    gui_main Rush elo#text fen#text None );
 
   window#show ();
   Main.main ()
