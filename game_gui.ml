@@ -356,6 +356,7 @@ let piece_select_callback w pt () =
 
 (** [rush_callback w] is the callback function for a rush game. *)
 let rush_pressed_callback w =
+  print_endline "test";
   let current_fen = export_to_fen !(w.board) in
   let rush = extract w.rush in
   let progress = update_rush_with_move rush current_fen in

@@ -74,7 +74,6 @@ let update_puzzle rush =
   match !(rush.puzzles) with
   | [] -> false
   | h :: t ->
-      print_endline "UPDATED PUZZLE";
       rush.current_puz := h;
       rush.puzzles := t;
       true
@@ -82,21 +81,15 @@ let update_puzzle rush =
 let update_wrong rush =
   let total_wrong = !(rush.total_wrong) + 1 in
   rush.total_wrong := total_wrong;
-  print_endline (string_of_int total_wrong);
   if total_wrong = 3 then GameOver
   else if update_puzzle rush then Wrong
   else Complete
 
 let update_rush_with_move rush fen =
   let player_moves = !(!(rush.current_puz).player_moves) in
-  print_endline (string_of_string_list player_moves);
-  print_endline
-    (string_of_string_list !(!(rush.current_puz).computer_moves));
-  print_endline "";
   match player_moves with
   | [] -> failwith "impossible 2"
   | [ correct_fen ] ->
-      print_endline "HERE";
       if fen = correct_fen then (
         !(rush.current_puz).board := fen;
         !(rush.current_puz).player_moves := [];
@@ -114,26 +107,40 @@ let update_rush_with_move rush fen =
         InProgress )
       else update_wrong rush
 
+(** [random_subset lb ub n] returns [n] random integers between lower
+    bound [lb] (inclusive) and upper bound [ub] (exclusive). *)
+let random_subset lb ub n =
+  let rec set_aux acc i =
+    if i = ub then acc
+    else set_aux (i :: acc) (i + 1) in
+  let set = set_aux [] lb in
+  let rec random_subset_aux subset draw_set =
+    if List.length subset = n then subset else
+    let i = Random.int (List.length draw_set) in
+    let elt = List.nth draw_set i in
+    let draw_set' = List.filter (fun x -> x <> elt) draw_set in
+    random_subset_aux (elt :: subset) draw_set' in
+  random_subset_aux [] set
+
+
+(** [get_puzzles indices] returns the puzzles at the given [indices] *)
+let get_puzzles indices = List.map (fun x -> List.nth (puzzles ()) x) indices
+
 let init_rush () =
-  let puzzles = puzzles () in
-  let rec get_random bottom top acc counter =
-    let index = bottom + Random.int (top - bottom) in
-    match counter with
-    | 0 -> acc
-    | _ ->
-        get_random bottom top
-          (List.nth puzzles index :: acc)
-          (counter - 1)
-  in
-  let puz_list =
-    get_random 0 15 [] 4 @ get_random 15 30 [] 4 @ get_random 30 45 [] 2
-    @ get_random 45 60 [] 2 @ get_random 60 70 [] 2
-    @ get_random 70 75 [] 2 @ get_random 75 80 [] 2
-    @ get_random 80 82 [] 2
+  let puzzle_list =
+    get_puzzles (random_subset 0 15 4) @
+    get_puzzles (random_subset 15 30 4) @
+    get_puzzles (random_subset 30 45 2) @
+    get_puzzles (random_subset 45 60 2) @
+    get_puzzles (random_subset 45 60 2) @
+    get_puzzles (random_subset 60 70 2) @
+    get_puzzles (random_subset 70 75 2) @
+    get_puzzles (random_subset 75 80 2) @
+    get_puzzles (random_subset 80 85 2)
   in
   {
-    puzzles = ref (List.tl puz_list);
-    current_puz = ref (List.hd puz_list);
+    puzzles = ref (List.tl puzzle_list);
+    current_puz = ref (List.hd puzzle_list);
     total_solved = ref 0;
     total_wrong = ref 0;
   }
