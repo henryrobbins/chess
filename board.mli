@@ -1,4 +1,4 @@
-(** Maintains the state of a chess board. *)
+(** Maintains the state of a chess board. TODO *)
 
 (** The type of a chess board square identifier in algebraic notation.
     Algebraic notation consists of a lower-case letter followed by a
@@ -157,7 +157,6 @@ val board_fen_string : t -> string
 (** [print_game_state t] prints the game state [t] in string format. *)
 val print_game_state : t -> unit
 
-(* TODO: Temporary or decide to keep *)
+(** [partition_pieces_by_color lst] is the list of white piece and black
+    piece (string representations) respectivley for the pieces in [lst]. *)
 val partition_pieces_by_color : p list -> string list * string list
-
-val gen_piece : string -> string -> string -> p

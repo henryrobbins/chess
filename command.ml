@@ -12,12 +12,19 @@ exception InconsistentPlacement
 
 exception Malformed
 
+(** [is_piece s] returns a unit if string [s] represents a piece type.
+
+    Raises: [Malformed] if the string [s] does not represent a piece type. *)
 let is_piece s =
   let piece_ids = [ "K"; "Q"; "R"; "B"; "N"; "P" ] in
   if List.mem s piece_ids then () else raise Malformed
 
-(* Raises: [Malformed] if sq is not a valid square. Check this before
-   is_piece_constant!*)
+(** [is_valid_square sq] returns unit if string [s] is a valid board square.
+
+    Raises: [Malformed] if the string is not of length 2.
+
+    Raises: [InvalidSquares] if either the first or second char of [s] are not
+    a valid file or rank respectively. *)
 let is_valid_square sq =
   let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ] in
   let files = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ] in
@@ -28,14 +35,26 @@ let is_valid_square sq =
     else raise InvalidSquares
   else raise Malformed
 
+(** [is_piece_consistent id sq b] returns a unit if the piece type [id]
+    matches the piece type of the piece on square [sq] in state [b].
+
+    Raises: [InconsistentPlacement] the piece type [id] does not match
+    the piece type of the piece on square [sq] in state [b]. *)
 let is_piece_consistent id sq board =
   match piece_of_square board sq with
   | Some p ->
       if id_of_piece p = id then () else raise InconsistentPlacement
   | None -> raise InconsistentPlacement
 
+(** [is_to s] returns a unit if string [s] is "to".
+
+    Raises: [Malformed] if string [s] is not "to". *)
 let is_to s = if s = "to" then () else raise Malformed
 
+(** [is_valid_move_phrase lst b] returns unit if the move phrase [lst]
+    is valid.
+
+     Raises: [Malformed] if the list [lst] has more than four items. *)
 let is_valid_move_phrase lst board =
   match lst with
   | [ id; sq; w; sq' ] ->
@@ -46,6 +65,8 @@ let is_valid_move_phrase lst board =
       is_to w
   | _ -> raise Malformed
 
+(** [split_on_space s] is the string [s] split on space where multiple spaces
+    are considered as a single space. *)
 let split_on_space s =
   s
   |> String.split_on_char ' '
