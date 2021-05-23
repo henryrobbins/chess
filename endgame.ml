@@ -1,6 +1,7 @@
 open Board
 open Validation
 
+(** Possible remaining materials in the case of a draw. *)
 type endgame =
   | K
   | K_and_N
@@ -17,6 +18,8 @@ let is_stalemate state =
   | NotCheck -> valid_moves state = []
   | Check _ -> false
 
+(** [endgame_of_piece_id_lst lst] is the endgame associated with a given
+    list of remaining pieces [lst]. *)
 let endgame_of_piece_id_lst pid_lst =
   match pid_lst with
   | [ 'K' ] -> K

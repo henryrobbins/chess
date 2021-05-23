@@ -32,18 +32,18 @@ bisect: clean bisect-test
 		bisect-ppx-report html
 
 zip:
-	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md Makefile stockfish_13_linux_x64_bmi2/* assets/*
+	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md Makefile stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2 assets/*
 
 docs: docs-public docs-private
 
 docs-public: build
 	mkdir -p _doc.public
-	ocamlfind ocamldoc -I _build -package yojson \
+	ocamlfind ocamldoc -I _build -package yojson -package lablgtk2 \
 		-html -stars -d _doc.public $(MLIS)
 
 docs-private: build
 	mkdir -p _doc.private
-	ocamlfind ocamldoc -I _build -package yojson lablgtk2 \
+	ocamlfind ocamldoc -I _build -package yojson -package lablgtk2 \
 		-html -stars -d _doc.private \
 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
