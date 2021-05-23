@@ -89,21 +89,22 @@ let update_rush_with_move rush fen =
     else update_wrong rush
 
 let init_rush () =
+  let puzzles = puzzles () in
   let rec get_random bottom top acc counter =
-    let index = bottom + Random.int top in
+    let index = bottom + Random.int (top - bottom) in
     match counter with
     | 0 -> acc
-    | _ -> get_random bottom top (List.nth (puzzles ()) index :: acc) (counter - 1)
+    | _ -> get_random bottom top (List.nth puzzles index :: acc) (counter - 1)
   in
-  let puz_list = get_random 0 5 [] 4
-    (* get_random 0 15 [] 4 @
+  let puz_list =
+    get_random 0 15 [] 4 @
     get_random 15 30 [] 4 @
     get_random 30 45 [] 2 @
     get_random 45 60 [] 2 @
     get_random 60 70 [] 2 @
     get_random 70 75 [] 2 @
     get_random 75 80 [] 2 @
-    get_random 80 82 [] 2 *)
+    get_random 80 82 [] 2
   in
   {
     puzzles = ref (List.tl puz_list);
