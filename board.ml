@@ -85,6 +85,8 @@ let piece_id_of_string s =
 
 let string_of_piece_id p = List.assoc p (rev_map piece_id_map)
 
+let half_turns t = t.half_turns
+
 let string_of_piece p =
   match p with
   | None -> "  "

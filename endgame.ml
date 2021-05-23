@@ -25,18 +25,20 @@ let endgame_of_piece_id_lst pid_lst =
   | _ -> Other
 
 let is_draw state =
-  let strip_color str = str.[1] in
-  let strip_colors (lst1, lst2) =
-    (List.map strip_color lst1, List.map strip_color lst2)
-  in
-  let get_endgames (lst1, lst2) =
-    (endgame_of_piece_id_lst lst1, endgame_of_piece_id_lst lst2)
-  in
-  let white_ids, black_ids =
-    state |> active_pieces |> partition_pieces_by_color |> strip_colors
-    |> get_endgames
-  in
-  match (white_ids, black_ids) with
-  | Other, _ -> false
-  | _, Other -> false
-  | _ -> true
+  if half_turns state >= 50 then true
+  else
+    let strip_color str = str.[1] in
+    let strip_colors (lst1, lst2) =
+      (List.map strip_color lst1, List.map strip_color lst2)
+    in
+    let get_endgames (lst1, lst2) =
+      (endgame_of_piece_id_lst lst1, endgame_of_piece_id_lst lst2)
+    in
+    let white_ids, black_ids =
+      state |> active_pieces |> partition_pieces_by_color
+      |> strip_colors |> get_endgames
+    in
+    match (white_ids, black_ids) with
+    | Other, _ -> false
+    | _, Other -> false
+    | _ -> true

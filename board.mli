@@ -48,6 +48,10 @@ type b
     I.e. Current board state, active pieces, and captured pieces. *)
 type t
 
+(** [half_turns t] is the number of elapsed half-turns since the last
+    capture or pawn move in state [t]. *)
+val half_turns : t -> int
+
 (** [color_of_string s] is the color of the string [s]. Requires: [s] is
     in {w, b, White, Black}. *)
 val color_of_string : string -> color
