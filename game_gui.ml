@@ -340,16 +340,6 @@ let update_window w =
         w.locked := true )
   | Rush -> update_rush_labels w
 
-(** [terminal_output b] sends output to teminal representing the state
-    [b]. *)
-let terminal_output b = ()
-
-(* print_endline "===========================================";
-   print_game_state b; print_endline
-   "==========================================="; if is_checkmate b then
-   print_string "CHECKMATE \n" else if is_stalemate b then print_string
-   "STALEMATE \n" else () *)
-
 (** [piece_select_callback pt] is the callback function when pressing
     the button corresponding to piece type [pt] in the piece select
     window. *)
@@ -413,8 +403,7 @@ let enter_square_callback w () =
         | SinglePlayer -> single_player_callback w
         | TwoPlayer -> ()
         | Rush -> rush_pressed_callback w );
-        update_window w;
-        terminal_output !(w.board) )
+        update_window w )
       else ()
 
 (** [index_of list a] returns the index of the element [a] in list
@@ -477,8 +466,7 @@ let to_square_callback w sq =
   w.from_square := None;
   w.to_square := None;
   w.board := board';
-  update_window w;
-  terminal_output board'
+  update_window w
 
 (** [game_pressed_callback w sq p] is the callback function for a button
     [sq] with piece option [p] pressed on window [w] in a game mode. *)
