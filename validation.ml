@@ -1,10 +1,6 @@
 open Board
 open Command
 
-exception Exception
-
-exception InvalidState
-
 type move = square * square
 
 type check_state =
