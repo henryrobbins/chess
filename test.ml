@@ -448,16 +448,13 @@ let valid_piece_moves_tests =
 (** [make_moves puz moves] is the step-by-step list of boards generated
     when a piece is moved from [sq] to [sq'], initialized in the puzzle
     state [puz]. *)
-let make_moves puz moves =
-  let init_fen = get_puz_current_board puz in
+(* let make_moves puz moves =
+  let init_fen = current_board puz in
   let rec helper pu m acc =
     match m with
     | [] -> acc
     | (sq, sq') :: l ->
-        (* let current_piece = match piece_of_square board sq with |
-           Some p -> p | None -> failwith "No piece found." in *)
-        let new_puz = puzzle_move pu sq' in
-        let new_board = get_puz_current_board new_puz in
+        let new_board = current_board new_puz in
         let player_moves = get_player_moves new_puz in
         let c_moves = get_computer_moves new_puz in
         print_string (" " ^ new_board ^ " ");
@@ -475,11 +472,11 @@ let make_boards fens =
     | [] -> acc
     | h :: t -> helper t (init_from_fen h :: acc)
   in
-  helper fens []
+  helper fens [] *)
 
 (** [get_move_fens init_puz moves] is the list of fens corresponding to
     the moves [moves] made starting from the [init_puz]. *)
-let get_move_fens init_puz moves =
+(* let get_move_fens init_puz moves =
   let boards = make_moves init_puz moves |> make_boards in
   let rec helper b m acc =
     match b with
@@ -497,21 +494,21 @@ let get_move_fens init_puz moves =
             let new_fen = export_to_fen new_board in
             helper t l (new_fen :: acc) )
   in
-  helper boards moves []
+  helper boards moves [] *)
 
-let puzzle_move_test_improved name user_moves =
+(* let puzzle_move_test_improved name user_moves =
   "puzzle_move_test" ^ name >:: fun _ ->
   let cur_test = List.assoc name puzzle_tests in
   let optimal_moves = cur_test.player_moves in
   let cur_puz = init_puz_from_fen cur_test.current_board in
-  assert_equal true true
+  assert_equal true true *)
 
 (* let moved_fens = get_move_fens cur_puz optimal_moves in *)
 (* assert_equal moved_fens optimal_moves ~printer:pp_list pp_string
    moved_fens *)
 
-let puzzle_tests =
-  [ puzzle_move_test_improved "L400 1" [ ("d2", "d8"); ("d8", "e8") ] ]
+(* let puzzle_tests = *)
+  (* [ puzzle_move_test_improved "L400 1" [ ("d2", "d8"); ("d8", "e8") ] ] *)
 
 let fen_test name =
   let fen = (List.assoc name tests).fen in
@@ -535,7 +532,7 @@ let suite =
            valid_piece_moves_tests;
            is_check_tests;
            fen_tests;
-           puzzle_tests;
+           (* puzzle_tests; *)
          ]
 
 let _ = run_test_tt_main suite
