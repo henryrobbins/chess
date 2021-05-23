@@ -436,7 +436,13 @@ let show_valid_moves w p =
         let i = index_of !(w.files) (Char.escaped sq.[0]) in
         let j = index_of !(w.ranks) (Char.escaped sq.[1]) in
         let button = List.assoc (i, j) w.squares in
-        GMisc.image ~pixbuf:(sprite 45 "dot") ~packing:button#set_image
+        let image =
+          match piece_of_square !(w.board) sq with
+          | None -> sprite 45 "dot"
+          | Some p ->
+            let id =( Some p) |> string_of_piece in
+            sprite 45 (id ^ "_dot") in
+        GMisc.image ~pixbuf:image ~packing:button#set_image
           ()
         |> ignore;
         show_valid_moves_aux t

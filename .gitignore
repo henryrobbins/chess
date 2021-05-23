@@ -14,3 +14,6 @@ chess.zip
 # bisect
 _coverage
 bisect*.coverage
+
+# photoshop
+*.psd
