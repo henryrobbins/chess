@@ -102,12 +102,8 @@ let value_of_piece p = List.assoc p.id piece_value_map
 
 let value_of_captured t color =
   let l = List.filter (fun x -> x.color = color) t.captured_pieces in
-  let rec sum lst acc =
-    match lst with
-    | [] -> acc
-    | h :: tail -> sum tail (acc + value_of_piece h)
-  in
-  sum l 0
+  let sum_fun acc elt = acc + value_of_piece elt in
+  List.fold_left sum_fun 0 l
 
 let color_to_move t = t.color_to_move
 
@@ -140,9 +136,7 @@ let square_of_piece p =
 
 let square_of_king t c =
   let active_pieces = t.active_pieces in
-  let king_matcher p =
-    if p.color = c && p.id = King then true else false
-  in
+  let king_matcher p = p.color = c && p.id = King in
   let king = List.find king_matcher active_pieces in
   square_of_piece king
 
@@ -173,28 +167,30 @@ let get_ep_sq sq sq' =
     Some (file ^ string_of_int ((rank + rank') / 2))
   else None
 
+let search_for_ep_piece active_pieces sq color_to_move =
+  let file = Char.escaped sq.[0] in
+  let rank = int_of_string (Char.escaped sq.[1]) in
+  let color = switch_color color_to_move in
+  let op = match color with White -> ( + ) | Black -> ( - ) in
+  let rec search_aux p_lst =
+    match p_lst with
+    | [] -> None
+    | p :: t ->
+        if
+          color_of_piece p = color
+          && square_of_piece p = file ^ string_of_int (op rank 1)
+        then Some p
+        else search_aux t
+  in
+  search_aux active_pieces
+
 (** [get_ep_piece p_lst col ep_sq] is [Some piece] if [ep_sq] is a valid
     en-passant square and [piece] is the pawn that was moved to create
     it, otherwise [None] *)
 let get_ep_piece active_pieces color_to_move ep_sq =
   match ep_sq with
   | None -> None
-  | Some sq ->
-      let file = Char.escaped sq.[0] in
-      let rank = int_of_string (Char.escaped sq.[1]) in
-      let color = switch_color color_to_move in
-      let op = match color with White -> ( + ) | Black -> ( - ) in
-      let rec search_pieces p_lst =
-        match p_lst with
-        | [] -> None
-        | p :: t ->
-            if
-              color_of_piece p = color
-              && square_of_piece p = file ^ string_of_int (op rank 1)
-            then Some p
-            else search_pieces t
-      in
-      search_pieces active_pieces
+  | Some sq -> search_for_ep_piece active_pieces sq color_to_move
 
 (** [is_castling_move piece sq'] returns true iff moving piece [piece]
     to square [sq'] is a castling move. *)
@@ -319,27 +315,29 @@ let rec move_piece t piece sq' turn =
     |> update_en_passant sq sq' piece'
     |> update_turn_counters turn reset_turn_count col
   in
-  move_rook_for_castle out_state piece sq'
+  castle_state_update out_state piece sq'
+
+and move_rook_for_castle t piece sq' =
+  if is_castling_move piece sq' then
+    let move_rook r_sq r_sq' =
+      move_piece t
+        (r_sq |> piece_of_square t |> extract_piece)
+        r_sq' false
+    in
+    match sq' with
+    | "c8" -> move_rook "a8" "d8"
+    | "g8" -> move_rook "h8" "f8"
+    | "c1" -> move_rook "a1" "d1"
+    | "g1" -> move_rook "h1" "f1"
+    | _ -> failwith "impossible"
+  else t
 
 (** [move_rook_for_castle t p s] is the state [t] where the rook has
     moved if the move of piece [p] to square [s] was a castle. Otherwise
     [t]. *)
-and move_rook_for_castle t piece sq' =
+and castle_state_update t piece sq' =
   match piece.id with
-  | King ->
-      if is_castling_move piece sq' then
-        let move_rook r_sq r_sq' =
-          move_piece t
-            (r_sq |> piece_of_square t |> extract_piece)
-            r_sq' false
-        in
-        match sq' with
-        | "c8" -> move_rook "a8" "d8"
-        | "g8" -> move_rook "h8" "f8"
-        | "c1" -> move_rook "a1" "d1"
-        | "g1" -> move_rook "h1" "f1"
-        | _ -> failwith "impossible"
-      else t
+  | King -> move_rook_for_castle t piece sq'
   | _ -> t
 
 (** [merge_singleton_and_list s lst rev] is the list of elements of list
@@ -366,17 +364,16 @@ let zip_lists lst1 lst2 =
 
 (** TODO: meaningful description of [merge_rks_and_fls tup dir]. *)
 let merge_rks_and_fls tup dir =
-  match tup with
-  | valid_fls, valid_rks ->
-      if List.mem dir [ E; W ] then
-        match valid_rks with
-        | h :: _ -> merge_singleton_and_list h valid_fls true
-        | [] -> []
-      else if List.mem dir [ N; S ] then
-        match valid_fls with
-        | h :: _ -> merge_singleton_and_list h valid_rks false
-        | [] -> []
-      else zip_lists valid_fls valid_rks
+  let valid_fls, valid_rks = tup in
+  if List.mem dir [ E; W ] then
+    match valid_rks with
+    | h :: _ -> merge_singleton_and_list h valid_fls true
+    | [] -> []
+  else if List.mem dir [ N; S ] then
+    match valid_fls with
+    | h :: _ -> merge_singleton_and_list h valid_rks false
+    | [] -> []
+  else zip_lists valid_fls valid_rks
 
 (** TODO: meaningful description of [candidate_lsts]. *)
 let candidate_lsts op1 op2 rk fl rev_rk rev_fl =
@@ -396,46 +393,44 @@ let list_second list =
   match list with h :: h' :: _ -> Some h' | [ h ] -> None | [] -> None
 
 let cardinal_it_from_sq (sq : square) direction : square list =
-  List.(
-    let fl = Char.escaped sq.[0] in
-    let rk = Char.escaped sq.[1] in
-    let iterator rk_op fl_op rev_rk rev_fl =
-      let valid_rks_fls =
-        candidate_lsts rk_op fl_op rk fl rev_rk rev_fl
-      in
-      merge_rks_and_fls valid_rks_fls direction
+  let fl = Char.escaped sq.[0] in
+  let rk = Char.escaped sq.[1] in
+  let iterator rk_op fl_op rev_rk rev_fl =
+    let valid_rks_fls =
+      candidate_lsts rk_op fl_op rk fl rev_rk rev_fl
     in
-    match direction with
-    | N -> iterator ( < ) ( = ) false false
-    | NE -> iterator ( < ) ( < ) false false
-    | E -> iterator ( = ) ( < ) false false
-    | SE -> iterator ( > ) ( < ) true false
-    | S -> iterator ( > ) ( = ) true false
-    | SW -> iterator ( > ) ( > ) true true
-    | W -> iterator ( = ) ( > ) false true
-    | NW -> iterator ( < ) ( > ) false true
-    | _ -> [])
+    merge_rks_and_fls valid_rks_fls direction
+  in
+  match direction with
+  | N -> iterator ( < ) ( = ) false false
+  | NE -> iterator ( < ) ( < ) false false
+  | E -> iterator ( = ) ( < ) false false
+  | SE -> iterator ( > ) ( < ) true false
+  | S -> iterator ( > ) ( = ) true false
+  | SW -> iterator ( > ) ( > ) true true
+  | W -> iterator ( = ) ( > ) false true
+  | NW -> iterator ( < ) ( > ) false true
+  | _ -> []
+
+let l_move_in_dir_from_square sq d1 d2 =
+  let square1 = list_second (cardinal_it_from_sq sq d1) in
+  match square1 with
+  | None -> []
+  | Some s -> (
+      let square2 = list_head (cardinal_it_from_sq s d2) in
+      match square2 with None -> [] | Some s' -> [ s' ] )
 
 (** [l_it_from_sq sq] are the possible possible knight moves in
     clock-wise order starting from due N. Requires: [s] is in standard
     algebraic notation. *)
 let l_it_from_sq sq =
-  let rec gen_l_moves square list acc =
-    match list with
-    | [] -> List.rev acc
-    | (d1, d2) :: t -> (
-        let square1 = list_second (cardinal_it_from_sq square d1) in
-        match square1 with
-        | None -> gen_l_moves square t acc
-        | Some s -> (
-            let square2 = list_head (cardinal_it_from_sq s d2) in
-            match square2 with
-            | None -> gen_l_moves square t acc
-            | Some s' -> gen_l_moves square t (s' :: acc) ) )
-  in
-  gen_l_moves sq
+  let dir_tups =
     [ (N, E); (E, N); (E, S); (S, E); (S, W); (W, S); (W, N); (N, W) ]
-    []
+  in
+  let fold_fun acc (d1, d2) =
+    acc @ l_move_in_dir_from_square sq d1 d2
+  in
+  List.fold_left fold_fun [] dir_tups
 
 let iterator_from_sq square direction : square list =
   match direction with
@@ -508,38 +503,43 @@ let active_pieces_of_board b_assoc =
   in
   a_piece_aux b_assoc []
 
+let init_helper b ctp cast ep ht ft =
+  let ep_sq = match ep with "-" -> None | x -> Some x in
+  let color_to_move = color_of_string ctp in
+  let active_pieces = active_pieces_of_board (extract_board b) in
+  {
+    board = extract_board b;
+    captured_pieces = [];
+    active_pieces;
+    color_to_move;
+    w_castle_ks = String.contains cast 'K';
+    w_castle_qs = String.contains cast 'Q';
+    b_castle_ks = String.contains cast 'k';
+    b_castle_qs = String.contains cast 'q';
+    ep_sq;
+    ep_piece = get_ep_piece active_pieces color_to_move ep_sq;
+    half_turns = int_of_string ht;
+    full_turns = int_of_string ft;
+  }
+
 let init_from_fen fen =
   let state_info_list = String.split_on_char ' ' fen in
   match state_info_list with
-  | [ b; ctp; cast; ep; ht; ft ] ->
-      let ep_sq = match ep with "-" -> None | x -> Some x in
-      let color_to_move = color_of_string ctp in
-      let active_pieces = active_pieces_of_board (extract_board b) in
-      {
-        board = extract_board b;
-        captured_pieces = [];
-        active_pieces;
-        color_to_move;
-        w_castle_ks = String.contains cast 'K';
-        w_castle_qs = String.contains cast 'Q';
-        b_castle_ks = String.contains cast 'k';
-        b_castle_qs = String.contains cast 'q';
-        ep_sq;
-        ep_piece = get_ep_piece active_pieces color_to_move ep_sq;
-        half_turns = int_of_string ht;
-        full_turns = int_of_string ft;
-      }
+  | [ b; ctp; cast; ep; ht; ft ] -> init_helper b ctp cast ep ht ft
   | _ -> failwith "impossible"
+
+let piece_identifier p =
+  let p_id = string_of_piece_id p.id in
+  match p.color with
+  | White -> String.uppercase_ascii p_id
+  | Black -> String.lowercase_ascii p_id
+
+let id_to_prepend acc id =
+  if acc > 0 then string_of_int acc ^ id else id
 
 (** [board_fen_string t] is the component of the FEN string representing
     the current pieces on the board [t.board]. *)
 let board_fen_string b =
-  let piece_identifier p =
-    let p_id = string_of_piece_id p.id in
-    match p.color with
-    | White -> String.uppercase_ascii p_id
-    | Black -> String.lowercase_ascii p_id
-  in
   let rank_to_fen rank =
     let rec it_files files acc =
       match files with
@@ -549,8 +549,7 @@ let board_fen_string b =
           | None -> it_files t (acc + 1)
           | Some p ->
               let id = piece_identifier p in
-              if acc > 0 then string_of_int acc ^ id ^ it_files t 0
-              else id ^ it_files t 0 )
+              id_to_prepend acc id ^ it_files t 0 )
     in
     it_files files 0
   in
