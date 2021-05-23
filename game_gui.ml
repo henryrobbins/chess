@@ -326,8 +326,9 @@ let update_window w =
   w.export_fen#set_text (export_to_fen b);
   match w.mode with
   | SinglePlayer | TwoPlayer ->
-      if is_checkmate b then (text_popup "CHECKMATE"; w.locked := true)
-      else if is_stalemate b then (text_popup "STALEMATE"; w.locked := true)
+      if is_checkmate b then (text_popup "CHECKMATE"; w.locked := true);
+      if is_stalemate b then (text_popup "STALEMATE"; w.locked := true);
+      if is_draw b then (text_popup "DRAW"; w.locked := true);
   | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
@@ -567,8 +568,8 @@ let gui_main mode elo fen =
   | SinglePlayer | TwoPlayer ->
     puzzle_table#misc#hide ();
   | Rush ->
-    captured_table#misc#hide ();
-    export_fen#misc#hide () );
+    captured_table#misc#hide ());
+    (* export_fen#misc#hide () ); *) (* TODO *)
 
   let game_window =
     {
@@ -653,10 +654,11 @@ let main =
   rush_button#set_border_width 5;
   text_label "Rush" 20 rush_button#set_image |> ignore;
 
-  text_label "Elo:" 16 (add 0 3) |> ignore;
+  text_label "Elo: " 16 (add 0 3) |> ignore;
   let elo = GEdit.entry ~packing:(add 1 3) () in
   elo#set_text "900";
 
+  text_label "Fen: " 16 (add 0 4) |> ignore;
   let fen = GEdit.entry ~packing:(add 1 4) () in
   fen#set_text "Paste an FEN here!";
   single_player_button#misc#modify_bg light_color;
