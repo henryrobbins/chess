@@ -14,7 +14,7 @@ let width = 640
 
 let height = 700
 
-let rgb_color r g b =  [ (`NORMAL, `RGB (r * 255, g * 255, b * 255)) ]
+let rgb_color r g b = [ (`NORMAL, `RGB (r * 255, g * 255, b * 255)) ]
 
 let bg_color = rgb_color 37 35 32
 
@@ -73,7 +73,7 @@ type game_window = {
   total_solved : GMisc.label;
   (* Widget for the number of puzzles solved. *)
   total_wrong : GMisc.label;
-  (* Widget for the number of puzzles wrong. *)
+      (* Widget for the number of puzzles wrong. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -205,7 +205,10 @@ let init_piece_selection packing =
     the given packing function [packing]. *)
 let init_puzzle_labels packing =
   let d = 60 in
-  let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () ~homogeneous:true in
+  let table =
+    GPack.table ~width:(d * 2) ~height:(d * 2) ~packing ()
+      ~homogeneous:true
+  in
   table#set_col_spacings 40;
   table#set_row_spacings 20;
   let add i j x = table#attach i j x in
@@ -298,7 +301,8 @@ let update_piece_select w =
 (** [update_rush_labels w] updates the total solved and wrong labels. *)
 let update_rush_labels w =
   let rush = extract w.rush in
-  update_text_label w.total_solved (rush |> total_solved |> string_of_int);
+  update_text_label w.total_solved
+    (rush |> total_solved |> string_of_int);
   update_text_label w.total_wrong (rush |> total_wrong |> string_of_int);
   ()
 
@@ -326,19 +330,23 @@ let update_window w =
   w.export_fen#set_text (export_to_fen b);
   match w.mode with
   | SinglePlayer | TwoPlayer ->
-      if is_checkmate b then (text_popup "CHECKMATE"; w.locked := true)
-      else if is_stalemate b then (text_popup "STALEMATE"; w.locked := true)
+      if is_checkmate b then (
+        text_popup "CHECKMATE";
+        w.locked := true )
+      else if is_stalemate b then (
+        text_popup "STALEMATE";
+        w.locked := true )
   | Rush -> update_rush_labels w
 
 (** [terminal_output b] sends output to teminal representing the state
     [b]. *)
-let terminal_output b =
-  print_endline "===========================================";
-  print_game_state b;
-  print_endline "===========================================";
-  if is_checkmate b then print_string "CHECKMATE \n"
-  else if is_stalemate b then print_string "STALEMATE \n"
-  else ()
+let terminal_output b = ()
+
+(* print_endline "===========================================";
+   print_game_state b; print_endline
+   "==========================================="; if is_checkmate b then
+   print_string "CHECKMATE \n" else if is_stalemate b then print_string
+   "STALEMATE \n" else () *)
 
 (** [piece_select_callback pt] is the callback function when pressing
     the button corresponding to piece type [pt] in the piece select
@@ -360,15 +368,17 @@ let rush_pressed_callback w =
   let progress = update_rush_with_move rush current_fen in
   update_rush_labels w;
   w.locked := true;
-  (match progress with
-  | Complete -> text_popup "You Win!";
-  | GameOver -> text_popup "Game Over!";
+  ( match progress with
+  | Complete -> text_popup "You Win!"
+  | GameOver -> text_popup "Game Over!"
   | Correct ->
-    text_popup "Correct! Next Puzzle.";
-    w.computer := Some (computer_color rush);
-    w.locked := false;
-  | Wrong -> text_popup "Incorrect. Next Puzzle."; w.locked := false;
-  | InProgress -> w.locked := false;);
+      text_popup "Correct! Next Puzzle.";
+      w.computer := Some (computer_color rush);
+      w.locked := false
+  | Wrong ->
+      text_popup "Incorrect. Next Puzzle.";
+      w.locked := false
+  | InProgress -> w.locked := false );
   w.board := current_board rush
 
 (** [single_player_callback w] is the callback function for a single
@@ -381,7 +391,7 @@ let single_player_callback w =
   if
     (not in_promotion) && w.mode = SinglePlayer
     && color_to_move b = Black
-  then (
+  then
     let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
     let p = extract (piece_of_square b sq) in
     let board' = move_piece b p sq' true in
@@ -392,7 +402,7 @@ let single_player_callback w =
           let p' = extract (piece_of_square board' sq') in
           promote_pawn board' p' pt
     in
-    w.board := board')
+    w.board := board'
 
 (** [enter_square_callback w] is the callback function for window [w]
     called when the mouse enters a square. *)
@@ -400,15 +410,15 @@ let enter_square_callback w () =
   match w.mode with
   | TwoPlayer -> ()
   | _ ->
-    let cc = extract !(w.computer) in
-    if not !(w.locked) && (color_to_move !(w.board)) = cc then (
-      (match w.mode with
-      | SinglePlayer -> single_player_callback w;
-      | TwoPlayer -> ()
-      | Rush -> rush_pressed_callback w);
-      update_window w;
-      terminal_output !(w.board))
-    else ()
+      let cc = extract !(w.computer) in
+      if (not !(w.locked)) && color_to_move !(w.board) = cc then (
+        ( match w.mode with
+        | SinglePlayer -> single_player_callback w
+        | TwoPlayer -> ()
+        | Rush -> rush_pressed_callback w );
+        update_window w;
+        terminal_output !(w.board) )
+      else ()
 
 (** [index_of list a] returns the index of the element [a] in list
     [list] if it exists. Otherwise, returns -1. *)
@@ -487,16 +497,17 @@ let game_pressed_callback w sq p =
 (** [pressed_square_callback w btn] is the callback function for window
     [w] called when the mouse presses on a the button [btn]. *)
 let pressed_square_callback w btn () =
-  if !(w.locked) then () else
-  match !(w.promotion) with
-  | Some _ -> ()
-  | None -> (
-      let i, j = btn in
-      let r = List.nth !(w.files) i in
-      let c = List.nth !(w.ranks) j in
-      let sq = r ^ c in
-      let p = piece_of_square !(w.board) sq in
-      game_pressed_callback w sq p)
+  if !(w.locked) then ()
+  else
+    match !(w.promotion) with
+    | Some _ -> ()
+    | None ->
+        let i, j = btn in
+        let r = List.nth !(w.files) i in
+        let c = List.nth !(w.ranks) j in
+        let sq = r ^ c in
+        let p = piece_of_square !(w.board) sq in
+        game_pressed_callback w sq p
 
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main mode elo fen =
@@ -527,7 +538,8 @@ let gui_main mode elo fen =
     match mode with
     | SinglePlayer -> ref (Some Black)
     | TwoPlayer -> ref None
-    | Rush -> ref (Some (computer_color (extract rush))) in
+    | Rush -> ref (Some (computer_color (extract rush)))
+  in
 
   let locked = ref false in
   let drop = ref false in
@@ -561,14 +573,15 @@ let gui_main mode elo fen =
 
   let piece_select = init_piece_selection (add 1 0) in
 
-  let puzzle_table, total_solved, total_wrong = init_puzzle_labels (add 0 3) in
+  let puzzle_table, total_solved, total_wrong =
+    init_puzzle_labels (add 0 3)
+  in
 
   ( match mode with
-  | SinglePlayer | TwoPlayer ->
-    puzzle_table#misc#hide ();
+  | SinglePlayer | TwoPlayer -> puzzle_table#misc#hide ()
   | Rush ->
-    captured_table#misc#hide ();
-    export_fen#misc#hide () );
+      captured_table#misc#hide ();
+      export_fen#misc#hide () );
 
   let game_window =
     {
