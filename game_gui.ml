@@ -73,7 +73,9 @@ type game_window = {
   total_solved : GMisc.label;
   (* Widget for the number of puzzles solved. *)
   total_wrong : GMisc.label;
-      (* Widget for the number of puzzles wrong. *)
+  (* Widget for the number of puzzles wrong. *)
+  player_lbl : GMisc.label;
+  (* Widget for displaying the color of the player. *)
 }
 
 let locale = GtkMain.Main.init ()
@@ -306,6 +308,15 @@ let update_rush_labels w =
   update_text_label w.total_wrong (rush |> total_wrong |> string_of_int);
   ()
 
+(** [update_puzzle_change w] handles updates required when moving to another
+    puzzle. *)
+let update_puzzle_change w rush =
+  let color = (computer_color rush) in
+  w.computer := Some color;
+  let player_color = match color with | Black -> "White" | White -> "Black" in
+  update_text_label w.player_lbl player_color;
+  w.locked := false
+
 (** [text_popup text] is a popup window with the text [text] on it. *)
 let text_popup text =
   let window =
@@ -356,7 +367,6 @@ let piece_select_callback w pt () =
 
 (** [rush_callback w] is the callback function for a rush game. *)
 let rush_pressed_callback w =
-  print_endline "test";
   let current_fen = export_to_fen !(w.board) in
   let rush = extract w.rush in
   let progress = update_rush_with_move rush current_fen in
@@ -367,12 +377,10 @@ let rush_pressed_callback w =
   | GameOver -> text_popup "Game Over!"
   | Correct ->
       text_popup "Correct! Next Puzzle.";
-      w.computer := Some (computer_color rush);
-      w.locked := false
+      update_puzzle_change w rush
   | Wrong ->
       text_popup "Incorrect. Next Puzzle.";
-      w.computer := Some (computer_color rush);
-      w.locked := false
+      update_puzzle_change w rush
   | InProgress -> w.locked := false );
   w.board := current_board rush
 
@@ -564,9 +572,20 @@ let gui_main mode elo fen color =
     init_puzzle_labels (add 0 3)
   in
 
+  let player_text =
+    match !computer with
+    | None -> ""
+    | Some White -> "Black"
+    | Some Black -> "White" in
+  let player_lbl = text_label player_text 16 (add 0 2) in
+
   ( match mode with
-  | SinglePlayer | TwoPlayer -> puzzle_table#misc#hide ()
-  | Rush -> captured_table#misc#hide () );
+  | SinglePlayer | TwoPlayer ->
+    puzzle_table#misc#hide ();
+    player_lbl#misc#hide ();
+  | Rush ->
+    captured_table#misc#hide ();
+    export_fen#misc#hide (); );
 
   (* export_fen#misc#hide () ); *)
   (* TODO *)
@@ -594,6 +613,7 @@ let gui_main mode elo fen color =
       piece_select;
       total_solved;
       total_wrong;
+      player_lbl;
     }
   in
 
