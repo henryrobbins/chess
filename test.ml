@@ -10,24 +10,30 @@
    2 ) Code which only printed output to the terminal.
 
    In the case of (2), this code was manually tested. Our OUnit test were
-   developed through both black box and glass box testing. We did not use any
-   randomized testing. Our initial pass on tests was based on black box
-   testing. However, we deemed that a second pass using glass box testing was
-   necessary since a chess implementation requires lots of conditional flow.
-   Through glass box testing and the coverage tool bisect, we could verify
-   that our code had the expected output in all possible branches.
+   developed through both black box and glass box testing. We first tested all
+   exposed functions via black-box testing to see if we were getting the
+   correct behavior on various edge-cases. We then used bisect and glass box
+   testing to increase the coverage of our testing until we were sufficiently
+   confident that each piece of code was working as intended. This was 
+   especially useful as implementations of chess require lots of conditional
+   branches. We did not use any randomized testing.
 
    The modules that were not automatically tested include Game_text, Game_gui,
    and Puzzle. These three modules were manually tested. In the case of the
    first two, which maintained the command-line and GUI versions of our
    chess game respectively, it is common practice to test this manually as it
    is often infeasible to test graphical output. In the case of the third,
-   we only have 85 puzzles and we manually tested each one through the GUI.
+   we only have 85 puzzles and we manually tested each one through the GUI
+   to ensure that it was working properly. Beyond that, the core of puzzle.ml 
+   is built on board.ml, which we test extensively through OUnit tests.
 
    The correctness of this system is accurately measured through this testing
-   plan as our automatic tests have over 80% coverage. In addition, the GUI
-   and command-line game have been extensivley tested by the four code
-   contributors in additon to our project manager. Furthermore, these 5
+   plan. For all but the 3 modules identified above, we've implemented 
+   automatic OUnit tests which test every function in the public docs either 
+   explicitly or implicitly, and have over 80% bisect coverage. This includes
+   functions which are not revealed in any .mli. Functions related to
+   the GUI and command-line games have been extensivley play tested by the four
+   code contributors, and briefly by our project manager. Furthermore, these 5
    individuals cover OXS, Windows, and Linux machines on which the system
    preformed successfully.
 

@@ -88,8 +88,9 @@ val can_castle : t -> color -> piece_type -> bool
     state [t], or otherwise None. *)
 val en_passant_sq : t -> square option
 
-(** [en_passant_sq t] is a piece option which is either the piece
-    corresponding to the current en-passant square, or None. *)
+(** [en_passant_piece t] is a piece option which is either the piece
+    corresponding to the current en-passant square in state [t] if it
+    exists, or None. *)
 val en_passant_piece : t -> p option
 
 (** [active_pieces t] is the list of pieces on the board in state [t]. *)
@@ -115,8 +116,8 @@ val color_of_piece : p -> color
     Requires: [p] has not been captured. *)
 val square_of_piece : p -> square
 
-(** [square_of_king b c] is the square where the king of color [c] is
-    located in board state [b] *)
+(** [square_of_king t c] is the square where the king of color [c] is
+    located in board state [t] *)
 val square_of_king : t -> color -> square
 
 (** [capture_piece t p] is the game state after piece [p] has been
