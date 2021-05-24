@@ -1,4 +1,4 @@
-(** Maintains the state of a chess board. TODO *)
+(** Maintains the state of a chess board. *)
 
 (** The type of a chess board square identifier in algebraic notation.
     Algebraic notation consists of a lower-case letter followed by a
@@ -52,15 +52,17 @@ type t
     capture or pawn move in state [t]. *)
 val half_turns : t -> int
 
-(** [color_of_string s] is the color of the string [s]. Requires: [s] is
-    in {w, b, White, Black}. *)
+(** [color_of_string s] is the color of the string [s].
+
+    Requires: [s] is in {w, b, White, Black}. *)
 val color_of_string : string -> color
 
 (** [string_of_color c] is the string representing color [c]. *)
 val string_of_color : color -> string
 
-(** [piece_id_of_string s] is the piece id of the string [s]. Requires:
-    [s] is in {P, R, B, N, Q, K} *)
+(** [piece_id_of_string s] is the piece id of the string [s].
+
+    Requires: [s] is in {P, R, B, N, Q, K} *)
 val piece_id_of_string : string -> piece_type
 
 (** [string_of_piece_id id] is the string representing piece id [id] *)
@@ -97,8 +99,9 @@ val active_pieces : t -> p list
 val captured_pieces : t -> p list
 
 (** [piece_of_square t s] is the piece on square [s] in state [t] if it
-    exists. Otherwise, is None. Requires: [s] is in standard algebraic
-    notation. *)
+    exists. Otherwise, is None.
+
+    Requires: [s] is in standard algebraic notation. *)
 val piece_of_square : t -> square -> p option
 
 (** [id_of_piece p] is the piece_type of piece [p]. *)
@@ -108,6 +111,7 @@ val id_of_piece : p -> piece_type
 val color_of_piece : p -> color
 
 (** [square_of_piece p] is the square where piece [p] is located.
+
     Requires: [p] has not been captured. *)
 val square_of_piece : p -> square
 
@@ -122,13 +126,15 @@ val capture_piece : t -> p -> t
 (** [move_piece t p s turn] is the game state after piece [p] moves to
     square [s] in state [t]. If a piece of the opposite color is already
     at square [s] in state [t], it is captured. Changes the color to
-    play iff [turn] is [true]. Requires: [s] is in standard algebraic
-    notation. *)
+    play iff [turn] is [true].
+
+    Requires: [s] is in standard algebraic notation. *)
 val move_piece : t -> p -> square -> bool -> t
 
 (** [promote_pawn t p id] is the state [t] where the piece [p] is
-    promoted to piece type [id]. Requires: [id] is one of Rook, Bishop,
-    Knight, or Queen. *)
+    promoted to piece type [id].
+
+    Requires: [id] is one of Rook, Bishop, Knight, or Queen. *)
 val promote_pawn : t -> p -> piece_type -> t
 
 (** [is_pawn_promotion t p s] is true if piece [p] is a pawn where
@@ -136,8 +142,9 @@ val promote_pawn : t -> p -> piece_type -> t
 val is_pawn_promotion : t -> p -> square -> bool
 
 (** [iterator_from_sq s d] is the list of the squares that can be
-    reached by moving in direction [d] from square [s]. Requires: [s] is
-    in standard algebraic notation. *)
+    reached by moving in direction [d] from square [s].
+
+    Requires: [s] is in standard algebraic notation. *)
 val iterator_from_sq : square -> direction -> square list
 
 (** [init_from_fen fen] is the board state of the game defined in the

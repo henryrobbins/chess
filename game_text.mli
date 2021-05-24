@@ -1,1 +1,1 @@
-(* Runs the text-based command-line version of the Chess game. *)
+(** Runs the text-based command-line version of the Chess game. *)

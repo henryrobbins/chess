@@ -1,3 +1,5 @@
+(** Provides functions for validating chess moves. *)
+
 open Board
 open Command
 

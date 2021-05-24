@@ -117,7 +117,7 @@ let can_castle t color side =
   | White, Queen -> t.w_castle_qs
   | Black, King -> t.b_castle_ks
   | Black, Queen -> t.b_castle_qs
-  | _ -> failwith "impossible"
+  | _ -> failwith "impossible" [@coverage off]
 
 let active_pieces t = t.active_pieces
 
@@ -131,7 +131,7 @@ let color_of_piece p = p.color
 
 let square_of_piece p =
   match p.current_pos with
-  | None -> failwith "[p] should not be captured"
+  | None -> failwith "[p] should not be captured" [@coverage off]
   | Some sq -> sq
 
 let square_of_king t c =
@@ -329,7 +329,7 @@ and move_rook_for_castle t piece sq' =
     | "g8" -> move_rook "h8" "f8"
     | "c1" -> move_rook "a1" "d1"
     | "g1" -> move_rook "h1" "f1"
-    | _ -> failwith "impossible"
+    | _ -> failwith "impossible" [@coverage off]
   else t
 
 (** [move_rook_for_castle t p s] is the state [t] where the rook has
@@ -526,7 +526,7 @@ let init_from_fen fen =
   let state_info_list = String.split_on_char ' ' fen in
   match state_info_list with
   | [ b; ctp; cast; ep; ht; ft ] -> init_helper b ctp cast ep ht ft
-  | _ -> failwith "impossible"
+  | _ -> failwith "impossible" [@coverage off]
 
 let piece_identifier p =
   let p_id = string_of_piece_id p.id in
@@ -570,7 +570,7 @@ let char_to_castle lst =
       match lst with
       | [ h ] -> acc
       | h :: t -> concat lst (h ^ acc)
-      | _ -> failwith "impossible"
+      | _ -> failwith "impossible" [@coverage off]
     in
     concat sorted ""
 
@@ -620,6 +620,7 @@ let print_board t =
     (List.rev ranks);
   print_string "  -----------------------------------------\n";
   print_string "    a    b    c    d    e    f    g    h\n"
+  [@@coverage off]
 
 let partition_pieces_by_color lst =
   let printer x = string_of_piece (Some x) in
@@ -648,7 +649,9 @@ let print_captured t =
       print_string (string_of_string_list lst' ^ "\n");
       print_string ("\n" ^ "Black has Captured (" ^ w_score ^ "): ");
       print_string (string_of_string_list lst ^ "\n")
+  [@@coverage off]
 
 let print_game_state t : unit =
   print_board t;
   print_captured t
+  [@@coverage off]
