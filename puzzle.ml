@@ -85,6 +85,18 @@ let update_wrong rush =
   else if update_puzzle rush then Wrong
   else Complete
 
+let correct_end_puzzle_return rush =
+  if update_puzzle rush then Correct else Complete
+
+let update_rush_with_computer_move rush player_moves' =
+  !(rush.current_puz).player_moves := player_moves';
+  ( match !(!(rush.current_puz).computer_moves) with
+  | [] -> failwith "impossible"
+  | computer_move :: computer_moves' ->
+      !(rush.current_puz).board := computer_move;
+      !(rush.current_puz).computer_moves := computer_moves' );
+  ()
+
 let update_rush_with_move rush fen =
   let player_moves = !(!(rush.current_puz).player_moves) in
   match player_moves with
@@ -94,16 +106,11 @@ let update_rush_with_move rush fen =
         !(rush.current_puz).board := fen;
         !(rush.current_puz).player_moves := [];
         rush.total_solved := !(rush.total_solved) + 1;
-        if update_puzzle rush then Correct else Complete )
+        correct_end_puzzle_return rush )
       else update_wrong rush
   | correct_fen :: player_moves' ->
       if fen = correct_fen then (
-        !(rush.current_puz).player_moves := player_moves';
-        ( match !(!(rush.current_puz).computer_moves) with
-        | [] -> failwith "impossible"
-        | computer_move :: computer_moves' ->
-            !(rush.current_puz).board := computer_move;
-            !(rush.current_puz).computer_moves := computer_moves' );
+        update_rush_with_computer_move rush player_moves';
         InProgress )
       else update_wrong rush
 
@@ -111,32 +118,34 @@ let update_rush_with_move rush fen =
     bound [lb] (inclusive) and upper bound [ub] (exclusive). *)
 let random_subset lb ub n =
   let rec set_aux acc i =
-    if i = ub then acc
-    else set_aux (i :: acc) (i + 1) in
+    if i = ub then acc else set_aux (i :: acc) (i + 1)
+  in
   let set = set_aux [] lb in
   let rec random_subset_aux subset draw_set =
-    if List.length subset = n then subset else
-    let i = Random.int (List.length draw_set) in
-    let elt = List.nth draw_set i in
-    let draw_set' = List.filter (fun x -> x <> elt) draw_set in
-    random_subset_aux (elt :: subset) draw_set' in
+    if List.length subset = n then subset
+    else
+      let i = Random.int (List.length draw_set) in
+      let elt = List.nth draw_set i in
+      let draw_set' = List.filter (fun x -> x <> elt) draw_set in
+      random_subset_aux (elt :: subset) draw_set'
+  in
   random_subset_aux [] set
 
-
 (** [get_puzzles indices] returns the puzzles at the given [indices] *)
-let get_puzzles indices = List.map (fun x -> List.nth (puzzles ()) x) indices
+let get_puzzles indices =
+  List.map (fun x -> List.nth (puzzles ()) x) indices
 
 let init_rush () =
   let puzzle_list =
-    get_puzzles (random_subset 0 15 4) @
-    get_puzzles (random_subset 15 30 4) @
-    get_puzzles (random_subset 30 45 2) @
-    get_puzzles (random_subset 45 60 2) @
-    get_puzzles (random_subset 45 60 2) @
-    get_puzzles (random_subset 60 70 2) @
-    get_puzzles (random_subset 70 75 2) @
-    get_puzzles (random_subset 75 80 2) @
-    get_puzzles (random_subset 80 85 2)
+    get_puzzles (random_subset 0 15 4)
+    @ get_puzzles (random_subset 15 30 4)
+    @ get_puzzles (random_subset 30 45 2)
+    @ get_puzzles (random_subset 45 60 2)
+    @ get_puzzles (random_subset 45 60 2)
+    @ get_puzzles (random_subset 60 70 2)
+    @ get_puzzles (random_subset 70 75 2)
+    @ get_puzzles (random_subset 75 80 2)
+    @ get_puzzles (random_subset 80 85 2)
   in
   {
     puzzles = ref (List.tl puzzle_list);
