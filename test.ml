@@ -40,6 +40,7 @@ open Command
 open Validation
 open Puzzle
 open Yojson.Basic.Util
+open Engine
 
 let board = init_game ()
 
@@ -433,7 +434,25 @@ let is_check_tests =
 
 let is_draw_tests =
   let test_name t = match t with name, _ -> name in
-  tests |> List.map test_name |> List.map is_check_test
+  tests |> List.map test_name |> List.map is_draw_test
+
+let is_checkmate_test name expected =
+  "valid_piece_moves_test" ^ name >:: fun _ ->
+  let board = init_from_fen (List.assoc name tests).fen in
+  let checkmate = is_checkmate board in
+  assert_equal checkmate expected ~printer:string_of_bool
+
+let is_stalemate_test name expected =
+  "valid_piece_moves_test" ^ name >:: fun _ ->
+  let board = init_from_fen (List.assoc name tests).fen in
+  let stalemate = is_stalemate board in
+  assert_equal stalemate expected ~printer:string_of_bool
+
+let best_move_test name expected =
+  "valid_piece_moves_test" ^ name >:: fun _ ->
+  let fen = (List.assoc name tests).fen in
+  let move = best_move fen "3000" in
+  assert_equal move expected
 
 let valid_moves_tests =
   let test_name t = match t with name, _ -> name in
@@ -480,6 +499,22 @@ let valid_piece_moves_tests =
       [ ("g1", "h1") ];
   ]
 
+let game_end_tests =
+  [
+    is_checkmate_test "checkmate" true;
+    is_stalemate_test "stalemate" true;
+    is_checkmate_test "stalemate" false;
+    is_stalemate_test "checkmate" false;
+  ]
+
+let engine_tests =
+  [
+    best_move_test "Capture a piece to prevent a check"
+      (("h8", "g8"), None);
+    best_move_test "En-passant Discovered Checkmate" (("f5", "g6"), None);
+    best_move_test "pawn promotion to win" (("h7", "h8"), Some Queen);
+  ]
+
 let fen_test name =
   let fen = (List.assoc name tests).fen in
   let board = init_from_fen fen in
@@ -502,6 +537,9 @@ let suite =
            valid_piece_moves_tests;
            is_check_tests;
            fen_tests;
+           is_draw_tests;
+           game_end_tests;
+           engine_tests;
          ]
 
 let _ = run_test_tt_main suite

@@ -1,9 +1,10 @@
 open Board
 
-(** [parse_engine_response s] parses the stockfish engine response for a move.
+(** [parse_engine_response s] parses the stockfish engine response for a
+    move.
 
-    Raises: [Failure "stockfish search failure"] if the engine response does
-    not match a known response pattern. *)
+    Raises: [Failure "stockfish search failure"] if the engine response
+    does not match a known response pattern. *)
 let parse_engine_response s =
   let strs = String.split_on_char ' ' s in
   match strs with
@@ -11,8 +12,8 @@ let parse_engine_response s =
   | [ "bestmove"; move ] -> move
   | _ -> failwith "stockfish search failure"
 
-(** [extract_engine_move s] is the [move] and piece type option (in the case
-    of [move] resulting in a pawn promotion) for the move [s]. *)
+(** [extract_engine_move s] is the [move] and piece type option (in the
+    case of [move] resulting in a pawn promotion) for the move [s]. *)
 let extract_engine_move s =
   let sq1 = String.sub s 0 2 in
   let sq2 = String.sub s 2 2 in

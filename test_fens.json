@@ -2103,5 +2103,45 @@
       ]
     ],
     "draw": true
+  },
+  {
+    "description": "checkmate",
+    "fen": "8/8/8/8/8/4k3/8/r3K3 w - - 0 1",
+    "check": [
+      "W"
+    ],
+    "moves": [],
+    "draw": false
+  },
+  {
+    "description": "stalemate",
+    "fen": "8/8/8/8/8/3q1k2/8/4K3 w - - 0 1",
+    "check": [],
+    "moves": [],
+    "draw": false
+  },
+  {
+    "description": "50 move draw",
+    "fen": "8/8/3q4/8/8/5k2/8/4K3 w - - 50 100",
+    "check": [],
+    "moves": [
+      [
+        "e1",
+        "f1"
+      ]
+    ],
+    "draw": true
+  },
+  {
+    "description": "pawn promotion to win",
+    "fen": "2q2k2/K6P/8/b7/8/8/8/8 w - - 0 1",
+    "check": [],
+    "moves": [
+      [
+        "h7",
+        "h8"
+      ]
+    ],
+    "draw": false
   }
 ]
