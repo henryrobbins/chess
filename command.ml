@@ -74,7 +74,8 @@ let split_on_space s =
   |> String.split_on_char ' '
   |> List.filter (fun x -> String.length x != 0)
 
-let quit_phrase t = if t <> [] then raise Malformed else Quit
+let quit_phrase str_lst =
+  if str_lst <> [] then raise Malformed else Quit
 
 let parse str board =
   match split_on_space str with
