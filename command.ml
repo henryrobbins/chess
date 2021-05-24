@@ -14,17 +14,19 @@ exception Malformed
 
 (** [is_piece s] returns a unit if string [s] represents a piece type.
 
-    Raises: [Malformed] if the string [s] does not represent a piece type. *)
+    Raises: [Malformed] if the string [s] does not represent a piece
+    type. *)
 let is_piece s =
   let piece_ids = [ "K"; "Q"; "R"; "B"; "N"; "P" ] in
   if List.mem s piece_ids then () else raise Malformed
 
-(** [is_valid_square sq] returns unit if string [s] is a valid board square.
+(** [is_valid_square sq] returns unit if string [s] is a valid board
+    square.
 
     Raises: [Malformed] if the string is not of length 2.
 
-    Raises: [InvalidSquares] if either the first or second char of [s] are not
-    a valid file or rank respectively. *)
+    Raises: [InvalidSquares] if either the first or second char of [s]
+    are not a valid file or rank respectively. *)
 let is_valid_square sq =
   let ranks = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ] in
   let files = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ] in
@@ -54,7 +56,7 @@ let is_to s = if s = "to" then () else raise Malformed
 (** [is_valid_move_phrase lst b] returns unit if the move phrase [lst]
     is valid.
 
-     Raises: [Malformed] if the list [lst] has more than four items. *)
+    Raises: [Malformed] if the list [lst] has more than four items. *)
 let is_valid_move_phrase lst board =
   match lst with
   | [ id; sq; w; sq' ] ->
@@ -65,12 +67,15 @@ let is_valid_move_phrase lst board =
       is_to w
   | _ -> raise Malformed
 
-(** [split_on_space s] is the string [s] split on space where multiple spaces
-    are considered as a single space. *)
+(** [split_on_space s] is the string [s] split on space where multiple
+    spaces are considered as a single space. *)
 let split_on_space s =
   s
   |> String.split_on_char ' '
   |> List.filter (fun x -> String.length x != 0)
+
+let quit_phrase str_lst =
+  if str_lst <> [] then raise Malformed else Quit
 
 let parse str board =
   match split_on_space str with
@@ -80,5 +85,5 @@ let parse str board =
       | "move" ->
           is_valid_move_phrase t board;
           Move t
-      | "quit" -> if t <> [] then raise Malformed else Quit
-      | _ -> raise Malformed)
+      | "quit" -> quit_phrase t
+      | _ -> raise Malformed )

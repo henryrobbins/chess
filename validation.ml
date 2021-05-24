@@ -11,7 +11,7 @@ type pin_state =
   | Pin of direction
   | NoPin
 
-let terminate_it state p' sq' move_lst =
+let terminate_unblocked_it state p' sq' move_lst =
   if color_to_move state <> color_of_piece p' then
     List.rev (sq' :: move_lst)
   else List.rev move_lst
@@ -27,7 +27,7 @@ let unblocked_squares state sq direction =
     | sq' :: t -> (
         match piece_of_square state sq' with
         | None -> valid_moves t (sq' :: move_lst)
-        | Some p' -> terminate_it state p' sq' move_lst )
+        | Some p' -> terminate_unblocked_it state p' sq' move_lst )
   in
   valid_moves potential_squares []
 
@@ -73,29 +73,32 @@ let invert_direction dir =
   | SE -> NW
   | L -> L
 
+let is_attacked_from_L_sq state sq' =
+  match piece_of_square state sq' with
+  | None -> false
+  | Some piece ->
+      color_of_piece piece <> color_to_move state
+      && id_of_piece piece = Knight
+
 (** [is_attacked_from_L state sq] is true if the square [sq] is attacked
     by a knight of the color opposite the color to move in board state
     [state], and is false otherwise.*)
 let is_attacked_from_L state sq =
   let check_sqs = iterator_from_sq sq L in
-  let rec search_squares sq_lst =
-    match sq_lst with
-    | [] -> false
-    | sq' :: t -> (
-        match piece_of_square state sq' with
-        | None -> search_squares t
-        | Some piece ->
-            if
-              color_of_piece piece <> color_to_move state
-              && id_of_piece piece = Knight
-            then true
-            else search_squares t )
-  in
-  search_squares check_sqs
+  let fold_fun acc sq' = acc || is_attacked_from_L_sq state sq' in
+  List.fold_left fold_fun false check_sqs
 
-let valid_directional_attack state piece dir =
+let is_directional_attack state piece dir =
   List.mem (invert_direction dir) (attack_directions piece)
   && color_of_piece piece <> color_to_move state
+
+let is_valid_directional_attack acc state piece dir =
+  if acc > 1 then
+    match id_of_piece piece with
+    | King -> false
+    | Pawn -> false
+    | _ -> is_directional_attack state piece dir
+  else is_directional_attack state piece dir
 
 let rec is_attacked_from_dir state acc sq_lst dir =
   match sq_lst with
@@ -103,13 +106,7 @@ let rec is_attacked_from_dir state acc sq_lst dir =
   | sq :: t -> (
       match piece_of_square state sq with
       | None -> is_attacked_from_dir state (acc + 1) t dir
-      | Some piece ->
-          if acc > 1 then
-            match id_of_piece piece with
-            | King -> false
-            | Pawn -> false
-            | _ -> valid_directional_attack state piece dir
-          else valid_directional_attack state piece dir )
+      | Some piece -> is_valid_directional_attack acc state piece dir )
 
 (** [check_from_dir state dir] is a boolean indicating whether or not
     the current player is in check from direction [dir] during game
@@ -269,22 +266,18 @@ let filter_moves move_lst sq_lst : move list =
   let second_sq_in_list = function _, z -> List.mem z sq_lst in
   List.filter second_sq_in_list move_lst
 
+let is_L_check_from_sq state sq =
+  match piece_of_square state sq with
+  | None -> false
+  | Some p ->
+      id_of_piece p = Knight && color_to_move state <> color_of_piece p
+
 let find_L_check_sq state =
   let king_sq = square_of_king state (color_to_move state) in
-  let rec find_aux sq_lst =
-    match sq_lst with
-    | [] -> failwith "impossible" [@coverage off]
-    | sq :: t -> (
-        match piece_of_square state sq with
-        | None -> find_aux t
-        | Some p ->
-            if
-              id_of_piece p = Knight
-              && color_to_move state <> color_of_piece p
-            then [ sq ]
-            else find_aux t )
+  let fold_fun acc sq =
+    if acc = [] && is_L_check_from_sq state sq then [ sq ] else acc
   in
-  find_aux (iterator_from_sq king_sq L)
+  List.fold_left fold_fun [] (iterator_from_sq king_sq L)
 
 let intercept_router state dir =
   match dir with
@@ -317,21 +310,16 @@ let castle_empty_spaces state side_id =
 
 (*let rec is_attacked_from_dir acc sq_lst state dir =*)
 
+let is_sq_attacked_from_dir state dir sq =
+  match dir with
+  | L -> is_attacked_from_L state sq
+  | _ ->
+      let squares = unblocked_squares state sq dir in
+      is_attacked_from_dir state 1 squares dir
+
 let sq_not_attacked state dir_list sq =
-  let rec attack_checker dir_list' =
-    match dir_list' with
-    | [] -> true
-    | h :: t -> (
-        match h with
-        | L ->
-            if is_attacked_from_L state sq then false
-            else attack_checker t
-        | _ ->
-            let squares = unblocked_squares state sq h in
-            if is_attacked_from_dir state 1 squares h then false
-            else attack_checker t )
-  in
-  attack_checker dir_list
+  let fold_fun acc dir = acc || is_sq_attacked_from_dir state dir sq in
+  not (List.fold_left fold_fun false dir_list)
 
 let cast_atk_dirs state =
   match color_to_move state with
@@ -412,34 +400,50 @@ let piece_moves_without_pins state piece : move list =
           let intercepts = include_ep_intercepts state piece dir_lst in
           filter_moves move_lst intercepts )
 
-let rec get_attacks same_color_piece sq_lst state color dir =
-  match sq_lst with
+(*[get_dir_pin_info state piece_lst dir] is either [Some (p, dir)] where
+  p is pinned to the king to play along direction [dir], if such a piece
+  exists, or [None] otherwise. Requires: [piece_lst] is a list of piece
+  options, none of which are None. *)
+let rec get_dir_pin_aux state piece_lst dir =
+  match piece_lst with
   | [] -> None
-  | sq :: t -> (
-      match piece_of_square state sq with
-      | None -> get_attacks same_color_piece t state color dir
-      | Some piece -> (
-          match same_color_piece with
-          | None ->
-              if color_of_piece piece = color then
-                get_attacks (Some piece) t state color dir
-              else None
-          | Some piece' -> (
-              match id_of_piece piece with
-              | King | Pawn -> None
-              | _ ->
-                  if valid_directional_attack state piece dir then
-                    Some (piece', dir)
-                  else None ) ) )
+  | p :: t ->
+      if color_to_move state = color_of_piece p then
+        confirm_dir_pin_aux state t dir (Some (p, dir))
+      else None
 
-let directional_pins state color dir =
+and confirm_dir_pin_aux state piece_lst dir acc =
+  match piece_lst with
+  | [] -> None
+  | p :: t ->
+      let id = id_of_piece p in
+      if
+        is_directional_attack state p dir && not (id = King || id = Pawn)
+      then acc
+      else confirm_dir_pin_aux state t dir acc
+
+let get_dir_pin sq_lst state dir =
+  let convert_to_piece_opts =
+    List.map (fun x -> piece_of_square state x)
+  in
+  let filter_nones = List.filter (fun x -> x <> None) in
+  let extract_pieces =
+    List.map (fun x ->
+        match x with Some p -> p | None -> failwith "impossible")
+  in
+  let ordered_piece_lst =
+    sq_lst |> convert_to_piece_opts |> filter_nones |> extract_pieces
+  in
+  get_dir_pin_aux state ordered_piece_lst dir
+
+let directional_pin state color dir =
   let king_sq = square_of_king state color in
   let check_sqs = iterator_from_sq king_sq dir in
-  get_attacks None check_sqs state color dir
+  get_dir_pin check_sqs state dir
 
 let pinned_pieces state color : (p * direction) list =
   [ N; NE; E; SE; S; SW; W; NW ]
-  |> List.map (directional_pins state color)
+  |> List.map (directional_pin state color)
   |> List.filter (fun x ->
          match x with None -> false | Some _ -> true)
   |> List.map (fun x ->
@@ -474,10 +478,9 @@ let valid_moves b : move list =
   List.map (valid_piece_moves b) pieces |> List.flatten
 
 let is_valid_move move b : bool =
-  match move with
-  | sq, sq' -> (
-      match piece_of_square b sq with
-      | None -> false
-      | Some p ->
-          let valid = valid_moves b in
-          List.mem move valid )
+  let sq, sq' = move in
+  match piece_of_square b sq with
+  | None -> false
+  | Some p ->
+      let valid = valid_moves b in
+      List.mem move valid
