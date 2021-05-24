@@ -3,8 +3,7 @@ open Command
 open Validation
 open Endgame
 
-(** [string_of_string_list lst] is a string representing a list of
-    strings. *)
+(** [string_of_string_list lst] is a string representing a list of strings. *)
 let string_of_string_list lst =
   let rev_lst = List.rev lst in
   let rec build_str str lst' =
@@ -51,19 +50,13 @@ let move_from_phrase = function
 let update_with_move b m cmd =
   match m with
   | sq, sq' ->
-      let p =
-        match piece_of_square b sq with
-        | None -> failwith "impossible"
-        | Some p' -> p'
-      in
-      if is_valid_move (sq, sq') b then
-        let b' = move_piece b p sq' true in
-        if is_pawn_promotion b p sq' then
-          match piece_of_square b' sq' with
-          | None -> failwith "impossible"
-          | Some p' -> promote_pawn b' p' (prompt_for_promotion ())
-        else b'
-      else b
+    let p = Option.get ( piece_of_square b sq) in
+    if not (is_valid_move (sq, sq') b) then b else
+    let b' = move_piece b p sq' true in
+    if not (is_pawn_promotion b p sq') then b' else
+    match piece_of_square b' sq' with
+    | None -> failwith "impossible"
+    | Some p' -> promote_pawn b' p' (prompt_for_promotion ())
 
 (** [turn] initiates a turn to be play chess via command line. *)
 let rec turn board =
@@ -72,21 +65,18 @@ let rec turn board =
   prompt_for_move board;
   match read_line () with
   | exception End_of_file -> ()
-  | text -> (
-      try
-        let move = move_from_phrase (parse text board) in
-        let board' = update_with_move board move true in
-        if board = board' then print_invalid_move () else ();
-        turn board'
-      with
-      | InconsistentPlacement ->
-          print_string "placement \n";
-          turn board
-      | InvalidSquares ->
-          print_string "invalid sq \n";
-          turn board
-      | Malformed ->
-          print_string "malformed \n";
-          turn board )
+  | text -> parse_user_input text board
+
+(** [parse_user_input text board] parses the user input. *)
+and parse_user_input text board =
+  try
+    let move = move_from_phrase (parse text board) in
+    let board' = update_with_move board move true in
+    if board = board' then print_invalid_move () else ();
+    turn board'
+  with
+  | InconsistentPlacement -> print_string "placement \n"; turn board
+  | InvalidSquares -> print_string "invalid sq \n"; turn board
+  | Malformed -> print_string "malformed \n"; turn board
 
 let () = turn (init_game ())
