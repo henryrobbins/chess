@@ -89,20 +89,17 @@ let ( ==> ) (signal : callback:_ -> GtkSignal.id) callback =
 (** [sprite d name] is the sprite called [name] scaled to dimension [d]. *)
 let sprite d name =
   let pixbuf = GdkPixbuf.from_file ("assets/" ^ name ^ ".png") in
-  let pixbuf' =
-    GdkPixbuf.create ~width:d ~height:d ~has_alpha:true ()
-  in
+  let pixbuf' = GdkPixbuf.create ~width:d ~height:d ~has_alpha:true () in
   GdkPixbuf.scale ~dest:pixbuf' ~width:d ~height:d pixbuf;
   pixbuf'
 
 (** [update_button_image btn id] updates the button [btn] with the
     correct chess piece sprite for the given identifier [id]. *)
 let update_button_image button id =
-  if id = "  " then button#unset_image ()
+  if id = "  " then
+    button#unset_image ()
   else
-    GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image ()
-    |> ignore;
-  ()
+    GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image () |> ignore
 
 (** [text_label text packing] is a text label with initial text [text]
     and size [size] using the given packing function [packing]. *)
@@ -115,12 +112,17 @@ let text_label text size packing =
   lbl#set_justify `CENTER;
   lbl
 
+(** [format_button button] formats the button [button]. *)
+let format_button button =
+  button#set_border_width 0;
+  button#set_focus_on_click false;
+  button#set_relief `NONE
+
 (** [update_text_label lbl t] updates the text [text] of the label
     [label] *)
 let update_text_label label text =
   label#set_text ("<b>" ^ text ^ "</b>");
-  label#set_use_markup true;
-  ()
+  label#set_use_markup true
 
 (** [add_file_rank_labels t] adds file and rank labels to a game board
     [t]. *)
@@ -135,29 +137,30 @@ let add_file_rank_labels (table : GPack.table) =
   in
   labels_aux 0 [] []
 
+(** [add_square table board i j] returns a button in positon [(i,j)] of table
+    [table] representing board [b]. *)
+let add_square (table : GPack.table) board i j =
+  let r = List.nth files i in
+  let c = List.nth ranks j in
+  let id = string_of_piece (piece_of_square !board (r ^ c)) in
+  let add x = table#attach (i + 1) (7 - j) x in
+  let button = GButton.button ~packing:add () in
+  let name = if (i + j) mod 2 = 1 then "light_sq" else "dark_sq" in
+  GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
+  update_button_image button id;
+  format_button button;
+  button
+
 (** [add_board_squares b t] adds buttons for board squares to game board
     [t] representing the board state [b]. *)
 let add_board_squares board (table : GPack.table) =
   let rec squares_aux i j btns =
-    if i < 8 then (
-      if j = 8 then if i = 7 then btns else squares_aux (i + 1) 0 btns
-      else
-        let r = List.nth files i in
-        let c = List.nth ranks j in
-        let id = string_of_piece (piece_of_square !board (r ^ c)) in
-        let add x = table#attach (i + 1) (7 - j) x in
-        let button = GButton.button ~packing:add () in
-        let name =
-          if (i + j) mod 2 = 1 then "light_sq" else "dark_sq"
-        in
-        GMisc.image ~pixbuf:(sprite 60 name) ~packing:add () |> ignore;
-        update_button_image button id;
-        button#set_border_width 0;
-        button#set_focus_on_click false;
-        button#set_relief `NONE;
-        let btns = ((i, j), button) :: btns in
-        squares_aux i (j + 1) btns )
-    else btns
+    if i >= 8 then btns else
+    if j = 8 then if i = 7 then btns else squares_aux (i + 1) 0 btns
+    else
+      let button = add_square table board i j in
+      let btns = ((i, j), button) :: btns in
+      squares_aux i (j + 1) btns
   in
   squares_aux 0 0 []
 
@@ -170,12 +173,23 @@ let init_captured_table packing =
   let white_captured = text_label "0" 14 (add 0 1) in
   (table, black_captured, white_captured)
 
+(** [piece_button c pt packing] is a button for selecting a pawn promotion of
+    piece type [pt] and color [c]. *)
+let piece_button c pt packing =
+  let button = GButton.button ~packing:packing () in
+  format_button button;
+  button#misc#hide ();
+  GMisc.image
+    ~pixbuf:(sprite 45 (c ^ string_of_piece_id pt))
+    ~packing:button#set_image ()
+  |> ignore;
+  button
+
 (** [init_piece_selection packing] adds a widget for piece selection
     using the given packing function [packing]. *)
 let init_piece_selection packing =
-  let d = 60 in
   let c = String.uppercase_ascii (string_of_color White) in
-  let table = GPack.table ~width:(d * 2) ~height:(d * 2) ~packing () in
+  let table = GPack.table ~width:60 ~height:240 ~packing () in
   let add i j x = table#attach i j x in
   let attr =
     [ (Rook, 0, 0); (Bishop, 0, 1); (Knight, 0, 2); (Queen, 0, 3) ]
@@ -184,32 +198,24 @@ let init_piece_selection packing =
     match attr with
     | [] -> btns
     | (pt, i, j) :: t ->
-        let button = GButton.button ~packing:(add i j) () in
-        button#set_border_width 0;
-        button#set_focus_on_click false;
-        button#set_relief `NONE;
-        button#misc#hide ();
-        GMisc.image
-          ~pixbuf:(sprite (d - 15) (c ^ string_of_piece_id pt))
-          ~packing:button#set_image ()
-        |> ignore;
-        create_buttons t ((pt, button) :: btns)
+      let button = piece_button c pt (add i j) in
+      create_buttons t ((pt, button) :: btns)
   in
   create_buttons attr []
 
 (** [init_puzzle_labels packing] adds a widget for puzzle labels using
     the given packing function [packing]. *)
-let init_puzzle_labels packing =
-  let d = 60 in
-  let table =
-    GPack.table ~width:(d * 2) ~height:(d * 2) ~packing ()
-      ~homogeneous:true
+let init_puzzle_labels mode packing =
+  let table = GPack.table ~width:120 ~height:120 ~packing () ~homogeneous:true
   in
   table#set_col_spacings 40;
   table#set_row_spacings 20;
   let add i j x = table#attach i j x in
   text_label "   <u>Total Solved</u>    " 16 (add 1 0) |> ignore;
   text_label "   <u>Total Wrong</u>     " 16 (add 2 0) |> ignore;
+  (match mode with
+  | Rush -> ()
+  | _ -> table#misc#hide ());
   let solved = text_label "0" 16 (add 1 1) in
   let total_wrong = text_label "0" 16 (add 2 1) in
   (table, solved, total_wrong)
@@ -218,14 +224,14 @@ let init_puzzle_labels packing =
     the current board state [b]. *)
 let update_board w =
   let rec update_board_aux i j =
-    if i < 8 then (
-      if j = 8 then if i = 7 then () else update_board_aux (i + 1) 0
-      else
-        let sq = List.nth !(w.files) i ^ List.nth !(w.ranks) j in
-        let button = List.assoc (i, j) w.squares in
-        let id = string_of_piece (piece_of_square !(w.board) sq) in
-        update_button_image button id;
-        update_board_aux i (j + 1) )
+    if i >= 8 then () else
+    if j = 8 then if i = 7 then () else update_board_aux (i + 1) 0
+    else
+      let sq = List.nth !(w.files) i ^ List.nth !(w.ranks) j in
+      let button = List.assoc (i, j) w.squares in
+      let id = string_of_piece (piece_of_square !(w.board) sq) in
+      update_button_image button id;
+      update_board_aux i (j + 1)
   in
   update_board_aux 0 0
 
@@ -238,8 +244,7 @@ let update_file_rank_labels w =
       update_text_label (List.nth w.rank_lbls i) (List.nth !(w.ranks) i);
       aux (i + 1) )
   in
-  aux 0;
-  ()
+  aux 0
 
 (** [update_captured b t black white] updates the table of captured
     pieces [t], black captured point value [black], and white captured
@@ -249,22 +254,21 @@ let update_captured w =
   let print_lists = partition_pieces_by_color (captured_pieces b) in
   match print_lists with
   | lst, lst' ->
-      let black_cap_text = value_of_captured b White |> string_of_int in
-      update_text_label w.black_captured black_cap_text;
-      let white_cap_text = value_of_captured b Black |> string_of_int in
-      update_text_label w.white_captured white_cap_text;
-      let rec add_captured_pieces i j pieces =
-        match pieces with
-        | [] -> ()
-        | h :: t ->
-            GMisc.image ~pixbuf:(sprite 30 h)
-              ~packing:(fun x -> w.captured_table#attach j i x)
-              ()
-            |> ignore;
-            add_captured_pieces i (j + 1) t
-      in
-      add_captured_pieces 0 1 (List.rev lst);
-      add_captured_pieces 1 1 (List.rev lst')
+    let black_cap_text = value_of_captured b White |> string_of_int in
+    update_text_label w.black_captured black_cap_text;
+    let white_cap_text = value_of_captured b Black |> string_of_int in
+    update_text_label w.white_captured white_cap_text;
+    let rec add_captured_pieces i j pieces =
+      match pieces with
+      | [] -> ()
+      | h :: t ->
+          GMisc.image ~pixbuf:(sprite 30 h)
+            ~packing:(fun x -> w.captured_table#attach j i x) ()
+          |> ignore;
+          add_captured_pieces i (j + 1) t
+    in
+    add_captured_pieces 0 1 (List.rev lst);
+    add_captured_pieces 1 1 (List.rev lst')
 
 (** [update_ranks_and_files w] updates the ranks and files. *)
 let update_ranks_and_files w =
@@ -281,26 +285,24 @@ let update_piece_select w =
     match pts with
     | [] -> ()
     | h :: t ->
-        let button = List.assoc h w.piece_select in
-        let c = string_of_color (color_to_move !(w.board)) in
-        let id = String.uppercase_ascii c ^ string_of_piece_id h in
-        GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image ()
-        |> ignore;
-        ( match !(w.promotion) with
-        | None -> button#misc#hide ()
-        | _ -> button#misc#show () );
-        aux t
+      let button = List.assoc h w.piece_select in
+      let c = string_of_color (color_to_move !(w.board)) in
+      let id = String.uppercase_ascii c ^ string_of_piece_id h in
+      GMisc.image ~pixbuf:(sprite 45 id) ~packing:button#set_image ()
+      |> ignore;
+      ( match !(w.promotion) with
+      | None -> button#misc#hide ()
+      | _ -> button#misc#show () );
+      aux t
   in
-  aux [ Rook; Bishop; Knight; Queen ];
-  ()
+  aux [ Rook; Bishop; Knight; Queen ]
 
 (** [update_rush_labels w] updates the total solved and wrong labels. *)
 let update_rush_labels w =
   let rush = Option.get w.rush in
   update_text_label w.total_solved
     (rush |> total_solved |> string_of_int);
-  update_text_label w.total_wrong (rush |> total_wrong |> string_of_int);
-  ()
+  update_text_label w.total_wrong (rush |> total_wrong |> string_of_int)
 
 (** [update_puzzle_change w] handles updates required when moving to another
     puzzle. *)
@@ -323,6 +325,13 @@ let text_popup text =
   window#show ();
   Main.main ()
 
+(** [update_endgame w] checks for engame. *)
+let update_endgame w =
+  let b = !(w.board) in
+  if is_checkmate b then (text_popup "CHECKMATE"; w.locked := true);
+  if is_stalemate b then (text_popup "STALEMATE"; w.locked := true);
+  if is_draw b then (text_popup "DRAW"; w.locked := true)
+
 (** [update_window w] updates widgets for the window [w]. *)
 let update_window w =
   update_ranks_and_files w;
@@ -333,16 +342,7 @@ let update_window w =
   let b = !(w.board) in
   w.export_fen#set_text (export_to_fen b);
   match w.mode with
-  | SinglePlayer | TwoPlayer ->
-      if is_checkmate b then (
-        text_popup "CHECKMATE";
-        w.locked := true );
-      if is_stalemate b then (
-        text_popup "STALEMATE";
-        w.locked := true );
-      if is_draw b then (
-        text_popup "DRAW";
-        w.locked := true )
+  | SinglePlayer | TwoPlayer -> update_endgame w
   | Rush -> update_rush_labels w
 
 (** [piece_select_callback pt] is the callback function when pressing
@@ -441,8 +441,7 @@ let show_valid_moves w p =
         |> ignore;
         show_valid_moves_aux t
   in
-  show_valid_moves_aux (valid_piece_moves !(w.board) p);
-  ()
+  show_valid_moves_aux (valid_piece_moves !(w.board) p)
 
 (** [from_square_callback w sq p] is the callback function for window
     [w] called when the mouse selects the from_square [sq] with the
@@ -451,8 +450,7 @@ let from_square_callback w sq p =
   w.drop := true;
   w.from_square := Some sq;
   w.to_square := None;
-  show_valid_moves w (Option.get p);
-  ()
+  show_valid_moves w (Option.get p)
 
 (** [to_square_callback w sq] is the callback function for window [w]
     called when the mouse selects the from_square [sq] for a move. *)
@@ -504,6 +502,87 @@ let pressed_square_callback w btn () =
         let p = piece_of_square !(w.board) sq in
         game_pressed_callback w sq p
 
+(** [set_squares_callbacks squares] sets the callacks of the squares. *)
+let set_squares_callbacks squares w =
+  let rec set_board_callbacks i j =
+    if i < 8 then (
+      if j = 8 then if i = 7 then () else set_board_callbacks (i + 1) 0
+      else
+        let button = List.assoc (i, j) squares in
+        button#connect#enter ==> enter_square_callback w;
+        button#connect#pressed
+        ==> pressed_square_callback w (i, j);
+        set_board_callbacks i (j + 1) )
+  in
+  set_board_callbacks 0 0
+
+(** [set_piece_select_callbacks w] sets the callacks of the piece select. *)
+let set_piece_select_callbacks w =
+  let rec set_piece_select_callbacks_aux pts =
+    match pts with
+    | [] -> ()
+    | h :: t ->
+        let button = List.assoc h w.piece_select in
+        button#connect#pressed ==> piece_select_callback w h;
+        set_piece_select_callbacks_aux t
+  in
+  set_piece_select_callbacks_aux [ Rook; Bishop; Knight; Queen ]
+
+(** [inital_rush mode] is the inital rush given the mode. *)
+let inital_rush mode =
+  match mode with
+  | SinglePlayer | TwoPlayer -> (None : rush option)
+  | Rush -> Some (init_rush ())
+
+(** [inital_board mode] is the inital board given the mode. *)
+let initial_board fen rush mode =
+  match mode with
+  | SinglePlayer | TwoPlayer ->
+      ref (try init_from_fen fen with Failure _ -> init_game ())
+  | Rush -> ref (current_board (Option.get rush))
+
+(** [verify_elo elo] is the elo if valid. 3000 otherwise. *)
+let verify_elo elo =
+  try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
+
+(** [inital_computer mode] is the inital computer given the mode. *)
+let inital_computer mode color rush =
+  match mode with
+  | SinglePlayer -> ref color
+  | TwoPlayer -> ref None
+  | Rush -> ref (Some (computer_color (Option.get rush)))
+
+(** [container] is a container for all widgets in a window. *)
+let container packing =
+  let table = GPack.table ~packing () in
+  table#set_col_spacings 20;
+  table#set_row_spacings 20;
+  table
+
+(** [initial_export_fen board] is the initial export_fen. *)
+let initial_export_fen board packing =
+  let lbl = GEdit.entry ~packing () in
+  lbl#set_text (export_to_fen !board);
+  lbl#set_editable false;
+  lbl
+
+(** [initial_player_text] is the initial_player_text. *)
+let initial_player_text computer packing =
+  let player_text =
+    match !computer with
+    | None -> ""
+    | Some White -> "Black"
+    | Some Black -> "White" in
+  text_label player_text 16 packing
+
+(** [hide_by_mode w] hides certain widgets depending on the mode. *)
+let hide_by_mode w =
+  match w.mode with
+  | SinglePlayer | TwoPlayer -> w.player_lbl#misc#hide ();
+  | Rush -> (
+    w.captured_table#misc#hide ();
+    w.export_fen#misc#hide ();)
+
 (** [gui_main ()] initiates the game in gui mode. *)
 let gui_main mode elo fen color =
   (* main game window *)
@@ -514,138 +593,79 @@ let gui_main mode elo fen color =
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg bg_color;
 
-  let rush =
-    match mode with
-    | SinglePlayer | TwoPlayer -> (None : rush option)
-    | Rush -> Some (init_rush ())
-  in
-  let board =
-    match mode with
-    | SinglePlayer | TwoPlayer ->
-        ref (try init_from_fen fen with Failure _ -> init_game ())
-    | Rush -> ref (current_board (Option.get rush))
-  in
-  let elo =
-    try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
-  in
-
-  let computer =
-    match mode with
-    | SinglePlayer -> ref color
-    | TwoPlayer -> ref None
-    | Rush -> ref (Some (computer_color (Option.get rush)))
-  in
-
-  let locked = ref false in
-  let drop = ref false in
-  let promotion = ref None in
-  let from_square = ref None in
-  let to_square = ref None in
-  let files = ref files in
-  let ranks = ref ranks in
-
-  (* container for all widgets *)
-  let table = GPack.table ~packing:window#add () in
-  table#set_col_spacings 20;
-  table#set_row_spacings 20;
-
+  let rush = inital_rush mode in
+  let board = initial_board fen rush mode in
+  let computer = inital_computer mode color rush in
+  let table = (container window#add) in
   let add i j x = table#attach i j x in
-
-  (* widgets to add to main container *)
-  let board_table =
-    GPack.table ~packing:(add 0 0) ~homogeneous:true ()
-  in
+  let board_table = GPack.table ~packing:(add 0 0) ~homogeneous:true () in
   let file_lbls, rank_lbls = add_file_rank_labels board_table in
   let squares = add_board_squares board board_table in
-
   let captured_table, black_captured, white_captured =
     init_captured_table (add 0 1)
   in
-
-  let export_fen = GEdit.entry ~packing:(add 0 2) () in
-  export_fen#set_text (export_to_fen !board);
-  export_fen#set_editable false;
-
-  let piece_select = init_piece_selection (add 1 0) in
-
   let puzzle_table, total_solved, total_wrong =
-    init_puzzle_labels (add 0 3)
+    init_puzzle_labels mode (add 0 3)
   in
 
-  let player_text =
-    match !computer with
-    | None -> ""
-    | Some White -> "Black"
-    | Some Black -> "White" in
-  let player_lbl = text_label player_text 16 (add 0 2) in
-
-  ( match mode with
-  | SinglePlayer | TwoPlayer ->
-    puzzle_table#misc#hide ();
-    player_lbl#misc#hide ();
-  | Rush ->
-    captured_table#misc#hide ();
-    export_fen#misc#hide (); );
-
-  (* export_fen#misc#hide () ); *)
-  (* TODO *)
   let game_window =
     {
       mode;
-      elo;
+      elo = verify_elo elo;
       board;
-      locked;
+      locked = ref false;
       computer;
       rush;
-      drop;
-      promotion;
-      from_square;
-      to_square;
-      squares;
+      drop = ref false;
+      promotion = ref None;
+      from_square = ref None;
+      to_square = ref None;
+      squares = squares;
       captured_table;
       black_captured;
       white_captured;
-      export_fen;
-      files;
-      ranks;
+      export_fen = initial_export_fen board (add 0 2);
+      files = ref files;
+      ranks = ref ranks;
       file_lbls;
       rank_lbls;
-      piece_select;
+      piece_select = init_piece_selection (add 1 0);
       total_solved;
       total_wrong;
-      player_lbl;
+      player_lbl = initial_player_text computer (add 0 2);
     }
   in
 
-  (* go back and set all the button callbacks *)
-  let rec set_board_callbacks i j =
-    if i < 8 then (
-      if j = 8 then if i = 7 then () else set_board_callbacks (i + 1) 0
-      else
-        let button = List.assoc (i, j) squares in
-        button#connect#enter ==> enter_square_callback game_window;
-        button#connect#pressed
-        ==> pressed_square_callback game_window (i, j);
-        set_board_callbacks i (j + 1) )
-  in
-  set_board_callbacks 0 0;
-
-  let rec set_piece_select_callbacks pts =
-    match pts with
-    | [] -> ()
-    | h :: t ->
-        let button = List.assoc h piece_select in
-        button#connect#pressed ==> piece_select_callback game_window h;
-        set_piece_select_callbacks t
-  in
-  set_piece_select_callbacks [ Rook; Bishop; Knight; Queen ];
-
+  set_squares_callbacks squares game_window;
+  set_piece_select_callbacks game_window;
+  hide_by_mode game_window;
   window#show ();
   Main.main ()
 
+(** [single_player_button color] is a button to launch a single player game. *)
+let button_with_text text packing =
+  let button = GButton.button ~packing () in
+  button#misc#modify_bg light_color;
+  button#set_border_width 10;
+  text_label text 24 button#set_image |> ignore;
+  button
+
+(** [add_elo_input lbl_pack input_pack] adds elo input to start menu. *)
+let add_elo_input lbl_pack input_pack =
+  text_label "Elo: " 16 lbl_pack |> ignore;
+  let elo = GEdit.entry ~packing:input_pack () in
+  elo#set_text "900";
+  elo
+
+(** [add_fen_input lbl_pack input_pack] adds fen input to start menu. *)
+let add_fen_input lbl_pack input_pack =
+  text_label "Fen: " 16 lbl_pack |> ignore;
+  let fen = GEdit.entry ~packing:input_pack () in
+  fen#set_text "Paste an FEN here!";
+  fen
+
 (** [main ()] initiates the game in gui mode. *)
 let main =
-  (* GtkMain.Main.init () |> ignore; *)
   let window =
     GWindow.window ~width:400 ~height:200 ~position:`CENTER
       ~resizable:true ~title:"OCaml Chess" ()
@@ -653,38 +673,15 @@ let main =
   window#connect#destroy ==> Main.quit;
   window#misc#modify_bg bg_color;
 
-  let table =
-    GPack.table ~width:400 ~height:200 ~packing:window#add ()
-  in
+  let table = GPack.table ~width:400 ~height:200 ~packing:window#add () in
   let add i j x = table#attach i j x in
 
-  let white_button = GButton.button ~packing:(add 0 0) () in
-  white_button#misc#modify_bg light_color;
-  white_button#set_border_width 10;
-  text_label "Single (White)" 24 white_button#set_image |> ignore;
-
-  let black_button = GButton.button ~packing:(add 1 0) () in
-  black_button#misc#modify_bg light_color;
-  black_button#set_border_width 10;
-  text_label "Single (Black)" 24 black_button#set_image |> ignore;
-
-  let two_player_button = GButton.button ~packing:(add 0 1) () in
-  two_player_button#misc#modify_bg light_color;
-  two_player_button#set_border_width 10;
-  text_label "Two-Player" 24 two_player_button#set_image |> ignore;
-
-  let rush_button = GButton.button ~packing:(add 1 1) () in
-  rush_button#misc#modify_bg light_color;
-  rush_button#set_border_width 10;
-  text_label "Rush" 24 rush_button#set_image |> ignore;
-
-  text_label "Elo: " 16 (add 0 2) |> ignore;
-  let elo = GEdit.entry ~packing:(add 1 2) () in
-  elo#set_text "900";
-
-  text_label "Fen: " 16 (add 0 3) |> ignore;
-  let fen = GEdit.entry ~packing:(add 1 3) () in
-  fen#set_text "Paste an FEN here!";
+  let white_button = button_with_text "Single (White)" (add 0 0) in
+  let black_button = button_with_text "Single (Black)" (add 1 0) in
+  let two_player_button = button_with_text "Two-Player" (add 0 1) in
+  let rush_button = button_with_text "Rush" (add 1 1) in
+  let elo = add_elo_input (add 0 2) (add 1 2) in
+  let fen = add_fen_input (add 0 3) (add 1 3) in
 
   ( white_button#connect#pressed ==> fun () ->
     gui_main SinglePlayer elo#text fen#text (Some Black) );
