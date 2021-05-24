@@ -151,11 +151,6 @@ let capture_piece t piece =
 (** [switch_color c] returns the opposite of color [c]. *)
 let switch_color = function White -> Black | Black -> White
 
-(** [extract_piece p_opt] returns [p] where [p_opt] is [Some p].
-    Requires: [p_opt] is not [None]. *)
-let extract_piece p_opt : p =
-  match p_opt with None -> failwith "no piece" | Some p -> p
-
 (** [get_ep_sq sq sq'] returns [Some square] if the move from [sq] to
     [sq'] creates an en passant square [square]. Otherwise, returns
     [None]. *)
@@ -293,7 +288,7 @@ let capture_en_passant t piece sq' =
   | None -> t
   | Some ep_sq ->
       if piece.id = Pawn && sq' = ep_sq then
-        capture_piece t (t.ep_piece |> extract_piece)
+        capture_piece t (t.ep_piece |> Option.get)
       else t
 
 let rec move_piece t piece sq' turn =
@@ -321,7 +316,7 @@ and move_rook_for_castle t piece sq' =
   if is_castling_move piece sq' then
     let move_rook r_sq r_sq' =
       move_piece t
-        (r_sq |> piece_of_square t |> extract_piece)
+        (r_sq |> piece_of_square t |> Option.get)
         r_sq' false
     in
     match sq' with

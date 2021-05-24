@@ -21,7 +21,8 @@
    and Puzzle. These three modules were manually tested. In the case of the
    first two, which maintained the command-line and GUI versions of our
    chess game respectively, it is common practice to test this manually as it
-   is often infeasible to test graphical output.
+   is often infeasible to test graphical output. In the case of the third,
+   we only have 85 puzzles and we manually tested each one through the GUI.
 
    The correctness of this system is accurately measured through this testing
    plan as our automatic tests have over 80% coverage. In addition, the GUI
@@ -29,8 +30,6 @@
    contributors in additon to our project manager. Furthermore, these 5
    individuals cover OXS, Windows, and Linux machines on which the system
    preformed successfully.
-
-   TODO: Do we need to test Puzzle module automatically?
 
  ************************************************************)
 

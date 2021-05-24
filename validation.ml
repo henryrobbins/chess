@@ -295,11 +295,6 @@ let intercept_squares state dir_lst : square list =
   else
     List.map (fun x -> intercept_router state x) dir_lst |> List.flatten
 
-let extract_sq_option sq =
-  match sq with
-  | None -> failwith "Invalid Application" [@coverage off]
-  | Some sq' -> sq'
-
 let castle_empty_spaces state side_id =
   let color = color_to_move state in
   let king_square = square_of_king state color in
@@ -384,7 +379,7 @@ let include_ep_intercepts state piece dir_lst =
       if
         id_of_piece piece = Pawn
         && List.mem (square_of_piece p) intercepts
-      then (en_passant_sq state |> extract_sq_option) :: intercepts
+      then (en_passant_sq state |> Option.get) :: intercepts
       else intercepts
 
 let piece_moves_without_pins state piece : move list =
@@ -428,8 +423,7 @@ let get_dir_pin sq_lst state dir =
   in
   let filter_nones = List.filter (fun x -> x <> None) in
   let extract_pieces =
-    List.map (fun x ->
-        match x with Some p -> p | None -> failwith "impossible")
+    List.map Option.get
   in
   let ordered_piece_lst =
     sq_lst |> convert_to_piece_opts |> filter_nones |> extract_pieces
