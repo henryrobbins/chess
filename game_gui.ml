@@ -80,12 +80,6 @@ type game_window = {
 
 let locale = GtkMain.Main.init ()
 
-(** [extract option] extracts the value from option [option] if it
-    exists. Otherwise, fails with "impossible". *)
-let extract = function
-  | None -> failwith "impossible"
-  | Some option -> option
-
 (* Connect a signal handler, ignoring the resulting signal ID. This
    avoids having to use [|> ignore] everywhere.
    https://stackoverflow.com/questions/63106011 *)
@@ -302,7 +296,7 @@ let update_piece_select w =
 
 (** [update_rush_labels w] updates the total solved and wrong labels. *)
 let update_rush_labels w =
-  let rush = extract w.rush in
+  let rush = Option.get w.rush in
   update_text_label w.total_solved
     (rush |> total_solved |> string_of_int);
   update_text_label w.total_wrong (rush |> total_wrong |> string_of_int);
@@ -359,7 +353,7 @@ let piece_select_callback w pt () =
   | None -> ()
   | Some (p, sq') ->
       let b' = move_piece !(w.board) p sq' true in
-      let p' = extract (piece_of_square b' sq') in
+      let p' = Option.get (piece_of_square b' sq') in
       w.board := promote_pawn b' p' pt;
       w.promotion := None;
       w.locked := false;
@@ -368,7 +362,7 @@ let piece_select_callback w pt () =
 (** [rush_callback w] is the callback function for a rush game. *)
 let rush_pressed_callback w =
   let current_fen = export_to_fen !(w.board) in
-  let rush = extract w.rush in
+  let rush = Option.get w.rush in
   let progress = update_rush_with_move rush current_fen in
   update_rush_labels w;
   w.locked := true;
@@ -389,13 +383,13 @@ let rush_pressed_callback w =
 let single_player_callback w =
   let b = !(w.board) in
   let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
-  let p = extract (piece_of_square b sq) in
+  let p = Option.get (piece_of_square b sq) in
   let board' = move_piece b p sq' true in
   let board' =
     match promote with
     | None -> board'
     | Some pt ->
-        let p' = extract (piece_of_square board' sq') in
+        let p' = Option.get (piece_of_square board' sq') in
         promote_pawn board' p' pt
   in
   w.board := board'
@@ -406,7 +400,7 @@ let enter_square_callback w () =
   match w.mode with
   | TwoPlayer -> ()
   | _ ->
-      let cc = extract !(w.computer) in
+      let cc = Option.get !(w.computer) in
       if (not !(w.locked)) && color_to_move !(w.board) = cc then (
         ( match w.mode with
         | SinglePlayer -> single_player_callback w
@@ -457,7 +451,7 @@ let from_square_callback w sq p =
   w.drop := true;
   w.from_square := Some sq;
   w.to_square := None;
-  show_valid_moves w (extract p);
+  show_valid_moves w (Option.get p);
   ()
 
 (** [to_square_callback w sq] is the callback function for window [w]
@@ -465,8 +459,8 @@ let from_square_callback w sq p =
 let to_square_callback w sq =
   let b = !(w.board) in
   let sq' = sq in
-  let sq = extract !(w.from_square) in
-  let p = extract (piece_of_square b sq) in
+  let sq = Option.get !(w.from_square) in
+  let p = Option.get (piece_of_square b sq) in
   let board' =
     if is_valid_move (sq, sq') b then
       if is_pawn_promotion b p sq' then (
@@ -529,7 +523,7 @@ let gui_main mode elo fen color =
     match mode with
     | SinglePlayer | TwoPlayer ->
         ref (try init_from_fen fen with Failure _ -> init_game ())
-    | Rush -> ref (current_board (extract rush))
+    | Rush -> ref (current_board (Option.get rush))
   in
   let elo =
     try elo |> int_of_string |> string_of_int with Failure _ -> "3000"
@@ -539,7 +533,7 @@ let gui_main mode elo fen color =
     match mode with
     | SinglePlayer -> ref color
     | TwoPlayer -> ref None
-    | Rush -> ref (Some (computer_color (extract rush)))
+    | Rush -> ref (Some (computer_color (Option.get rush)))
   in
 
   let locked = ref false in

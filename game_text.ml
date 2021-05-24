@@ -54,9 +54,8 @@ let update_with_move b m cmd =
     if not (is_valid_move (sq, sq') b) then b else
     let b' = move_piece b p sq' true in
     if not (is_pawn_promotion b p sq') then b' else
-    match piece_of_square b' sq' with
-    | None -> failwith "impossible"
-    | Some p' -> promote_pawn b' p' (prompt_for_promotion ())
+    let p' = Option.get (piece_of_square b' sq') in
+    promote_pawn b' p' (prompt_for_promotion ())
 
 (** [turn] initiates a turn to be play chess via command line. *)
 let rec turn board =
