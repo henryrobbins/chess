@@ -1,15 +1,14 @@
-## Installation Instructions (GUI)
+# Installation Instructions
 
-(OSX)
+## (OSX)
 - Install [Homebrew](https://brew.sh/)
 - `brew install gtk+`
 - `opam install lablgtk`
 - `brew install stockfish`
-- TODO: Verify that the install location is `/usr/local/Cellar/stockfish/13`
-  with `brew info stockfish`. The location of the stocckfish executable is
-  `/usr/local/Cellar/stockfish/13/bin/stockfish`.
+- Verify that the install location is `/usr/local/Cellar/stockfish/13` <br>
+  (You may verify that `brew --prefix` returns `/usr/local`)
 
-(WSL):
+## (WSL)
 - `sudo apt update`
 - `sudo apt install libgtk2.0-dev`
 - `opam install lablgtk`
@@ -17,21 +16,3 @@
 - launch xming
 - run `export DISPLAY=:0` in ubuntu to link the linux GUI to Xming
 - `sudo apt-get install expect`
-
-## OCaml Chess
-
-Welcome to Chess! To start, run `make build` to build the game from the source
-code provided in the zip file. Next, run `make test` to verify everything is
-working properly.
-
-You can now run `make command-line` to play chess in the command line! To move
-a piece, type a command of the form `move [piece_id] [sqaure] to [sqaure]`
-where `piece_id` is in `[P,R,B,N,K,Q]` and `square` is a two-character string
-of the form `[file][rank]`. For example, `move P d2 to d4` is the command to
-move the pawn at sqaure d2 to d4. To quit the game, type `quit`. Lastly, if you
-would like to generate documentation, run `make docs`.
-
-Alternatively, you can run `make gui` to play chess via a graphical user
-interface! To move a piece, first click on the piece to move and then the
-square you wish to move it to. The color of the current player is given
-at the bottom of the GUI.

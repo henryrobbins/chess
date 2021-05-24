@@ -1,3 +1,39 @@
+(************************************************************
+
+   Test Plan
+
+   We deemed the following modules to require automatic testing through OUnit
+   testing: Board, Command, Endgame, Engine, and Validation. Coverage on a
+   small fraction of these modules was ignored due to one of:
+
+   1 ) The code was unreachable (failwith "impossible").
+   2 ) Code which only printed output to the terminal.
+
+   In the case of (2), this code was manually tested. Our OUnit test were
+   developed through both black box and glass box testing. We did not use any
+   randomized testing. Our initial pass on tests was based on black box
+   testing. However, we deemed that a second pass using glass box testing was
+   necessary since a chess implementation requires lots of conditional flow.
+   Through glass box testing and the coverage tool bisect, we could verify
+   that our code had the expected output in all possible branches.
+
+   The modules that were not automatically tested include Game_text, Game_gui,
+   and Puzzle. These three modules were manually tested. In the case of the
+   first two, which maintained the command-line and GUI versions of our
+   chess game respectively, it is common practice to test this manually as it
+   is often infeasible to test graphical output.
+
+   The correctness of this system is accurately measured through this testing
+   plan as our automatic tests have over 80% coverage. In addition, the GUI
+   and command-line game have been extensivley tested by the four code
+   contributors in additon to our project manager. Furthermore, these 5
+   individuals cover OXS, Windows, and Linux machines on which the system
+   preformed successfully.
+
+   TODO: Do we need to test Puzzle module automatically?
+
+ ************************************************************)
+
 open OUnit2
 open Board
 open Endgame

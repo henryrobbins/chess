@@ -273,7 +273,7 @@ let find_L_check_sq state =
   let king_sq = square_of_king state (color_to_move state) in
   let rec find_aux sq_lst =
     match sq_lst with
-    | [] -> failwith "impossible"
+    | [] -> failwith "impossible" [@coverage off]
     | sq :: t -> (
         match piece_of_square state sq with
         | None -> find_aux t
@@ -304,7 +304,7 @@ let intercept_squares state dir_lst : square list =
 
 let extract_sq_option sq =
   match sq with
-  | None -> failwith "Invalid Application"
+  | None -> failwith "Invalid Application" [@coverage off]
   | Some sq' -> sq'
 
 let castle_empty_spaces state side_id =
@@ -313,7 +313,7 @@ let castle_empty_spaces state side_id =
   match side_id with
   | King -> List.length (unblocked_squares state king_square E) = 2
   | Queen -> List.length (unblocked_squares state king_square W) = 3
-  | _ -> failwith "impossible"
+  | _ -> failwith "impossible" [@coverage off]
 
 (*let rec is_attacked_from_dir acc sq_lst state dir =*)
 
@@ -347,8 +347,8 @@ let castle_checked_spaces b side_id =
     | Queen -> (
         match unblocked_squares b king_square W with
         | [ h1; h2; h3 ] -> [ h1; h2 ]
-        | _ -> failwith "impossible" )
-    | _ -> failwith "impossible"
+        | _ -> failwith "impossible" [@coverage off])
+    | _ -> failwith "impossible" [@coverage off]
   in
   let dir_list = cast_atk_dirs b in
   List.length (List.filter (sq_not_attacked b dir_list) space_list) = 2
