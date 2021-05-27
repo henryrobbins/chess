@@ -3,10 +3,6 @@
 *Created for CS 3110: Functional Programming. Contributors include Anders Wikum
 (aew236), Henry Robbins (hwr26), Nalu Concepcion (lac327), and Andy Kim (yk765)*
 
-Welcome to Chess! To start, run `make build` to build the game from the source
-code provided in the zip file. Next, run `make test` to verify everything is
-working properly.
-
 <img src="images/start.png" alt="Menu" width="300"/> <br>
 <img src="images/game.png" alt="Game" width="300"/>
 <img src="images/rush.png" alt="Rush" width="300"/>
@@ -18,7 +14,7 @@ First, clone the repository with
 ```git clone https://github.coecis.cornell.edu/hwr26/chess.git```
 
 Then, follow the additional installation instructions in
-[INSTALL.md](INSTALL)
+[INSTALL.md](INSTALL.md)
 
 ## Graphical User Interface (GUI)
 
