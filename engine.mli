@@ -3,10 +3,10 @@
 
 open Board
 
-(** [best_move fen elo] is the move returned by stockfish with estimated
-    strength [elo] in the board state represented by the FEN
-    representation [fen]. If the move requires pawn promotion, the
-    promotion selection is included. Otherwise, the second element of the
-    tuple is None. *)
+(** [best_move path fen elo] is the move returned by the stockfish
+    exectuable located at [path] with estimated strength [elo] in the
+    board state represented by the FEN representation [fen]. If the move
+    requires pawn promotion, the promotion selection is included.
+    Otherwise, the second element of the tuple is None. *)
 val best_move :
-  string -> string -> (string * string) * piece_type option
+  string -> string -> string -> (string * string) * piece_type option

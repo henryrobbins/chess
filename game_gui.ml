@@ -36,6 +36,8 @@ type game_window = {
   (* The elo of the opposing player if single player is chosen *)
   elo : string;
   (* An instance of rush if the mode is rush. *)
+  stockfish : string;
+  (* The location of a stockfish executable. *)
   board : Board.t ref;
   (* The current board state in this game window. *)
   locked : bool ref;
@@ -382,7 +384,7 @@ let rush_pressed_callback w =
     player game. *)
 let single_player_callback w =
   let b = !(w.board) in
-  let (sq, sq'), promote = best_move (export_to_fen b) w.elo in
+  let (sq, sq'), promote = best_move w.stockfish (export_to_fen b) w.elo in
   let p = Option.get (piece_of_square b sq) in
   let board' = move_piece b p sq' true in
   let board' =
@@ -584,7 +586,7 @@ let hide_by_mode w =
     w.export_fen#misc#hide ();)
 
 (** [gui_main ()] initiates the game in gui mode. *)
-let gui_main mode elo fen color =
+let gui_main mode elo fen stockfish color =
   (* main game window *)
   let window =
     GWindow.window ~width ~height ~position:`CENTER ~resizable:true
@@ -612,6 +614,7 @@ let gui_main mode elo fen color =
     {
       mode;
       elo = verify_elo elo;
+      stockfish = stockfish;
       board;
       locked = ref false;
       computer;
@@ -664,6 +667,13 @@ let add_fen_input lbl_pack input_pack =
   fen#set_text "Paste an FEN here!";
   fen
 
+(** [add_stockfish_input lbl_pack input_pack] adds stockfish input to menu. *)
+let add_stockfish_input lbl_pack input_pack =
+  text_label "Stockfish: " 16 lbl_pack |> ignore;
+  let stockfish = GEdit.entry ~packing:input_pack () in
+  stockfish#set_text "/usr/local/Cellar/stockfish/13/bin/stockfish";
+  stockfish
+
 (** [main ()] initiates the game in gui mode. *)
 let main =
   let window =
@@ -682,15 +692,16 @@ let main =
   let rush_button = button_with_text "Rush" (add 1 1) in
   let elo = add_elo_input (add 0 2) (add 1 2) in
   let fen = add_fen_input (add 0 3) (add 1 3) in
+  let stockfish = add_stockfish_input (add 0 4) (add 1 4) in
 
   ( white_button#connect#pressed ==> fun () ->
-    gui_main SinglePlayer elo#text fen#text (Some Black) );
+    gui_main SinglePlayer elo#text fen#text stockfish#text (Some Black) );
   ( black_button#connect#pressed ==> fun () ->
-    gui_main SinglePlayer elo#text fen#text (Some White) );
+    gui_main SinglePlayer elo#text fen#text stockfish#text (Some White) );
   ( two_player_button#connect#pressed ==> fun () ->
-    gui_main TwoPlayer elo#text fen#text None );
+    gui_main TwoPlayer elo#text fen#text stockfish#text None );
   ( rush_button#connect#pressed ==> fun () ->
-    gui_main Rush elo#text fen#text None );
+    gui_main Rush elo#text fen#text stockfish#text None );
 
   window#show ();
   Main.main ()

@@ -32,7 +32,7 @@ bisect: clean bisect-test
 		bisect-ppx-report html
 
 zip:
-	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md README.md Makefile stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2/stockfish_13_linux_x64_bmi2 assets/*
+	zip chess.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit *.json test_board_jsons/* INSTALL.md README.md Makefile assets/*
 
 docs: docs-public docs-private
 

@@ -14,7 +14,7 @@
    exposed functions via black-box testing to see if we were getting the
    correct behavior on various edge-cases. We then used bisect and glass box
    testing to increase the coverage of our testing until we were sufficiently
-   confident that each piece of code was working as intended. This was 
+   confident that each piece of code was working as intended. This was
    especially useful as implementations of chess require lots of conditional
    branches. We did not use any randomized testing.
 
@@ -24,12 +24,12 @@
    chess game respectively, it is common practice to test this manually as it
    is often infeasible to test graphical output. In the case of the third,
    we only have 85 puzzles and we manually tested each one through the GUI
-   to ensure that it was working properly. Beyond that, the core of puzzle.ml 
+   to ensure that it was working properly. Beyond that, the core of puzzle.ml
    is built on board.ml, which we test extensively through OUnit tests.
 
    The correctness of this system is accurately measured through this testing
-   plan. For all but the 3 modules identified above, we've implemented 
-   automatic OUnit tests which test every function in the public docs either 
+   plan. For all but the 3 modules identified above, we've implemented
+   automatic OUnit tests which test every function in the public docs either
    explicitly or implicitly, and have over 80% bisect coverage. This includes
    functions which are not revealed in any .mli. Functions related to
    the GUI and command-line games have been extensivley play tested by the four
@@ -47,6 +47,8 @@ open Validation
 open Puzzle
 open Yojson.Basic.Util
 open Engine
+
+let stockfish_path = "/usr/local/Cellar/stockfish/13/bin/stockfish"
 
 let board = init_game ()
 
@@ -457,7 +459,7 @@ let is_stalemate_test name expected =
 let best_move_test name expected =
   "valid_piece_moves_test" ^ name >:: fun _ ->
   let fen = (List.assoc name tests).fen in
-  let move = best_move fen "3000" in
+  let move = best_move stockfish_path fen "3000" in
   assert_equal move expected
 
 let valid_moves_tests =

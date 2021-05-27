@@ -24,7 +24,7 @@ let extract_engine_move s =
     ((sq1, sq2), Some promote_id)
   else ((sq1, sq2), None)
 
-let best_move fen elo =
+let best_move path fen elo =
   let recover_output channel =
     let rec loop h =
       try loop (input_line channel :: h) with End_of_file -> h
@@ -36,7 +36,7 @@ let best_move fen elo =
   let bash_fen = "'" ^ fen ^ "'" in
   let stdout, stdin, stderr =
     Unix.open_process_full
-      ("sh ./query_stockfish.sh " ^ bash_fen ^ " " ^ elo)
+      ("sh ./query_stockfish.sh " ^ path ^ " " ^ bash_fen ^ " " ^ elo)
       [||]
   in
   close_out stdin;

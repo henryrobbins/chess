@@ -56,10 +56,11 @@ move the pawn at sqaure d2 to d4. To quit the game, type `quit`.
 
 ## Testing and Documentation
 
-Run `make tests` to run the automatic test suite. Run `make bisect` to generate
-a code coverage report found at `_coverage/index.html`. Run `make docs` to
-generate both public and private documentation which can be found at
-`_doc.public/index.html` and `_doc.private/index.html` respectively.
+Run `make tests` to run the automatic test suite. Be sure to set `path` at the
+top of `test.ml` to a valid path to a stockfish executable. Run `make bisect`
+to generate a code coverage report found at `_coverage/index.html`. Run
+`make docs` to generate both public and private documentation which can be
+found at `_doc.public/index.html` and `_doc.private/index.html` respectively.
 
 ## Development
 
@@ -71,3 +72,7 @@ from OCaml. Next, there are two sources of relevant documentation: the
 [GTK+ 3 Reference Manual](https://developer.gnome.org/gtk3/).
 
 Game Assets by [John Pablok](https://opengameart.org/content/chess-pieces-and-board-squares)
+
+## License
+
+Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)

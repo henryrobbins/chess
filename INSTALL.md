@@ -5,8 +5,6 @@
 - `brew install gtk+`
 - `opam install lablgtk`
 - `brew install stockfish`
-- Verify that the install location is `/usr/local/Cellar/stockfish/13` <br>
-  (You may verify that `brew --prefix` returns `/usr/local`)
 
 ## (WSL)
 - `sudo apt update`
@@ -16,3 +14,4 @@
 - launch xming
 - run `export DISPLAY=:0` in ubuntu to link the linux GUI to Xming
 - `sudo apt-get install expect`
+- Download [Stockfish 13](https://stockfishchess.org/download/)
