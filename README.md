@@ -7,6 +7,10 @@ Welcome to Chess! To start, run `make build` to build the game from the source
 code provided in the zip file. Next, run `make test` to verify everything is
 working properly.
 
+<img src="images/start.png" alt="Menu" width="300"/> <br>
+<img src="images/game.png" alt="Game" width="300"/>
+<img src="images/rush.png" alt="Rush" width="300"/>
+
 ## Installation Intructions
 
 First, clone the repository with
